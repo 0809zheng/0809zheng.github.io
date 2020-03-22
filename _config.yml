@@ -56,8 +56,9 @@ postPatterns: 'circuitBoard'
 # SNS settings 配置社交网站
 # url: email, weibo, zhihu, twitter, instagram, juejin, github, douban, facebook, dribble, uicn, jianshu, medium, linkedin
 sns:
-  weibo: '//weibo.com/u/5627414506'
   github: '//github.com/0809zheng'
+  weibo: '//weibo.com/u/5627414506'
+  zhihu: '//zhihu.com/people/zheng-zhi-jie-36'
 
 # Tags 设置标签
 recommend-tags: true # whether or not display recommend-tags on the sidebar
