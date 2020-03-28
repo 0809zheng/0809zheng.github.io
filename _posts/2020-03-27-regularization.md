@@ -1,7 +1,7 @@
 ---
 layout: post
 title: '深度学习中的Regularization'
-date: 2020-03-25
+date: 2020-03-27
 author: 郑之杰
 cover: 'http://p0.ifengimg.com/pmop/2018/0117/FF63C065C57341C7727412791090885E7EB230BD_size23_w900_h375.jpeg'
 tags: 深度学习
