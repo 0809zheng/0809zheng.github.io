@@ -1,7 +1,7 @@
 ---
 layout: post
 title: '深度学习中的Normalization'
-date: 2020-03-24
+date: 2020-03-04
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e79ca179dbe9d88c5e2e0b0.png'
 tags: 深度学习
