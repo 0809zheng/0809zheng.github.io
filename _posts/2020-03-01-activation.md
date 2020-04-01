@@ -1,7 +1,7 @@
 ---
 layout: post
 title: '深度学习中的Activation Function'
-date: 2020-03-25
+date: 2020-03-01
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e7b4db6504f4bcb040071f1.png'
 tags: 深度学习
