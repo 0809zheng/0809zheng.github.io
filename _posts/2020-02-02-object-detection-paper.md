@@ -4,7 +4,7 @@ title: '目标检测 综述'
 date: 2020-02-02
 author: 郑之杰
 cover: ''
-tags: 深度学习 目标检测
+tags: 目标检测
 ---
 
 > Papers about Object Detection.
