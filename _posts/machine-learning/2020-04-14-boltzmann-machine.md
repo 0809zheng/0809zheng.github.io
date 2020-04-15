@@ -21,7 +21,7 @@ tags: 机器学习
 2. 所有节点是全连接的；
 3. 每两个节点之间的连接权重是对称的。
 
-玻尔兹曼机的神经元可以分为**可观测变量(visiable variable)**$v$和**隐变量(latent variable)**$h$，下图给出了包含3个可观测变量和3个隐变量的玻尔兹曼机：
+玻尔兹曼机的神经元可以分为**可观测变量(visible variable)**$v$和**隐变量(latent variable)**$h$，下图给出了包含3个可观测变量和3个隐变量的玻尔兹曼机：
 
 ![](https://pic.downk.cc/item/5e952a3dc2a9a83be57fae50.jpg)
 
