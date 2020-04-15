@@ -29,7 +29,7 @@ tags: 机器学习
 
 $$ p(x) = \frac{1}{Z} exp(\frac{-E(x)}{T}) $$
 
-其中是$Z$是归一化因子，称为**配分函数(Partition Function)**;
+其中$Z$是归一化因子，称为**配分函数(Partition Function)**;
 
 能量函数$E(x)$定义为：
 
