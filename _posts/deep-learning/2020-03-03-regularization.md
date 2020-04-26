@@ -16,8 +16,10 @@ tags: 深度学习
 5. Weight Decay
 6. Early Stopping
 7. Dropout
-8. Data Augmentation
-9. Label Smoothing
+8. DropConnect
+9. Data Augmentation
+10. Label Smoothing
+
 
 
 # 1. Background
@@ -59,19 +61,33 @@ $$ θ^t=(1-β)θ^{t-1}-αg^t $$
 在随机梯度下降中，Weight Decay与L2 Regularization等价；但在较为复杂的优化方法（如Adam）中，[两者并不等价](https://arxiv.org/abs/1711.05101v1)。
 
 # 6. Early Stopping
-Early Stop是指训练时，当观察到验证集上的错误不再下降，就停止迭代。
+**Early Stop**是指训练时，当观察到验证集上的错误不再下降，就停止迭代。
 
 具体停止迭代的时机，可参考[Early stopping-but when?](https://link.springer.com/chapter/10.1007/978-3-642-35289-8_5)。
+
+使用Early Stop需要使用到验证集（Validation Set），这也就意味着在训练过程中会有一部分数据无法进行训练。在完成Early Stop后将验证集中的数据加入到训练集中，进行额外的训练。
+
+**①策略一**：使用验证集确定训练步数$t$，再次训练$t$次：
+
+![](https://pic.downk.cc/item/5ea569a8c2a9a83be5f2d016.jpg)
+
+**缺点**：不能确定按照Early Stop确定的训练最佳步数再次训练时仍能得到一个最佳的训练。
+
+**②策略二**：使用验证集确定损失值$ε$，再次训练使损失值$<ε$：
+
+![](https://pic.downk.cc/item/5ea569bbc2a9a83be5f2f081.jpg)
+
+**缺点**：无法保证继续训练是否能达到之前的目标值。
 
 # 7. Dropout
 - paper：[ Dropout: A simple way to prevent neural networks from overfitting](http://jmlr.org/papers/v15/srivastava14a.html)
 
-Dropout是指在训练深度神经网络时，随机丢弃一部分神经元。即对某一层设置概率p，对该层的每个神经元以概率p判断是否要丢弃。
+**Dropout**是指在训练深度神经网络时，随机丢弃一部分神经元。即对某一层设置概率p，对该层的每个神经元以概率p判断是否要丢弃。
 ![](https://pic.downk.cc/item/5e7de4c1504f4bcb04745d05.png)
 
 训练时，激活神经元的平均数量是原来的p倍；而在测试时所有神经元都被激活，故测试时需将该层神经元的输出乘以p。
 
-Inverted Dropout是指在训练时对某一层按概率p随机丢弃神经元之后将该层的输出除以p；测试时不需再做处理。
+**Inverted Dropout**是指在训练时对某一层按概率p随机丢弃神经元之后将该层的输出除以p；测试时不需再做处理。
 
 理解Dropout：
 
@@ -94,17 +110,27 @@ $$ E_{q(θ)}(y)=\int_q^{} {f(x;θ)q(θ)dθ}
 
 在循环神经网络中，使用[Variational Dropout](https://arxiv.org/abs/1512.05287)。
 
-# 8. Data Augmentation
-数据增强（Data Augmentation）通过对样本集的操作增加数据量（相当于对样本集加入随机噪声），提高模型鲁棒性，避免过拟合。
+# 8. DropConnect
+**DropConnect**丢弃神经元之间的连接，与Dropout类似：
+
+![](https://pic.downk.cc/item/5ea56859c2a9a83be5f1ad39.jpg)
+
+# 9. Data Augmentation
+**数据增强（Data Augmentation）**通过对样本集的操作增加数据量（相当于对样本集加入随机噪声），提高模型鲁棒性，避免过拟合。
 
 图像数据的增强方法主要有：
-1. 旋转 Rotation
-2. 翻转 Flip
-3. 缩放 Zoom
-4. 平移 Shift
-5. 加噪声 Noise
+1. **空间变换**：
+- 旋转 Rotation
+- 翻转 Flip
+- 缩放 Zoom
+- 平移 Shift
+2. **像素变换**：
+- 对比度扰动
+- 饱和度扰动
+- 颜色变换
+- 加噪声 Noise
 
-# 9. Label Smoothing
+# 10. Label Smoothing
 标签平滑（Label Smoothing）首先在[Inceptionv3](https://arxiv.org/abs/1512.00567)中被提出。
 
 标签平滑是对样本的标签引入一定的噪声。
