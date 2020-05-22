@@ -73,7 +73,7 @@ $Ground Truth$热图为以实际关节点位置为中心的标准正态分布，
 提出了新的**区域多人姿态估计（Region Multi-Person Pose Estimation，RMPE）**框架，包含三部分：
 1. **Symmetric Spatial Transformer Network（SSTN）**：对称空间变换网络，用于在不准确的人体检测框中提取准确的单人区域；
 2. **Parametric Pose Non-Maximum-Suppression（p-Pose NMS）**：参数化姿态的非最大值抑制，用于解决人体检测框冗余问题；
-3 .**Pose-Guided Proposals Generator（PGPG）**：姿态引导区域框生成器，用于数据增强。
+3. **Pose-Guided Proposals Generator（PGPG）**：姿态引导区域框生成器，用于数据增强。
 
 
 # 4. 姿态估计数据集
