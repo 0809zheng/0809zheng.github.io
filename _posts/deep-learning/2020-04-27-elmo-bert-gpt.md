@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'ELMO、BERT、GPT'
+title: '预训练语言模型ELMO、BERT、GPT'
 date: 2020-04-27
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ea4013dc2a9a83be5b17721.jpg'
