@@ -36,6 +36,16 @@ L2正则化的优化问题可写作：
 
 $$ θ^*=argmin_θ \frac{1}{N} \sum_{n=1}^{N} {L(y^n,f(x^n))}+λ \mid\mid θ \mid\mid _2^2$$
 
+使用$L2$正则化有一个缺点，就是它使每个权重进行等比例缩小（shrink）。也就是说大的权重缩小程度较大，小的权重缩小程度较小。等比例缩小很难得到值为零的权重。而有时希望权重的解是稀疏（sparse）的，因为这样能有效减少$VC维$，从而减小模型复杂度，防止过拟合发生。
+
+为了得到sparse解，可采取的方法有：
+- **weight-elimination正则化**
+- $L1$正则化
+
+**weight-elimination正则化**在$L2$正则化上做了尺度的缩小，这样能使不同尺度的权重都能得到同等程度的缩小，从而让更多权重最终为零。**weight-elimination正则化**的表达式如下：
+
+$$ \sum_{}^{} {\frac{\mid\mid θ \mid\mid^2}{1+\mid\mid θ \mid\mid^2}} $$
+
 # 3. L1 Regularization
 L1 Regularization通过约束参数的L1范数（L1-norm）减小过拟合。
 
