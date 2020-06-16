@@ -37,6 +37,10 @@ tags: 深度学习
 ### 如何剪枝？
 对于一个训练好的网络模型，评估其中每个**权重weight**或**神经元neuron**的重要性，移除其中一些，之后在训练集上**fine-tuning**。
 
+权重剪枝和神经元剪枝的区别在于：
+- 权重剪枝不改变原始的权重矩阵形状，只是使其变得稀疏；
+- 神经元剪枝每剪掉一个神经元，相当于删除权重矩阵的一列，会使权重矩阵形状变小。
+
 **1. Weight pruning**
 
 **权重weight**的重要性用其**范数**衡量，即越接近0的权重越不重要。
@@ -55,6 +59,8 @@ tags: 深度学习
 
 - 通常$pruning$之后，准确率会有下降，只要下降在可接受的范围内即可；
 - 一次不要剪枝太多，否则网络很难通过**fine-tuning**恢复性能。
+
+一种实现神经元剪枝的方法是[**Network Slimming**](https://arxiv.org/abs/1708.06519),用**batchnorm layer**的**resize**因子$𝛾$來決定神经元的重要性。
 
 # 2. Knowledge Distillation
 - [paper](https://arxiv.org/pdf/1503.02531.pdf)
@@ -78,11 +84,17 @@ tags: 深度学习
 
 $$ y_i = \frac{exp(\frac{x_i}{T})}{\sum_{j}^{} {exp(\frac{x_j}{T})}} $$
 
+则训练的损失函数包括：
+- 最小化学生网络和教师网络经过温度调整的输出分布的KL散度；
+- 最小化学生网络输出与标签值的交叉熵。
+
+$$ Loss = \alpha T^2 \times KL(\frac{\text{Teacher's Logits}}{T} || \frac{\text{Student's Logits}}{T}) + (1-\alpha) \times CE(\text{ labels } || \text{ Student's Logits }) $$
+
 
 # 3. Parameter Quantization
 **参数量化(Parameter Quantization)**通过量化参数压缩模型，常用的方法如下：
 
-1. 用更少的$bits$表示数值；
+1. 用更少的$bits$表示数值；![](https://pic.downk.cc/item/5ee83fec2cb53f50fe5a39d0.jpg)
 2. **weight clustering**：将权重进行聚类，用聚类中心值代替属于该类的权重值；
 ![](https://pic.downk.cc/item/5eab8cbec2a9a83be5f8c17e.jpg)
 3. **Huffman Encoding**：用更少的$bits$表示频繁出现的聚类类别，用更多的$bits$表示不频繁出现的类别；
