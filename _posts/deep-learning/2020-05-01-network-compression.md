@@ -65,22 +65,37 @@ tags: 深度学习
 # 2. Knowledge Distillation
 - [paper](https://arxiv.org/pdf/1503.02531.pdf)
 
-### 实现
-**知识蒸馏(knowledge distillation)**是指对于一个训练好的较大的**teacher net**，训练一个较小的**student net**去拟合**teacher net**的输出(分布)：
+**知识蒸馏(knowledge distillation，KD)**是指对于一个训练好的较大的**teacher net**，训练一个较小的**student net**去拟合**teacher net**的输出(分布)：
 
 ![](https://pic.downk.cc/item/5eaac93fc2a9a83be55c669a.jpg)
 
 通常较大的网络不仅能获得正确的结果，还能提供更多的信息：如与正确结果相近的结果可能性会高一些。知识蒸馏可以让**student net**学习到**teacher net**挖掘的信息。
 
-### 应用
+## 应用
 知识蒸馏的一个典型应用是，在训练时使用**Ensemble**集成了很多模型，在部署时使用这些大量的复杂模型是不现实的；通过知识蒸馏训练一个**student net**，使模型轻量化：
 
 ![](https://pic.downk.cc/item/5eab8bebc2a9a83be5f85b29.jpg)
 
-### 技巧
-在进行知识蒸馏时，**student net**学习**teacher net**经过$softmax$的输出分布；
+## 方法
+知识蒸馏的两种方法：
+- **Logit Distillation**：学生网络学习教师网络的**logit**输出值
+- **Feature Distillation**：学生网络学习教师网络的**feature**中间值
+- **Relational Distillation**：学生网络学习样本之间的关系
 
-通常希望**teacher net**能够挖掘更多的信息，因此每一个类别的预测概率相差不要太大，引入**temperature** $T$：
+### (1)Logit Distillation
+在进行知识蒸馏时，**student net**学习**teacher net**经过$softmax$的输出分布；具体地实现方法包括：
+1. Baseline KD
+2. Deep Mutual Learning
+3. Born Again Neural Networks
+4. TAKD
+
+**1. Baseline KD**
+
+学生网络同时学习教师网络的**软输出（soft target）**和标签的**硬输出（hard target）**：
+
+![](https://pic.downk.cc/item/5ee9b9fea240b370e3d1a072.jpg)
+
+通常希望**teacher net**能够挖掘更多的信息，因此每一个类别的预测概率相差不要太大，引入**temperature** $T$，防止软输出非常接近硬输出：
 
 $$ y_i = \frac{exp(\frac{x_i}{T})}{\sum_{j}^{} {exp(\frac{x_j}{T})}} $$
 
@@ -90,6 +105,71 @@ $$ y_i = \frac{exp(\frac{x_i}{T})}{\sum_{j}^{} {exp(\frac{x_j}{T})}} $$
 
 $$ Loss = \alpha T^2 \times KL(\frac{\text{Teacher's Logits}}{T} || \frac{\text{Student's Logits}}{T}) + (1-\alpha) \times CE(\text{ labels } || \text{ Student's Logits }) $$
 
+**2. Deep Mutual Learning**
+
+- paper：[Deep Mutual Learning](https://arxiv.org/abs/1706.00384)
+
+**相互学习（Mutual Learning）**的思想是同时训练两个网络，每个网络从另一个网络以及标签中进行学习。
+
+![](https://pic.downk.cc/item/5ee9bc0da240b370e3d3fbf4.jpg)
+
+**3. Born Again Neural Networks**
+
+重生网络的思想是先用**Baseline KD**的方法训练一个学生网络，在由学生网络迭代地根据交叉熵损失训练若干个学生网络，并将它们集成起来：
+
+![](https://pic.downk.cc/item/5ee9bd77a240b370e3d607d3.jpg)
+
+**4. TAKD**
+
+教师网络和学生网络之间的能力差距过大，将导致学生网络无法学习。**TAKD**用一个参数量介于教师网络和学生网络之间的**teacher assistant网络**，避免两个网络差距过大：
+
+![](https://pic.downk.cc/item/5ee9bf0fa240b370e3d8234c.jpg)
+
+### (2)Feature Distillation
+有时教师网络的输出具有很强的语义特征，直接让学生网络学习教师网络的输出是很困难的。**Feature Distillation**是让学生网络学习教师网络的中间特征。具体地实现方法包括：
+1. FitNet
+2. Attention
+
+**1. FitNet**
+
+**FitNet**先让学生网络的中间层（经过尺寸调整后）学习教师网络的某个中间层特征：
+
+![](https://pic.downk.cc/item/5ee9c133a240b370e3db4356.jpg)
+
+再使用**Baseline KD**对学生网络进行调整：
+
+![](https://pic.downk.cc/item/5ee9c1a5a240b370e3dbc436.jpg)
+
+由于教师网络和学生网络的模型容量不同、教师网络中可能存在冗余，当两个网络结构差别较大时，该方法效果不好。
+
+**2. Attention**
+
+将注意力机制引入知识蒸馏，即先将教师网络和学生网络的中间层特征通过注意力压缩，让学生网络学习压缩后的特征。
+
+一种实现方法是对教师网络和学生网络的中间特征沿通道方向平方后相加：
+
+![](https://pic.downk.cc/item/5ee9c88da240b370e3e4a7bd.jpg)
+
+### (3)Relational Distillation
+逻辑蒸馏和特征蒸馏都是以单个样本为单位训练学生网络学习教师网络，而关系蒸馏是让学生网络学习样本之间的关系：
+
+![](https://pic.downk.cc/item/5ee9c940a240b370e3e57ab3.jpg)
+
+具体地实现方法包括：
+1. Distance-wise & Angle-wise KD
+2. Similarity-Preserving KD
+
+**1. Distance-wise & Angle-wise KD**
+
+对于每一批量的数据，使用教师网络得到他们的**输出**；学生网络学习这些输出的关系。具体地，可以学习它们的距离关系或夹角关系（用余弦相似度表示）。
+
+![](https://pic.downk.cc/item/5ee9cd1ea240b370e3ea5282.jpg)
+
+**2. Similarity-Preserving KD**
+
+对于每一批量的数据，使用教师网络得到其中的中间层**特征**；对这些样本的中间层特征计算余弦相似度，得到余弦相似度表格；训练学生网络学习相似度表格：
+
+![](https://pic.downk.cc/item/5ee9ce0ba240b370e3eb7aca.jpg)
 
 # 3. Parameter Quantization
 **参数量化(Parameter Quantization)**通过量化参数压缩模型，常用的方法如下：
