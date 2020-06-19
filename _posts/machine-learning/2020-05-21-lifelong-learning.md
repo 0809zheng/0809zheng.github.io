@@ -1,7 +1,7 @@
 ---
 layout: post
 title: '终身学习'
-date: 2020-04-26
+date: 2020-05-21
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5eec25c514195aa59496e904.jpg'
 tags: 机器学习
