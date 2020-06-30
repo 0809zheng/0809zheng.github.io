@@ -4,7 +4,7 @@ title: '词嵌入'
 date: 2020-04-29
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ea917bbc2a9a83be5f8a32b.jpg'
-tags: 机器学习
+tags: 深度学习
 ---
 
 > Word Embedding.
