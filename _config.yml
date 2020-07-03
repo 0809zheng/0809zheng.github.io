@@ -33,7 +33,7 @@ avatar: 'https://pic.downk.cc/item/5e7854525c560911297a1a5f.jpg'
 search: true
 
 # Night mode
-nightMode: false
+nightMode: true
 
 # Comments 评论功能
 comments:
