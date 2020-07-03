@@ -105,22 +105,6 @@
         <div id="disqus_thread"></div>
     </section>
     {% endif %}
-	
-    {% if site.comments.gitalk %}
-      <script>
-          var gitalk = new Gitalk({
-                clientID: '{{ site.comments.gitalk_clientID }}',
-                clientSecret: '{{ site.comments.gitalk_Secret }}',
-                repo: '{{ site.comments.gitalk_repo }}',
-                owner: '{{ site.comments.gitalk_owner }}',
-                admin: '{{ site.comments.gitalk_admin }}',
-                id: location.pathname,      // Ensure uniqueness and length less than 50{{ page.title }}
-                distractionFreeMode: '{{ site.comments.distractionFreeMode }}'  // Facebook-like distraction free mode
-              })
-
-              gitalk.render('disqus_thread')
-      </script>
-    {% endif %}
   </section>
 
   {% include footer.html %}
@@ -159,6 +143,22 @@
       (d.head || d.body).appendChild(s);
     })();
   </script>
+  {% endif %}
+	
+  {% if site.comments.gitalk %}
+    <script>
+        var gitalk = new Gitalk({
+              clientID: '{{ site.comments.gitalk_clientID }}',
+              clientSecret: '{{ site.comments.gitalk_Secret }}',
+              repo: '{{ site.comments.gitalk_repo }}',
+              owner: '{{ site.comments.gitalk_owner }}',
+              admin: '{{ site.comments.gitalk_admin }}',
+              id: location.pathname,      // Ensure uniqueness and length less than 50{{ page.title }}
+              distractionFreeMode: '{{ site.comments.distractionFreeMode }}'  // Facebook-like distraction free mode
+            })
+
+            gitalk.render('disqus_thread')
+    </script>
   {% endif %}
 
   <script src="{{ "/assets/js/prism.js" | relative_url }}"></script>
