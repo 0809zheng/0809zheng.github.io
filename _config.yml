@@ -41,8 +41,8 @@ comments:
   disqus_url: 'https://liaokeyu.disqus.com/embed.js'
   
   gitalk: true
-  gitalk_clientID: '14d25a518576e3fc7641'
-  gitalk_Secret: 'd23781472dac3f0117dab553377b7e65db59e07b'
+  gitalk_clientID: 'd45b6dcdac0458c21c03'
+  gitalk_Secret: '875ea1d909ddd834f6e6dc7448d0616eec1096a2'
   gitalk_repo: '0809zheng.github.io'
   gitalk_owner: '0809zheng'
   gitalk_admin: '0809zheng'
