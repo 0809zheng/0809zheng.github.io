@@ -108,7 +108,8 @@ $$ g_{r_1r_2r_3} = \begin{cases} 1, & r_1=r_2=r_3 \\ 0, & \text{others} \end{cas
 
 使用**Python**的**Numpy**库可以便捷实现上述运算过程：
 
-```
+```python
+	p { color: black }
 import numpy as np
 def cp_combine(mat1, mat2, mat3):
     return np.einsum('mr, nr, tr -> mnt', mat1, mat2, mat3)
