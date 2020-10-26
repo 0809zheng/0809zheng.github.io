@@ -53,7 +53,7 @@ tags: 深度学习
 - [文本摘要](https://0809zheng.github.io/2020/05/13/text-summary.html)
 - [图像描述](https://0809zheng.github.io/2020/05/14/image-caption.html)
 - [连接时序分类](https://0809zheng.github.io/2020/06/11/ctc.html)
-
+- [音乐生成](https://0809zheng.github.io/2020/10/26/musicgen.html)
 
 # 相关课程
 
