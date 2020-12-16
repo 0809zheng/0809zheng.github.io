@@ -36,6 +36,7 @@ tags: 深度学习
 ### 深度学习中的计算机视觉
 - [卷积神经网络的结构发展](https://0809zheng.github.io/2020/06/03/CNN-architecture.html)
 - [卷积神经网络中的注意力机制](https://0809zheng.github.io/2020/11/18/AinCNN.html)
+- [卷积神经网络的可视化](https://0809zheng.github.io/2020/12/16/custom.html)
 - [图像分类](https://0809zheng.github.io/2020/05/06/image-classification.html)
 - [目标检测](https://0809zheng.github.io/2020/05/31/object-detection.html)
 - [语义分割](https://0809zheng.github.io/2020/05/07/semantic-segmentation.html)
