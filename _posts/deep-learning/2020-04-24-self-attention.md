@@ -16,7 +16,7 @@ tags: 深度学习
 2. Self-Attention
 3. Multi-Head Self-Attention
 4. Positional Encoding
-
+5. Compared with MLP, CNN and RNN
 
 # 1. Background
 通常使用**循环神经网络RNN**实现Seq2Seq模型，双向RNN可以读取全局信息：
@@ -106,7 +106,7 @@ $$ B_m = V_msoftmax(A_m) $$
 $$ B = W^o \begin{bmatrix} B_1 \\ ... \\ B_M \\ \end{bmatrix} $$
 
 # 4. Positional Encoding
-自注意力模型忽略了序列$$[x_1,...,x_N]$$中每个$x$的位置信息，因此显式的引入**位置编码**$e$：
+自注意力模型忽略了序列$$[x_1,...,x_N]$$中每个$x$的位置信息，因此显式地引入**位置编码**$e$：
 
 ![](https://pic.downk.cc/item/5ea29902c2a9a83be55cdc7b.jpg)
 
@@ -134,3 +134,10 @@ $$ e_{t,2i+1} = cos(\frac{t}{10000^{\frac{2i}{D}}}) $$
 位置编码矩阵可视化如下：
 
 ![](https://pic.downk.cc/item/5ea29a8ac2a9a83be55ea47e.jpg)
+
+# 5. Compared with MLP, CNN and RNN
+多层感知机的每一层权重经过训练后是固定的，与输入无关；而自注意力层的权重是由输入决定的，但只能生成固定长度的输出序列。
+
+卷积神经网络的卷积核具有一定的感受野，不能捕捉全局特征，需要增加网络深度获得更大的感受野；而自注意力层的每一层都能捕捉全局特征。
+
+循环神经网络的隐状态是按顺序传递的，由之前的状态才能计算下一个状态，无法并行加速；而自注意力层的计算可以并行进行。
