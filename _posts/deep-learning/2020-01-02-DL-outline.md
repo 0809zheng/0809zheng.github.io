@@ -39,6 +39,7 @@ tags: 深度学习
 - [卷积神经网络的可视化](https://0809zheng.github.io/2020/12/16/custom.html)
 - [图像分类](https://0809zheng.github.io/2020/05/06/image-classification.html)
 - [目标检测](https://0809zheng.github.io/2020/05/31/object-detection.html)
+- [目标检测中的回归损失函数](https://0809zheng.github.io/2021/02/01/iouloss.html)
 - [语义分割](https://0809zheng.github.io/2020/05/07/semantic-segmentation.html)
 - [三维人体模型](https://0809zheng.github.io/2021/01/07/3dhuman.html)
 - [人体姿态估计](https://0809zheng.github.io/2020/05/08/pose-estimation.html)
