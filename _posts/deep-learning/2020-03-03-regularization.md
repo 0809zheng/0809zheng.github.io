@@ -154,3 +154,5 @@ $$ y=(0,...,0,1,0,...,0)^T $$
 $$ y'=(\frac{ε}{K-1},...,\frac{ε}{K-1},1-ε,\frac{ε}{K-1},...,\frac{ε}{K-1})^T $$
 
 上述标签是一种Soft Target，但没有考虑标签的相关性。一种更好的做法是按照类别相关性赋予其他标签不同的概率。
+
+有关标签平滑更详细的内容见论文：[Rethinking the Inception Architecture for Computer Vision](https://0809zheng.github.io/2021/03/11/labelsmoothing.html)
