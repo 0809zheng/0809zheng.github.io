@@ -150,20 +150,20 @@ $$ \text{M-step：} \theta^{(t+1)} = \mathop{\arg \max}_{\theta} \Bbb{E}_{P(z|x 
 
 上述算法要求条件概率$P(z\|x ; \theta^{(t)})$是可求的。若该条件概率不可求，则仍将对数似然函数看作**ELBO**和**KL**散度之和：
 
-$$ logP(x ; \theta) = \int_{z}^{} Q(z) log\frac{P(x,z ; \theta)}{Q(z)} dz - \int_{z}^{} Q(z) log\frac{P(z|x ; \theta)}{Q(z)} dz \\ = \text{ELBO(Q,\theta)} + \text{KL}(Q(z) || P(z|x ; \theta)) $$
+$$ logP(x ; \theta) = \int_{z}^{} Q(z) log\frac{P(x,z ; \theta)}{Q(z)} dz - \int_{z}^{} Q(z) log\frac{P(z|x ; \theta)}{Q(z)} dz \\ = \text{ELBO}(Q,\theta) + \text{KL}(Q(z) || P(z|x ; \theta)) $$
 
 将$Q(z)$也看做未知量，在迭代求解时与参数$\theta$一起求解。即给定$\hat{\theta}$时，有：
 
-$$ \hat{Q} = \mathop{\arg \min}_{Q} \text{KL}(Q(z) || P(z|x ; \theta)) = \mathop{\arg \max}_{Q} \text{ELBO(Q,\hat{\theta})} $$
+$$ \hat{Q} = \mathop{\arg \min}_{Q} \text{KL}(Q(z) || P(z|x ; \theta)) = \mathop{\arg \max}_{Q} \text{ELBO}(Q,\hat{\theta}) $$
 
 给定$\hat{Q}$时，有：
 
-$$ \hat{\theta} = \mathop{\arg \max}_{\theta} \text{ELBO(\hat{Q},\theta)} $$
+$$ \hat{\theta} = \mathop{\arg \max}_{\theta} \text{ELBO}(\hat{Q},\theta) $$
 
 上述算法被称作**广义期望最大(generalized expectation maximization,GEM)**算法，也被称作**极大-极大(maximization-maximization)**算法，算法流程如下：
 
-$$ \text{E-step：} Q^{(t+1)} = \mathop{\arg \max}_{Q} \text{ELBO(Q,\theta^{(t)})} $$
+$$ \text{E-step：} Q^{(t+1)} = \mathop{\arg \max}_{Q} \text{ELBO}(Q,\theta^{(t)}) $$
 
-$$ \text{M-step：} \theta^{(t+1)} = \mathop{\arg \max}_{Q} \text{ELBO(Q^{(t+1)},\theta)} $$
+$$ \text{M-step：} \theta^{(t+1)} = \mathop{\arg \max}_{Q} \text{ELBO}(Q^{(t+1)},\theta) $$
 
 
