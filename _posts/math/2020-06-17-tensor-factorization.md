@@ -57,7 +57,7 @@ $$ \Rightarrow\min_{\mathcal{G}}\sum_{(m,n,t)\in\Omega}\left(x_{mnt}-\left(\bold
 
 上述问题的解可以表达为：
 
-$$ \text{vec}\left \\ (\mathcal{G}\right)\Leftarrow\left(\sum_{(m,n,t)\in\Omega}\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)^\top\right)^{-1}\left(\sum_{(m,n,t)\in\Omega}x_{mnt}\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)\right) $$
+$$ \text{vec}\left (\mathcal{G}\right)\Leftarrow \\ \left(\sum_{(m,n,t)\in\Omega}\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)^\top\right)^{-1}\left(\sum_{(m,n,t)\in\Omega}x_{mnt}\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)\right) $$
 
 同理，求解因子矩阵$A \in \Bbb{R}^{M×R_1}$的优化问题可以写作：
 
@@ -83,7 +83,7 @@ $$ \min_{\mathcal{G}}\sum_{(m,n,t)\in\Omega}\left(x_{mnt}-\left(\boldsymbol{c}_{
 
 上述问题的解可以表达为：
 
-$$ \text{vec}\left \\ (\mathcal{G}\right)\Leftarrow\left(\sum_{(m,n,t)\in\Omega}\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)^\top+\lambda_gI\right)^{-1}\left(\sum_{(m,n,t)\in\Omega}x_{mnt}\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)\right) $$
+$$ \text{vec}\left (\mathcal{G}\right)\Leftarrow \\ \left(\sum_{(m,n,t)\in\Omega}\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)^\top+\lambda_gI\right)^{-1}\left(\sum_{(m,n,t)\in\Omega}x_{mnt}\left(\boldsymbol{c}_{t}\odot\boldsymbol{b}_{n}\odot\boldsymbol{a}_{m}\right)\right) $$
 
 
 # 2. CP分解
