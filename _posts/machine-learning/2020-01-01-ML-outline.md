@@ -43,10 +43,10 @@ tags: 机器学习
 
 ## (1)回归
 **回归(Regression)**的输出是连续值，范围为整个实数空间或其中一部分空间。
-- [<font color=Blue>线性回归 **LR**</font>](https://0809zheng.github.io/2020/03/12/regression.html)：线性回归, 广义线性模型, 非线性回归
+- [<font color=Blue>线性回归 LR</font>](https://0809zheng.github.io/2020/03/12/regression.html)：线性回归, 广义线性模型, 非线性回归
 - [<font color=Blue>正则化的线性回归</font>](https://0809zheng.github.io/2020/03/30/ridge.html)：岭回归, 核岭回归, **LASSO**回归
-- [<font color=Blue>**Tube**回归</font>](https://0809zheng.github.io/2020/03/29/tube.html)：引入中立区的线性回归
-- [<font color=Blue>支持向量回归 **SVR**</font>](https://0809zheng.github.io/2020/03/15/support-vector-regression.html)：引入支持向量的**Tube**回归
+- [<font color=Blue>Tube回归</font>](https://0809zheng.github.io/2020/03/29/tube.html)：引入中立区的线性回归
+- [<font color=Blue>支持向量回归 SVR</font>](https://0809zheng.github.io/2020/03/15/support-vector-regression.html)：引入支持向量的**Tube**回归
 
 ## (2)分类
 **分类(Classification)**的输出是离散值，把输入样本划分为有限个类别。
@@ -55,13 +55,13 @@ tags: 机器学习
 
 根据输出范围的取值不同，分类可以划分为**硬分类(hard classify)**和**软分类(soft classify)**：
 - **硬分类**：输出范围是$$\{0,1\}$$，将结果划分到某个具体的类别，包括：
-1. [<font color=Blue>感知机 **Perceptron**</font>](https://0809zheng.github.io/2020/03/11/perceptron.html)：感知机学习算法(**PLA**), 口袋(**pocket**)算法
-2. [<font color=Blue>k近邻算法 **kNN**</font>](https://0809zheng.github.io/2020/03/23/knn.html)
-3. [<font color=Blue>线性判别分析 **LDA**</font>](https://0809zheng.github.io/2020/03/24/lda.html)：二分类**LDA**, 多分类**LDA**, 核**LDA**
-4. [<font color=Blue>支持向量机 **SVM**</font>](https://0809zheng.github.io/2020/03/14/SVM.html)：线性**SVM**, 对偶**SVM**, 核**SVM**, 软间隔**SVM**, 概率**SVM**, 最小二乘**SVM**
+1. [<font color=Blue>感知机 Perceptron</font>](https://0809zheng.github.io/2020/03/11/perceptron.html)：感知机学习算法(**PLA**), 口袋(**pocket**)算法
+2. [<font color=Blue>k近邻算法 kNN</font>](https://0809zheng.github.io/2020/03/23/knn.html)
+3. [<font color=Blue>线性判别分析 LDA</font>](https://0809zheng.github.io/2020/03/24/lda.html)：二分类**LDA**, 多分类**LDA**, 核**LDA**
+4. [<font color=Blue>支持向量机 SVM</font>](https://0809zheng.github.io/2020/03/14/SVM.html)：线性**SVM**, 对偶**SVM**, 核**SVM**, 软间隔**SVM**, 概率**SVM**, 最小二乘**SVM**
 5. [决策树](): 
 - **软分类**：输出范围是$\[0,1\]$，给出每一个类别可能的概率，包括：
-1. [<font color=Blue>逻辑回归 **Logistic**</font>](https://0809zheng.github.io/2020/03/13/logistic-regression.html): **Logistic**回归, 交叉熵损失, 核**Logistic**回归
+1. [<font color=Blue>逻辑回归 Logistic</font>](https://0809zheng.github.io/2020/03/13/logistic-regression.html): **Logistic**回归, 交叉熵损失, 核**Logistic**回归
 2. [<font color=Blue>最大熵原理和最大熵模型</font>](https://0809zheng.github.io/2021/07/20/me.html)
 2. [高斯判别分析]()
 3. [朴素贝叶斯]()
@@ -98,12 +98,12 @@ tags: 机器学习
 根据降维的运算是线性的还是非线性的，可分为线性降维和非线性降维。**线性降维**是基于线性变换来进行降维的，可以表示为$Z=WX$，不同的线性降维无非是为线性变换矩阵$W$施加了不同的约束。**非线性降维**则假设高维空间到低维空间的函数映射是非线性的。
 
 - **线性降维**：
-1. [<font color=Blue>主成分分析 **PCA**</font>](https://0809zheng.github.io/2020/04/11/PCA.html): (几何,线性变换,最大投影方差,最小重构代价,奇异值分解)角度, 主坐标分析(**PCoA**), 概率**PCA**
-2. [<font color=Blue>多维缩放 **MDS**</font>](https://0809zheng.github.io/2021/07/28/mds.html)
+1. [<font color=Blue>主成分分析 PCA</font>](https://0809zheng.github.io/2020/04/11/PCA.html): (几何,线性变换,最大投影方差,最小重构代价,奇异值分解)角度, 主坐标分析(**PCoA**), 概率**PCA**
+2. [<font color=Blue>多维缩放 MDS</font>](https://0809zheng.github.io/2021/07/28/mds.html)
 3. [稀疏编码](https://0809zheng.github.io/2020/04/08/sparse-coding.html)
 4. [自编码器](https://0809zheng.github.io/2020/04/09/autoencoder.html)
 - **非线性降维**：
-1. [<font color=Blue>核主成分分析 **KPCA**</font>](https://0809zheng.github.io/2021/07/27/kpca.html)
+1. [<font color=Blue>核主成分分析 KPCA</font>](https://0809zheng.github.io/2021/07/27/kpca.html)
 2. [流形学习](https://0809zheng.github.io/2020/04/07/manifold.html)(LLE、LE、[t-SNE](https://0809zheng.github.io/2020/04/10/t-SNE.html))
 
 
@@ -141,15 +141,15 @@ $$ p_{\theta}(x,z) = p_{\theta}(x | z)p_{\theta}(z) $$
 
 通常希望构建的子模型具有一定的**准确率**(至少不差于**弱学习器**,即泛化性能略优于随机猜测的学习器)，又具有一定的**多样性**(即不同子模型之间具有一定的差异)。
 
-- [<font color=Blue>集成学习中子模型的**多样性**(**diversity**)分析</font>](https://0809zheng.github.io/2021/07/22/ead.html): 误差-分歧分解, 多样性度量, 多样性增强
-- [<font color=Blue>集成学习中不同子模型的**结合**(**Blending**)策略</font>](https://0809zheng.github.io/2020/03/16/blending.html): **voting, averaging, stacking**
+- [<font color=Blue>集成学习中子模型的多样性(diversity)分析</font>](https://0809zheng.github.io/2021/07/22/ead.html): 误差-分歧分解, 多样性度量, 多样性增强
+- [<font color=Blue>集成学习中不同子模型的结合(Blending)策略</font>](https://0809zheng.github.io/2020/03/16/blending.html): **voting, averaging, stacking**
 
 根据**子模型的构建方式**，目前的集成学习方法可以分成两类：
 - **并行化**集成方法：子模型之间不存在强依赖关系，可以同时生成，主要关注降低**方差**。如：
-1. [<font color=Blue>**Bagging**</font>](https://0809zheng.github.io/2020/03/17/bagging.html)：使用**bootstrap**生成子数据集，训练子模型
+1. [<font color=Blue>Bagging</font>](https://0809zheng.github.io/2020/03/17/bagging.html)：使用**bootstrap**生成子数据集，训练子模型
 1. [<font color=Blue>随机森林</font>](https://0809zheng.github.io/2020/03/20/random-forest.html)：决策树+**Bagging**+随机子空间算法
 - **序列化**集成方法：子模型之间存在强依赖关系，必须串行生成，主要关注降低**偏差**。如：
-1. [<font color=Blue>**Boosting**</font>](https://0809zheng.github.io/2020/03/18/boosting.html)：通过为样本权重重新赋值训练新的子模型，如**AdaBoost, Gradient Boosting**
+1. [<font color=Blue>Boosting</font>](https://0809zheng.github.io/2020/03/18/boosting.html)：通过为样本权重重新赋值训练新的子模型，如**AdaBoost, Gradient Boosting**
 1. [**提升树**](https://0809zheng.github.io/2021/07/24/btree.html)：决策树+**Boosting**
 1. [**梯度提升决策树(GBDT)**](https://0809zheng.github.io/2020/03/21/GBDT.html)：决策树+**Gradient Boosting**
 
