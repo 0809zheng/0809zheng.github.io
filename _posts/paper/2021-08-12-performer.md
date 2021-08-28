@@ -36,7 +36,7 @@ $$ \text{sim}(q,k) ≈ \tilde{q}\cdot\tilde{k} $$
 
 $$ e^{q\cdot k} = \Bbb{E}_{\omega \text{~} \mathcal{N}(\omega;0,1_d)} [e^{w\cdot q-||q||^2/2}\times e^{w\cdot k-||k||^2/2}] \\ ≈ \frac{1}{\sqrt{m}} \begin{pmatrix} e^{w_1\cdot q-||q||^2/2} \\ e^{w_2\cdot q-||q||^2/2} \\ \cdots \\ e^{w_m\cdot q-||q||^2/2} \end{pmatrix} \cdot \frac{1}{\sqrt{m}} \begin{pmatrix} e^{w_1\cdot k-||k||^2/2} \\ e^{w_2\cdot k-||k||^2/2} \\ \cdots \\ e^{w_m\cdot k-||k||^2/2} \end{pmatrix} \\ = \tilde{q}\cdot\tilde{k} $$
 
-上式表示从标准正态分布$\mathcal{N}(\omega;0,1_d)$中采样足够多的$\omega$，然后计算$e^{w\cdot q-||q||^2/2}\times e^{w\cdot k-||k||^2/2}$的数学期望，结果等于$e^{q\cdot k}$。实际中$\omega$只能采集有限个，因此采集$m$个并作上述近似。上式将两个$d$维向量的内积的指数$e^{q\cdot k}$转化为两个$m$维向量的内积$\tilde{q}\cdot\tilde{k}$，则对应的自注意力计算为：
+上式表示从标准正态分布$\mathcal{N}(\omega;0,1_d)$中采样足够多的$\omega$，然后计算$$e^{w\cdot q-\|q\|^2/2}\times e^{w\cdot k-\|k\|^2/2}$$的数学期望，结果等于$e^{q\cdot k}$。实际中$\omega$只能采集有限个，因此采集$m$个并作上述近似。上式将两个$d$维向量的内积的指数$e^{q\cdot k}$转化为两个$m$维向量的内积$\tilde{q}\cdot\tilde{k}$，则对应的自注意力计算为：
 
 $$ \text{Attention}(Q,K,V)_i=\frac{\sum_{j=1}^{n}(\tilde{q}_i\cdot\tilde{k}_j)v_j}{\sum_{j=1}^{n}\tilde{q}_i\cdot\tilde{k}_j} = \frac{\tilde{q}_i\sum_{j=1}^{n}\tilde{k}_j\cdot v_j}{\tilde{q}_i\sum_{j=1}^{n}\tilde{k}_j}  $$
 
