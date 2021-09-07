@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '降低Transformer的计算复杂度: 稀疏化和线性化'
+title: '降低Transformer的计算复杂度'
 date: 2021-07-12
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/60ebbe525132923bf878e6c3.jpg'
