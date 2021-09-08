@@ -103,19 +103,19 @@ $$ 3Nd^2+2N^2d>8Nd^2 $$
 
 ### ② 一些稀疏化方法
 
-- [Sparse Transformer](https://0809zheng.github.io/2021/07/13/sparsetransformer.html)：窗口注意力+空洞注意力
+- [<font color=Blue>Sparse Transformer</font>](https://0809zheng.github.io/2021/07/13/sparsetransformer.html)：窗口注意力+空洞注意力
 
 ![](https://pic.imgdb.cn/item/60ed1c745132923bf80f980e.jpg)
 
-- [Reformer](https://0809zheng.github.io/2021/08/11/reformer.html)：使用局部敏感哈希选择注意力位置
+- [<font color=Blue>Reformer</font>](https://0809zheng.github.io/2021/08/11/reformer.html)：使用局部敏感哈希选择注意力位置
 
 ![](https://pic.imgdb.cn/item/6115e64d5132923bf86784a5.jpg)
 
-- [Longformer](https://0809zheng.github.io/2021/08/14/longformer.html)：窗口注意力+空洞注意力+全局注意力
+- [<font color=Blue>Longformer</font>](https://0809zheng.github.io/2021/08/14/longformer.html)：窗口注意力+空洞注意力+全局注意力
 
 ![](https://pic.imgdb.cn/item/61179cb95132923bf8100609.jpg)
 
-- [Big Bird](https://0809zheng.github.io/2020/08/08/bigbird.html)：随机注意力+窗口注意力+全局注意力
+- [<font color=Blue>Big Bird</font>](https://0809zheng.github.io/2020/08/08/bigbird.html)：随机注意力+窗口注意力+全局注意力
 
 ![](https://pic.downk.cc/item/5f2e340114195aa594463791.jpg)
 
@@ -153,35 +153,35 @@ $$ \frac{\sum_{j=1}^{N}\text{sim}(q_i,k_j)v_j}{\sum_{j=1}^{N}\text{sim}(q_i,k_j)
 
 ### ③ 一些线性化方法
 
-- [Efficient Attention](https://0809zheng.github.io/2021/08/15/efficient.html)：对$Q$的每一行,$K$的每一列进行归一化：
+- [<font color=Blue>Efficient Attention</font>](https://0809zheng.github.io/2021/08/15/efficient.html)：对$Q$的每一行,$K$的每一列进行归一化：
 
 $$ \text{Attention}(Q,K,V)==\rho_Q(Q)\rho_K(K)^TV $$
 
-- [Synthesizer](https://0809zheng.github.io/2020/07/14/synthesizer.html)：使用全连接神经网络(或随机)生成自注意力矩阵:
+- [<font color=Blue>Synthesizer</font>](https://0809zheng.github.io/2020/07/14/synthesizer.html)：使用全连接神经网络(或随机)生成自注意力矩阵:
 
 $$ \text{Attention}(Q,K,V)=\text{FFN}(X)V $$
 
-- [Linformer](https://0809zheng.github.io/2021/08/13/linformer.html)：
+- [<font color=Blue>Linformer</font>](https://0809zheng.github.io/2021/08/13/linformer.html)：
 为$K$和$V$引入了低秩映射$E,F \in \Bbb{R}^{k \times N}$：
 
 $$ \text{Attention}(Q,K,V)=\text{softmax}(\frac{Q(EK)^T}{\sqrt{d}})(FV) $$
 
-- [Linear Transformer](https://0809zheng.github.io/2021/08/10/linear.html)：使用线性注意力实现快速自回归的Transformer。
+- [<font color=Blue>Linear Transformer</font>](https://0809zheng.github.io/2021/08/10/linear.html)：使用线性注意力实现快速自回归的Transformer。
 
 $$ \text{sim}(q,k)=(\text{elu}(q)+1)^T(\text{elu}(k)+1), \quad \text{elu}(x)=\begin{cases} x, & x>0 \\ e^x-1, & x≤0 \end{cases} $$
 
 
-- [Performer](https://0809zheng.github.io/2021/08/12/performer.html)：通过随机投影将Attention的复杂度线性化。
+- [<font color=Blue>Performer</font>](https://0809zheng.github.io/2021/08/12/performer.html)：通过随机投影将Attention的复杂度线性化。
 
 $$ \text{sim}(q,k) =e^{q\cdot k} = \Bbb{E}_{\omega \text{~} \mathcal{N}(\omega;0,1_d)} [e^{w\cdot q-||q||^2/2}\times e^{w\cdot k-||k||^2/2}] \\ ≈ \frac{1}{\sqrt{m}} \begin{pmatrix} e^{w_1\cdot q-||q||^2/2} \\ e^{w_2\cdot q-||q||^2/2} \\ \cdots \\ e^{w_m\cdot q-||q||^2/2} \end{pmatrix} \cdot \frac{1}{\sqrt{m}} \begin{pmatrix} e^{w_1\cdot k-||k||^2/2} \\ e^{w_2\cdot k-||k||^2/2} \\ \cdots \\ e^{w_m\cdot k-||k||^2/2} \end{pmatrix}  = \tilde{q}\cdot\tilde{k} $$
 
-- [Nyströmformer](https://0809zheng.github.io/2021/04/29/nystromformer.html)：使用Nyström方法近似自注意力运算。
+- [<font color=Blue>Nyströmformer</font>](https://0809zheng.github.io/2021/04/29/nystromformer.html)：使用Nyström方法近似自注意力运算。
 
 $$ \text{Attention}(Q,K,V)= (\tilde{F}\times\tilde{A}\times\tilde{B})V $$
 
 $$ \tilde{F} =  \text{softmax}(\frac{Q\tilde{K}^T}{\sqrt{d_q}} ) , \tilde{B} =  \text{softmax}(\frac{\tilde{Q}K^T}{\sqrt{d_q}} ), \tilde{A} = \text{softmax}(\frac{\tilde{Q}\tilde{K}^T}{\sqrt{d_q}} )^{-1} $$
 
-- [External Attention](https://0809zheng.github.io/2021/08/09/external.html)：将$K$和$V$用全局共享的记忆单元$M_k$和$M_v$表示。
+- [<font color=Blue>External Attention</font>](https://0809zheng.github.io/2021/08/09/external.html)：将$K$和$V$用全局共享的记忆单元$M_k$和$M_v$表示。
 
 $$ \text{Attention}(Q,M_k,M_v) = \text{Norm}(Q^TM_k)M_v $$
 
