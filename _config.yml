@@ -27,7 +27,8 @@ footer:
 author: '郑之杰'
 nickname: '之杰'
 bio: '热爱旅行家，深度学习者'
-avatar: 'https://github.com/0809zheng/0809zheng.github.io/blob/master/assets/icons/icon.jpg?raw=true'
+#avatar: 'https://github.com/0809zheng/0809zheng.github.io/blob/master/assets/icons/icon.jpg?raw=true'
+avatar: 'https://pic.imgdb.cn/item/6184e14b2ab3f51d912026fc.jpg'
 
 # Search 关键词搜索
 search: true
