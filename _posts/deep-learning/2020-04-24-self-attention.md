@@ -178,7 +178,13 @@ $$ e_{t,2i+1} = cos(\frac{t}{10000^{\frac{2i}{D}}}) $$
 
 其中$e_{t,2i}$表示第$t$个位置的编码向量的第$2i$维，$D$是编码向量的维度。
 
-选用该形式的位置编码的思路是，由于有$$sin(\alpha+\beta)=sin(\alpha)cos(\beta)+cos(\alpha)sin(\beta)$$和$$cos(\alpha+\beta)=cos(\alpha)cos(\beta)-sin(\alpha)sin(\beta)$$，因此位置$\alpha+\beta$处的编码很容易被位置$\alpha$和位置$\beta$处的编码表示。通过实验发现位置嵌入和上述位置编码效果是接近的，因此直接选用后者。
+选用该形式的位置编码的思路是，由于有:
+
+$$ sin(\alpha+\beta)=sin(\alpha)cos(\beta)+cos(\alpha)sin(\beta) $$
+
+$$ cos(\alpha+\beta)=cos(\alpha)cos(\beta)-sin(\alpha)sin(\beta) $$
+
+因此位置$\alpha+\beta$处的编码很容易被位置$\alpha$和位置$\beta$处的编码表示。通过实验发现位置嵌入和上述位置编码效果是接近的，因此直接选用后者。
 
 上述位置编码也被称为**Sinusoidal**位置编码，其编码矩阵可视化如下：
 
