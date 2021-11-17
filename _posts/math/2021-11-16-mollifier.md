@@ -3,7 +3,7 @@ layout: post
 title: '函数的光滑化'
 date: 2021-11-16
 author: 郑之杰
-cover: ''
+cover: 'https://pic.imgdb.cn/item/6194c14e2ab3f51d9157ea72.jpg'
 tags: 数学
 ---
 
@@ -61,7 +61,7 @@ $$ \max(x,y) = \frac{1}{2}(|x+y|+|x-y|) $$
 
 $$ f'(x)= \begin{cases} 1,&x>0 \\ -1,&x<0 \end{cases} $$
 
-上式可用单位阶跃函数$\theta(x)=\begin{cases} 1,&x>0 \\ 0,&x<0 \end{cases}$表示，即：
+上式可用单位阶跃函数$$\theta(x)=\begin{cases} 1,&x>0 \\ 0,&x<0 \end{cases}$$表示，即：
 
 $$ f'(x)=2\theta(x)-1 $$
 
@@ -123,7 +123,7 @@ $$ \arg\max(x)≈\sum_{i=1}^{n}i\times \text{softmax}(x)_i $$
 上式也称为**SoftArgmax**，编程实现见[博客](https://0809zheng.github.io/2021/03/22/softargmax.html)。
 
 ### ⚪  $\text{accuracy}=\frac{1}{|\mathcal{B}|}\sum_{x \in \mathcal{B}}^{} <1_y(x),p(x)>$
-本节讨论分类任务中正确率的光滑近似。给定一个批量$\mathcal{B}$的样本，用$1_y(x)$表示样本的真实类别对应的**onehot**编码，$1_{\hat{y}}(x)$表示样本的预测类别对应的**onehot**编码。统计两个编码对应的内积之和(预测相同内积为$1$否则为$0$)，即可得到正确率的表达式(预测正确的数量占总数量的比值)：
+本节讨论分类任务中正确率的光滑近似。给定一个批量$\mathcal{B}$的样本，用$$1_{y}(x)$$表示样本的真实类别对应的**onehot**编码，$$1_{\hat{y}}(x)$$表示样本的预测类别对应的**onehot**编码。统计两个编码对应的内积之和(预测相同内积为$1$否则为$0$)，即可得到正确率的表达式(预测正确的数量占总数量的比值)：
 
 $$ \text{accuracy}=\frac{1}{|\mathcal{B}|}\sum_{x \in \mathcal{B}}^{} <1_y(x),1_{\hat{y}}(x)> $$
 
@@ -188,7 +188,7 @@ $$ \lfloor x \rfloor ≈ \int_{-∞}^{+∞}\lfloor y \rfloor \phi(x-y)dy = \sum_
 
 $$ \lfloor x \rfloor ≈ \sum_{n=-∞}^{+∞}-n \Phi(x-y)|_{n}^{n+1} \\ = \sum_{n=-∞}^{+∞} n[\Phi(x-n)-\Phi(x-n+1)] \\ = \mathop{\lim}_{M,N\to ∞} \sum_{n=-M}^{N} [(n-1)\Phi(x-n)-n\Phi(x-n+1)+\Phi(x-n)] \\ = \mathop{\lim}_{M,N\to ∞}  -(M+1)\Phi(x+M)-N\Phi(x-N+1)+\sum_{n=-M}^{N}\Phi(x-n)  $$
 
-注意到$\Phi(x+M)_{M\to ∞}≈\Phi(∞)=1,\Phi(x-N+1)_{N\to ∞} ≈\Phi(-∞)=0$，因此上式进一步化简为：
+注意到$$\Phi(x+M)_{M\to ∞}≈\Phi(∞)=1,\Phi(x-N+1)_{N\to ∞} ≈\Phi(-∞)=0$$，因此上式进一步化简为：
 
 $$ \lfloor x \rfloor ≈  \mathop{\lim}_{M,N\to ∞}  -(M+1)+\sum_{n=-M}^{N}\Phi(x-n) \\ = \mathop{\lim}_{M,N\to ∞} \sum_{n=-M}^{0}[\Phi(x-n)-1]+\sum_{n=0}^{N}\Phi(x-n)  $$
 
