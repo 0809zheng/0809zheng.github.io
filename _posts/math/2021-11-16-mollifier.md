@@ -48,6 +48,9 @@ tags: 数学
 | $\arg\max(x)$  | $\sum_{i=1}^{n}i\times \text{softmax}(x)_i$    |
 | $\text{accuracy}$  | $\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{} <1_y(x),p(x)>$    |
 | $\text{F1-score}$  | $\frac{2\sum_{x \in \mathcal{B}}^{} p(x)y(x)}{\sum_{x \in \mathcal{B}}^{}p(x)+y(x)}$    |
+| $\max(x_1,x_2)$  | $\frac{x_1+x_2+(x_1-x_2) \text{erf}(\mu (x_1-x_2))}{2}$    |
+| $\max(x_1,x_2)$  | $(x_1-x_2)\sigma(\beta(x_1-x_2))+x_2$    |
+
 
 下面介绍这些近似的推导过程：
 
@@ -134,6 +137,7 @@ $$ \text{accuracy}=\frac{1}{|\mathcal{B}|}\sum_{x \in \mathcal{B}}^{} <1_y(x),p(
 其中**onehot**编码可由**softmax**光滑近似。
 
 ### ⚪  $\text{F1-score} = \frac{2\sum_{x \in \mathcal{B}}^{} p(x)y(x)}{\sum_{x \in \mathcal{B}}^{}p(x)+y(x)}$
+
 **F1-score**是分类问题常用的评估指标，计算为查准率和查全率的调和平均。对于二分类问题，若记$p(x)$是预测正类的概率，$y(x)$是样本的标签，则对应的混淆矩阵如下：
 
 $$ \begin{array}{l|cc} \text{标签\预测} & \text{正例} & \text{反例} \\ \hline  \text{正例} & TP=p(x)y(x) & FN=(1-p(x))y(x) \\  \text{反例} & FP=p(x)(1-y(x)) & TN=(1-p(x))(1-y(x)) \\ \end{array} $$
@@ -143,6 +147,36 @@ $$ \begin{array}{l|cc} \text{标签\预测} & \text{正例} & \text{反例} \\ \
 $$ \text{F1-score} = \frac{2TP}{2TP+FP+FN} = \frac{2\sum_{x \in \mathcal{B}}^{} p(x)y(x)}{\sum_{x \in \mathcal{B}}^{}p(x)+y(x)} $$
 
 上述推导的**F1-score**的光滑近似是可导的，可以将其相反数作为损失函数。但是在采样过程中，上式是**F1-score**的有偏估计。通常应先用交叉熵训练一段时间，再用上式进行微调。
+
+### ⚪  $\max(x_1,x_2) = \frac{x_1+x_2+(x_1-x_2) \text{erf}(\mu (x_1-x_2))}{2}$
+
+最大值函数也可以表示为：
+
+$$ \max(x_1,x_2) = \frac{x_1+x_2+|x_1-x_2|}{2} $$
+
+其中绝对值函数$\|x\|$常用的光滑近似可以使用$x \text{erf}(\mu x)$和$\sqrt{x^2+\mu^2}$。前者从下面逼近$\|x\|$($\mu$越大越逼近)，后者从上面逼近$\|x\|$($\mu$越小越逼近)。
+
+使用上述近似替换最大值函数的表达式，可以得到最大值函数的两种近似：
+
+$$ \max(x_1,x_2) = \frac{x_1+x_2+(x_1-x_2) \text{erf}(\mu (x_1-x_2))}{2} $$
+
+$$ \max(x_1,x_2) = \frac{x_1+x_2+\sqrt{(x_1-x_2)^2+\mu^2}}{2} $$
+
+关于该近似的讨论可参考[SMU激活函数](https://0809zheng.github.io/2021/11/17/smu.html)。
+
+### ⚪  $\max(x_1,x_2) = (x_1-x_2)\sigma(\beta(x_1-x_2))+x_2$
+
+最大值函数$\max(x_1,x_2,...,x_n)$的一个可微近似为：
+
+$$ \max(x_1,x_2,...,x_n) = \frac{\sum_{i=1}^{n}x_ie^{\beta x_i}}{\sum_{i=1}^{n}e^{\beta x_i}} $$
+
+$\beta$是开关因子，当$\beta \to ∞$上式趋近于最大值函数；当$\beta =0$上式为简单的算术平均。
+
+当$n=2$时，记$\sigma(x) = 1/(1+e^{-x})$，则最大值函数为：
+
+$$ \max(x_1,x_2) = \frac{x_1e^{\beta x_1}+x_2e^{\beta x_2}}{e^{\beta x_1}+e^{\beta x_2}}  \\ = x_1\frac{1}{1+e^{-\beta(x_1-x_2)}}+x_2\frac{1}{1+e^{-\beta(x_2-x_1)}}  \\ =x_1 \sigma(\beta(x_1-x_2))+x_2[1-\sigma(\beta(x_1-x_2))] \\ = (x_1-x_2)\sigma(\beta(x_1-x_2))+x_2 $$
+
+关于该近似的讨论可参考[ACON激活函数](https://0809zheng.github.io/2021/11/18/acon.html)。
 
 ## (2) 使用Dirac函数近似
 **Dirac**函数又称**Dirac**-$\delta$函数、单位冲激函数，是一种广义函数(泛函)，表达式如下：
