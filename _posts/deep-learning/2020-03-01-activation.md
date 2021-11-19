@@ -3,295 +3,141 @@ layout: post
 title: '深度学习中的Activation Function'
 date: 2020-03-01
 author: 郑之杰
-cover: 'https://pic.downk.cc/item/5e7b4db6504f4bcb040071f1.png'
+cover: 'https://pic.imgdb.cn/item/5e7b4db6504f4bcb040071f1.png'
 tags: 深度学习
 ---
 
 > Activation Functions in Deep Learning.
 
-1. Background
-2. Step
-3. Sigmoid
-4. Tanh
-5. Hard Sigmoid & Hard Tanh
-6. Softplus
-7. ReLU
-8. Leaky ReLU
-9. PReLU
-10. RReLU
-11. Maxout
-12. ELU
-13. CELU
-14. SELU
-15. GELU
-16. Swish
-17. Mish
+本文目录：
+1. 激活函数的意义
+2. 激活函数应具有的性质
+3. 一些常用的激活函数
 
-# 1. Background
-封面图是[神经网络中一个神经元的简单建模](http://cs231n.github.io/neural-networks-1/)。
+# 1. 激活函数的意义
 
-大脑中的**神经元（neuron）**通过**树突（dendrites）**接收输入信号，在胞体中进行信号的处理，通过**轴突（axon）**分发信号。当神经元中的信号累积达到一定阈值时产生电脉冲将信号输出，这个阈值称为**点火率（firing rate）**。
+## (1) 从生物学的角度理解激活函数
+早期激活函数的设计受到生物神经网络中[神经元](http://cs231n.github.io/neural-networks-1/)的启发，即对神经元进行简单的建模。
 
-在神经网络中，使用**激活函数（activation function）**对点火率进行建模。激活函数能够为网络引入非线性表示；当不使用激活函数时（或激活函数为**恒等函数 identity function**），多层神经网络实质相当于单层：
+![](https://pic.imgdb.cn/item/5e7b4db6504f4bcb040071f1.png)
 
-$$ W_2(W_1X+b_1)+b_2=W_2W_1X+W_2b_1+b_2=(W_2W_1)X+(W_2b_1+b_2) $$
+大脑中的**神经元(neuron)**通过**树突(dendrites)**接收其他神经元的输入信号，在胞体中进行信号的处理，通过**轴突(axon)**分发信号。当神经元中的信号累积达到一定阈值时产生电脉冲将信号输出，这个阈值称为**点火率(firing rate)**。
+- 其他神经元的输入信号建模为$x_i$
+- 树突的信号接收过程建模为$w_ix_i$
+- 胞体的信号处理过程建模为$\sum_{i}^{}w_ix_i$
+- 点火率建模为$-b$
+- 信号累计与阈值的比较建模为$\sum_{i}^{}w_ix_i+b$
+- 产生电脉冲建模为$f(\cdot)=\text{step}(\cdot)$
+- 轴突的输出信号建模为$f(\sum_{i}^{}w_ix_i+b)$
 
-值得一提的是，这种对神经元的建模是**coarse**的。真实神经元有很多不同的种类；突触是一个复杂的的非线性动态系统，树突进行的是复杂的非线性运算，轴突的输出时刻也很重要。近些年来神经网络中神经元的**生物可解释性（Biological Plausibility）**被逐渐弱化。
+激活函数是用来模拟“信号累积达到阈值并产生电脉冲”的过程。
+值得一提的是，这种对神经元的建模是**coarse**的。真实神经元有很多不同的种类；突触是一个复杂的的非线性动态系统，树突进行的是复杂的非线性运算，轴突的输出时刻也很重要。因此近些年来神经网络中神经元的**生物可解释性(Biological Plausibility)**被逐渐弱化。
 
-# 2. Step
-最早作为激活函数被使用的是[**阶跃函数**](https://en.wikipedia.org/wiki/Heaviside_step_function)。1943年，Warren McCulloch和Walter Pitts将其应用在[**MP神经元模型**](https://books.google.com/books?id=qOy4yLBqhFcC&pg=PA3)中。
+## (2) 从非线性的角度理解激活函数
 
-![](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Dirac_distribution_CDF.svg/1280px-Dirac_distribution_CDF.svg.png)
+在神经网络中，使用**激活函数(activation function)**能够为网络引入非线性，增强网络的非线性表示能力；当不使用激活函数时（或激活函数为**恒等函数 identity function**），多层神经网络退化为单层网络：
 
-# 3. Sigmoid
-**Sigmoid函数**也叫**Logistic函数**，函数及其导数表达式如下：
+$$ W_2(W_1X+b_1)+b_2\\=W_2W_1X+W_2b_1+b_2\\=(W_2W_1)X+(W_2b_1+b_2)\\=W'x+b' $$
 
-$$ sigmoid(x)= \frac{1}{1+e^{-x}} $$
 
-$$ sigmoid'(x)= sigmoid(x)(1-sigmoid(x)) $$
+# 2. 激活函数应具有的性质
+激活函数能为神经网络引入非线性，因此理论上任何非线性函数都可以作为激活函数。在选择激活函数时应考虑以下性质：
 
-![](https://pytorch.org/docs/stable/_images/Sigmoid.png)
+### ⚪ 性质1：连续可导
+激活函数需要参与反向传播过程，因此需要计算激活函数的导数，这就要求激活函数需要**连续可导**。
 
-优点：
-1. 连续可导；
-2. 输出为范围$[0,1]$的归一化结果，可以作为概率分布。
+例如**ReLU**族激活函数在$x=0$处不可导。既可以人工指定该点处的梯度；又可以选用形状接近的连续函数进行近似(如**softplus**替代**ReLU**, **CELU**替代**ELU**)。
 
-缺点：
-1. 存在饱和区，当$ \| x \| >> 0 $时梯度接近0，产生**梯度消失 vanishing gradient**；
-2. 输出不是**zero-centered**，使得后一层神经元的输入发生**偏置偏移(bias shift)**，减慢梯度下降的收敛速度;
-3. 存在**指数**运算，计算量大。
+更多关于不可导函数的光滑化的相关内容可参考[博客](https://0809zheng.github.io/2021/11/16/mollifier.html)。
 
-# 4. Tanh
-**Tanh**全称是**双曲正切函数（hyperbolic tangent function）**，函数及其导数表达式如下：
+### ⚪ 性质2：计算量小
+激活函数应具有尽可能小的**计算量**，通常线性运算(如**ReLU**族)比指数运算(如**S**型曲线)具有更低的计算量。
 
-$$ tanh(x)= \frac{e^{x}-e^{-x}}{e^{x}+e^{-x}}=2sigmoid(2x)-1 $$
+通常可以对指数函数进行[Taylor展开](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh)(如**HardSigmoid**,**HardTanh**)降低激活函数的计算复杂度。
 
-$$ tanh'(x)= 1-tanh^2(x) $$
+### ⚪ 性质3：没有饱和区
+**饱和**的定义是导数很接近$0$。若激活函数存在饱和区，则会使反向传播的梯度为$0$，从而导致**梯度消失(gradient vanishing)**现象。
 
-![](https://pytorch.org/docs/stable/_images/Tanh.png)
+早期的激活函数通常使用**S**型函数，如**Sigmoid,Tanh**；这类函数会把输出挤压到一个区域内，导致产生饱和区；这类函数也被称为**squashing function**。
 
-**Tanh**函数是**zero-centered**，但仍然存在**vanishing gradient**和**指数**运算带来的问题。
+**ReLU**等无上界、有下界的激活函数，在正半轴没有饱和区，减缓了梯度消失现象；在负半轴则会置零(产生**died ReLU**现象, 即由于梯度为$0$阻断了反向传播过程)或趋于饱和。
 
-# 5. Hard-Sigmoid & Hard-Tanh
-**Hard-Sigmoid**和**Hard-Tanh**是对**Sigmoid**和**Tanh**函数的分段线性表示，以减少计算开销。
+### ⚪ 性质4：没有偏置偏移
+若激活函数的输出不是**zero-centered**的，会使得后一层神经元的输入产生**偏置偏移(bias shift)**，从而减慢梯度下降的收敛速度。
 
-**Sigmoid**函数在x=0附近的一阶**Taylor**展开：
+对于某一层神经元的计算，假设具有两个参数$w_1,w_2$，则$y=\sigma(w_1x_1+w_2x_2+b)$，反向传播时两个参数$w_1,w_2$的梯度为：
 
-$$ sigmoid(x)≈ \frac{1}{2}+ \frac{x}{4} $$
+$$ \nabla_{w_1}L=\frac{\partial L}{\partial {w_1}} = \frac{\partial L}{\partial y} \frac{\partial y}{\partial {w_1}} = \frac{\partial L}{\partial y}\cdot \sigma' \cdot x_1 = \nabla_yL \cdot \sigma' \cdot x_1  $$
 
-**Tanh**函数在x=0附近的一阶**Taylor**展开：
+$$ \nabla_{w_2}L= \nabla_yL \cdot \sigma' \cdot x_2  $$
 
-$$ tanh(x)≈ x $$
+若上一层的激活函数使得该层神经元的输入值大于$0$，则$\text{sign}(\nabla_{w_1}L)=\text{sign}(\nabla_{w_2}L)$，则梯度只能沿着$w_1,w_2$同时增大或减小的方向进行更新，从而减慢梯度下降的收敛速度。
 
-可将**Sigmoid**和**Tanh**函数分段表示为：
-![](https://pic.downk.cc/item/5e7b5a94504f4bcb0408006f.png)
+当激活函数的值域同时包含正和负值的输出，则能够有效缓解偏置偏移现象。
 
-# 6. Softplus
-- paper：[Incorporating second-order functional knowledge for better option pricing](https://www.researchgate.net/publication/4933639_Incorporating_Second-Order_Functional_Knowledge_for_Better_Option_Pricing)
+### ⚪ 性质5：具有生物可解释性
+生物神经元通常具有**单侧抑制**(即大于阈值才会被激活)、**宽兴奋边界**(即输出范围较宽,如$[0,+∞)$)、**稀疏激活**(即同时被激活的神经元较少)等特性。
 
-**Softplus**函数及其导数表达式如下：
+**ReLU**及之前的激活函数在设计时受到生物学的启发，而其后的激活函数在设计时逐渐淡化了生物可解释性。
 
-$$ softplus(x)=log(1+e^x) $$
+### ⚪ 性质6：提取上下文信息
+通常的激活函数是标量函数，如**ReLU**对神经元输入的每一个标量值分别进行计算。如果能够将激活函数拓展为多输入函数，则能够捕捉输入的上下文信息，增强神经元的表达能力。
 
-$$ softplus'(x)=sigmoid(x) $$
 
-![](https://pytorch.org/docs/stable/_images/Softplus.png)
+### ⚪ 性质7：具有通用近似性
+直观上神经网络每一层的每个神经元都应具有不同的激活曲线。可以设计一些由超参数控制的通用近似激活函数，使得每个神经元学习不同的激活曲线。每个神经元的激活超参数参与反向传播的梯度更新。
 
-**Softplus**具有**单侧抑制**、**宽兴奋边界**($0$,$+∞$)的特点，但没有稀疏激活性。
+设计通用近似的激活函数主要有两种思路。第一种是使用一些通用的函数逼近方法，如分段线性近似(**APL, PWLU**)、**Padé**近似(**PAU, OPAU**)。第二种是寻找现有激活函数的光滑逼近，如手工设计近似(**ACON, SMU**)、使用**Dirac**函数寻找光滑近似(**SAU**)。
 
-# 7. ReLU
-- paper：[Rectified linear units improve restricted boltzmann machines](http://www.cs.toronto.edu/~fritz/absps/reluICML.pdf)
 
-**ReLU**全称是**rectified linear unit**，表达式如下：
+# 3. 一些常用的激活函数
+- Reference：[Pytorch中的激活函数层](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity)
 
-$$
-        relu(x) =
-        \begin{cases}
-        x,  & \text{if $x≥0$} \\
-        0, & \text{if $x<0$}
-        \end{cases}
-$$
+下面介绍的激活函数根据设计思路也可分类如下：
+- **S**型激活函数：形如**S**型曲线的激活函数。包括**Step**，**Sigmoid**，**HardSigmoid**，**Tanh**，**HardTanh**
+- **ReLU**族激活函数：形如**ReLU**的激活函数。包括**ReLU**，**Softplus**，**ReLU6**，**LeakyReLU**，**PReLU**，**RReLU**，**ELU**，**GELU**，**CELU**，**SELU**
+- 自动搜索激活函数：通过自动搜索解空间得到的激活函数。包括**Swish**，**HardSwish**，**Elish**，**HardElish**，**Mish**
+- 基于梯度的激活函数：通过梯度下降为每个神经元学习独立函数。包括**APL**，**PAU**，**ACON**，**PWLU**，**OPAU**，**SAU**，**SMU**
+- 基于上下文的激活函数：多输入单输出函数，输入上下文信息。包括**maxout**，**Dynamic ReLU**，**Dynamic Shift-Max**，**FReLU**
 
-![](https://pytorch.org/docs/stable/_images/ReLU.png)
 
-优点：
-1. 计算简单，只存在线性运算；
-2. 左饱和函数，x>0时梯度为1，一定程度上缓解了**vanishing gradient**；
-3. 具有一定的**生物解释性**，如单侧抑制、宽兴奋边界（兴奋程度可以很高）；
-4. 具有**稀疏性**，大约激活50%的神经元。
 
-缺点：
-1. 输出不是**zero-centered**，引入偏置偏移；
-2. 容易产生**dead ReLU**，在反向传播过程中，如果输入负数，则梯度将完全为零，即有些神经元永远不会被激活。
 
-# 8. Leaky ReLU
-- paper：[Rectifier nonlinearities improve neural network acoustic models](https://www.mendeley.com/catalogue/a4a3dd28-b56b-3e0c-ac53-2817625a2215/)
-
-**Leaky ReLU**的表达式如下：
-
-$$
-        leakyrelu(x) =
-        \begin{cases}
-        x,  & \text{if $x≥0$} \\
-        0.1x, & \text{if $x<0$}
-        \end{cases}
-$$
-
-![](https://pytorch.org/docs/stable/_images/LeakyReLU.png)
-
-**Leaky ReLU**在x<0时也有一定的梯度，是专门设计用于解决**dead ReLU**问题的激活函数。
-
-# 9. PReLU
-- paper：Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification
-- arXiv：[https://arxiv.org/abs/1502.01852](https://arxiv.org/abs/1502.01852)
-
-**PReLU**全称是**parametric ReLU**，表达式如下：
-
-$$
-        prelu(x) =
-        \begin{cases}
-        x,  & \text{if $x≥0$} \\
-        γx, & \text{if $x<0$}
-        \end{cases}
-$$
-
-![](https://pytorch.org/docs/stable/_images/PReLU.png)
-
-$γ$是可学习的参数，通常取$0$到$1$；**PReLU**允许不同神经元具有不同的参数。
-
-# 10. RReLU
-- paper：Empirical Evaluation of Rectified Activations in Convolutional Network
-- arXiv：[https://arxiv.org/abs/1505.00853](https://arxiv.org/abs/1505.00853)
-
-**RReLU**全称是**Randomized Leaky ReLU**，表达式如下：
-
-$$
-        rrelu(x) =
-        \begin{cases}
-        x,  & \text{if $x≥0$} \\
-        ax, & \text{if $x<0$}
-        \end{cases}
-$$
-
-参数$a$是从均匀分布$U(l,u)$中抽样得到的，$0≤l<u<1$。
-![](https://pic.downk.cc/item/5e7defb3504f4bcb047b21b5.png)
-
-测试时：
-
-$$ y=\frac{l+u}{2} x $$
-
-# 11. Maxout
-- paper：Maxout networks
-- arXiv：[https://arxiv.org/abs/1302.4389](https://arxiv.org/abs/1302.4389)
-
-**Maxout**是一种分段线性单元。**ReLU**的输入是隐藏层的单个神经元，**Maxout**的输入是隐藏层的$k$个神经元：
-
-$$ maxout(x)=max_k(x_k) $$
-
-**Maxout**节点可以看作是任意凸函数的分段线性近似：
-![](http://img.mp.sohu.com/upload/20170604/b24a3622a6bb4b349fa90833f4eaaac6_th.png)
-
-# 12. ELU
-- paper：Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)
-- arXiv：[https://arxiv.org/abs/1511.07289](https://arxiv.org/abs/1511.07289)
-
-**ELU**全称是**exponential linear unit**，表达式如下：
-
-$$
-        elu(x) =
-        \begin{cases}
-        x,  & \text{if $x≥0$} \\
-        α(e^x-1), & \text{if $x<0$}
-        \end{cases}
-$$
-
-![](https://pytorch.org/docs/stable/_images/ELU.png)
-
-$α≥0$是可学习的参数；**ELU**是近似**zero-centered**的，对噪声**robust**(函数是连续的)，但是引入了指数运算。
-
-# 13. CELU
-- paper：Continuously Differentiable Exponential Linear Units
-- arXiv：[https://arxiv.org/abs/1704.07483](https://arxiv.org/abs/1704.07483)
-
-**CELU**全称是**continuously differentiable exponential linear unit**，表达式如下：
-
-$$
-        celu(x) =
-        \begin{cases}
-        x,  & \text{if $x≥0$} \\
-        α(e^{\frac{x}{α}}-1), & \text{if $x<0$}
-        \end{cases}
-$$
-
-![](https://pytorch.org/docs/stable/_images/CELU.png)
-
-# 14. SELU
-- paper：Self-Normalizing Neural Networks
-- arXiv：[https://arxiv.org/abs/1706.02515](https://arxiv.org/abs/1706.02515)
-
-**SELU**全称是**scaled exponential linear unit**，表达式如下：
-
-$$
-        selu(x) =
-        \begin{cases}
-        scale*x,  & \text{if $x≥0$} \\
-        scale*α(e^x-1), & \text{if $x<0$}
-        \end{cases}
-$$
-
-其中：
-
-$$ α=1.6732632423543772848170429916717 $$
-
-$$ scale=1.0507009873554804934193349852946 $$
-
-$scale$和$α$的计算参考[原作者](https://github.com/bioinf-jku/SNNs/blob/master/Calculations/SELU_calculations.pdf)。主要思想是一组均值0、方差1的i.i.d.随机变量通过SELU后仍然为均值0、方差1。
-
-![](https://pytorch.org/docs/stable/_images/SELU.png)
-
-# 15. GELU
-- paper：Gaussian Error Linear Units (GELUs)
-- arXiv：[https://arxiv.org/abs/1606.08415](https://arxiv.org/abs/1606.08415)
-
-**GELU**全称是**Gaussian error linear unit**，表达式如下：
-
-$$ gelu(x)=xP(X≤x) $$
-
-其中P(X≤x)是高斯分布$ N(μ,σ^2) $的累积分布函数（CDF）。
-
-GELU是一种通过门控机制调整其输出值的激活函数。
-![](https://pytorch.org/docs/stable/_images/GELU.png)
-
-**GELU**可用Tanh函数或Logistic函数近似：
-
-$$ gelu(x)≈0.5x(1+tanh(\sqrt{\frac{2}{\pi}(x+0.044715x^3)})) $$
-
-$$ gelu(x)≈xσ(1.702x) $$
-
-# 16. Swish
-- paper：Searching for Activation Functions
-- arXiv：[https://arxiv.org/abs/1710.05941](https://arxiv.org/abs/1710.05941)
-
-**Swish**函数表达式如下，其中$β$是可学习的参数：
-
-$$ switsh(x)=x·sigmoid(βx) $$
-
-**Swish**函数可以看作一种软性的门控机制，当$sigmoid(βx)$接近于$1$时门“开”；当$sigmoid(βx)$接近于$0$时门“关”。
-
-$β=0$时，**Switsh**函数退化成线性函数；$β->∞$时，**Switsh**函数退化成**ReLU**。
-![](https://pic.downk.cc/item/5e7df942504f4bcb048376a9.png)
-
-**Swish**函数受**LSTM**中**门控(gating)**机制的启发，使用自身的值作为门控，即**self-gating**。
-
-# 17. Mish
-- paper：A Self Regularized Non-Monotonic Neural Activation Function
-- arXiv：[https://arxiv.org/abs/1908.08681](https://arxiv.org/abs/1908.08681)
-
-**Mish**函数表达式如下：
-
-$$ mish(x)=x·tanh(softplus(x)) $$
-
-![](https://ss.csdn.net/p?https://mmbiz.qpic.cn/mmbiz_jpg/KYSDTmOVZvoq7ibpibADnKetBktT61NOiaj7icib3n2mQwNeJcS2D1EHkBAmZUDicK7ib0PiaGriaUxj7Bxxw1A9SHJibntA/640?wx_fmt=jpeg)
-
-下面是一个随机网络使用**ReLU**、**Swish**和**Mish**后的输出图，可以看出后两个比**ReLU**更加平滑。
-![](https://pic.downk.cc/item/5e7edcce504f4bcb0425d2fe.png)
+| 激活函数 | 表达式 |  函数图像 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---: |   :---: |
+| Step | $\text{Step}(x)=\begin{cases} 1, & x≥0 \\ 0, &x<0 \end{cases}$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852ce.png)   |
+| Sigmoid | $\text{Sigmoid}(x)=\frac{1}{1+e^{-x}}$ |![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837b8.png)   |
+| [<font color=Blue>Hardsigmoid</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh):降低Sigmoid计算量 | $\text{Hardsigmoid}(x)=\begin{cases} 1, & x≥1 \\ (x+1)/2, & -1<x<1 \\ 0, &x≤-1 \end{cases}$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e56.png)   |
+| Tanh | $\text{Tanh}(x)=2\text{Sigmoid}(2x)-1\\=\frac{e^{x}-e^{-x}}{e^{x}+e^{-x}}$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852e3.png)  |
+| [<font color=Blue>Hardtanh</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh):降低Tanh计算量 | $\text{Hardtanh}(x)=\begin{cases} 1, & x>1 \\ x, & -1≤x≤1 \\ -1, &x<-1 \end{cases}$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e5e.png)   |
+| [Softplus](https://www.researchgate.net/publication/4933639_Incorporating_Second-Order_Functional_Knowledge_for_Better_Option_Pricing):连续形式的ReLU | $\text{softplus}(x)=\int_{}^{}\text{Sigmoid}(x)dx \\=\ln(1+e^x)$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852c7.png)  |
+| [ReLU](http://www.cs.toronto.edu/~fritz/absps/reluICML.pdf) | $\text{ReLU}(x)=\max(x,0) \\=\begin{cases} x, & x≥0 \\ 0, &x<0 \end{cases}$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837b0.png)  |
+| [<font color=Blue>ReLU6</font>](https://0809zheng.github.io/2021/09/13/mobilenetv1.html):部署移动端 | $\text{ReLU6}(x)=\min(\max(x,0),6) \\=\begin{cases} 6, & x\geq 6 \\ x, & 0\leq x<6 \\ 0, &x<0 \end{cases}$ | ![](https://pic.imgdb.cn/item/619630e92ab3f51d91394de8.png)  |
+| [<font color=Blue>Maxout</font>](https://0809zheng.github.io/2021/10/23/maxout.html)：分段线性单元 |$\text{Maxout}(x) =  \mathop{\max}_{j\in [1,k]}x^TW_{i,j}+b_{ij}$ | ![](https://pic.imgdb.cn/item/619785362ab3f51d91ee819c.jpg)| 
+| [<font color=Blue>LeakyReLU</font>](https://0809zheng.github.io/2021/08/29/lrelu.html):解决Dead ReLU | $\text{LReLU}(x)=\max(x,0.01x) \\=\begin{cases} x, & x≥0 \\ 0.01x, &x<0 \end{cases}$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837a5.png)  |
+| [<font color=Blue>APL</font>](https://0809zheng.github.io/2021/10/26/apl.html):通过ReLU构造分段线性 | $\text{APL}(x)=\max(0,x)\\+\sum_{s=1}^{S}a^s\max (0,-x+b^s)$ | ![](https://pic.imgdb.cn/item/619618512ab3f51d912c24a3.jpg)  |
+| [<font color=Blue>PReLU</font>](https://0809zheng.github.io/2021/08/30/prelu.html):可学习参数$\alpha$ | $\text{PReLU}(x)=\max(x,\alpha x) \\=\begin{cases} x, & x≥0 \\ \alpha x, &x<0 \end{cases}$ |  ![](https://pic.imgdb.cn/item/61962f902ab3f51d9138b61c.png)|
+| [<font color=Blue>RReLU</font>](https://0809zheng.github.io/2021/08/31/rrelu.html):均匀分布采样$\alpha$ | $\text{RReLU}(x)=\max(x,\alpha x) \\=\begin{cases} x, & x≥0 \\ \alpha x, &x<0 \end{cases}$ | ![](https://pic.imgdb.cn/item/619631e82ab3f51d9139c736.jpg) |
+| [<font color=Blue>ELU</font>](https://0809zheng.github.io/2021/08/25/elu.html):解决bias shift | $\text{ELU}(x) = \begin{cases}x,  & x≥0 \\α(e^x-1), & x<0\end{cases}$ | ![](https://pic.imgdb.cn/item/61962fcd2ab3f51d9138cec7.png)  |
+| [<font color=Blue>GELU</font>](https://0809zheng.github.io/2021/08/24/gelu.html):引入正则化 | $\text{GELU}(x)=x\Phi(x)=x\int_{-∞}^{x} \frac{e^{-\frac{t^2}{2}}}{\sqrt{2\pi}}dt \\  = x\cdot \frac{1}{2}(1+\text{erf}(\frac{x}{\sqrt{2}}))$ |![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e52.png)  |
+| [<font color=Blue>CELU</font>](https://0809zheng.github.io/2021/08/22/celu.html):连续可微的ELU | $\text{CELU}(x) = \begin{cases}x,  & x≥0 \\α(e^{\frac{x}{\alpha}}-1), & x<0\end{cases}$ | ![](https://pic.imgdb.cn/item/619631b52ab3f51d9139acb4.png)  |
+| [<font color=Blue>SELU</font>](https://0809zheng.github.io/2021/09/02/selu.html):自标准化的ELU | $\text{SELU}(x) = \begin{cases}\lambda x,  & x≥0 \\\lambda α(e^x-1), & x<0\end{cases}$ | ![](https://pic.imgdb.cn/item/6196301d2ab3f51d9138f58d.png)  |
+| [<font color=Blue>Swish</font>](https://0809zheng.github.io/2021/09/04/swish.html):自动搜索 | $\text{Swish}(x) = x\cdot \text{Sigmoid}(\beta x) \\ = \frac{x}{1+e^{-\beta x}}$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852d6.png) |
+| [<font color=Blue>HardSwish</font>](https://0809zheng.github.io/2021/09/15/mobilenetv3.html):降低Swish计算量 | $\text{HardSwish} = x \cdot \frac{\text{ReLU6}(x+3)}{6} \\ = \begin{cases} x , & x \geq 3 \\ \frac{x(x+3)}{6} , & -3 \leq x <3 \\ 0, & x < -3 \end{cases}$ |![](https://pic.imgdb.cn/item/6196309c2ab3f51d91392d93.png) |
+| [<font color=Blue>ELiSH</font>](https://0809zheng.github.io/2021/09/03/elish.html):遗传算法 | $\text{ELiSH}(x) =\text{Sigmoid}(x) \cdot \text{ELU}(x) \\= \begin{cases}\frac{x}{1+e^{-x}},  & x≥0 \\\frac{e^x-1}{1+e^{-x}}, & x<0\end{cases}$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e4d.png)  |
+| [<font color=Blue>HardELiSH</font>](https://0809zheng.github.io/2021/09/03/elish.html):降低ELiSH计算量 | $\text{HardELiSH}(x) =\text{HardSigmoid}(x) \cdot \text{ELU}(x) \\= \begin{cases} x, & x≥1 \\ x(x+1)/2, & 0 \leq x<1 \\ (e^x-1)(x+1)/2, & -1\leq x<0 \\ 0, &x≤-1 \end{cases}$ | ![](https://pic.imgdb.cn/item/619632bf2ab3f51d913a2484.png)  |
+| [<font color=Blue>PAU</font>](https://0809zheng.github.io/2021/10/24/pade.html):Padé近似 | $\text{PAU}(x) = \frac{a_0+a_1x+a_2x^2+...+a_mx^m}{1+\|b_1\|\|x\|+\|b_2\|\|x\|^2+...+\|b_n\|\|x\|^n}$ |![](https://pic.imgdb.cn/item/619618fc2ab3f51d912c898d.jpg)  |
+| [<font color=Blue>Mish</font>](https://0809zheng.github.io/2021/08/21/mish.html):进一步搜索Swish | $\text{Mish}(x) = x\cdot \text{tanh}(\text{softplus}(x)) \\ =x\cdot \text{tanh}(\ln(1+e^x))$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837a8.png)  |
+| [<font color=Blue>Dynamic ReLU</font>](https://0809zheng.github.io/2021/10/27/dyrelu.html)：动态ReLU | $\text{DY-ReLU}(x) =  \mathop{\max}_{1\leq k \leq K} \{a_c^k(x)x_c+b_c^k(x)\}$ | ![](https://pic.imgdb.cn/item/619707a22ab3f51d919c2561.jpg) |
+| [<font color=Blue>Dynamic Shift-Max</font>](https://0809zheng.github.io/2021/11/09/micronet.html):循环移位多输入 | $y_i= \mathcal{\max}_{1\leq k\leq K} \{\sum_{j=0}^{J-1} a_{i,j}^k(x)x_{\frac{C}{G}}(i,j)\}$ | ![](https://pic.imgdb.cn/item/619393ea2ab3f51d919f26bd.jpg)  |
+| [<font color=Blue>FReLU</font>](https://0809zheng.github.io/2020/09/05/frelu.html):卷积窗口输入 | $y_i= \mathcal{\max}_{1\leq k\leq K} \{\sum_{j=0}^{J-1} a_{i,j}^k(x)x_{\frac{C}{G}}(i,j)\}$ | ![](https://pic.imgdb.cn/item/619632ec2ab3f51d913a3a3a.jpg)  |
+| [<font color=Blue>ACON</font>](https://0809zheng.github.io/2021/11/18/acon.html):最大值函数的$\alpha$-**softmax**近似 | $\text{ACON}(x)= (p_1-p_2)x\sigma(\beta (p_1-p_2)x)+p_2x$ | ![](https://pic.imgdb.cn/item/619616512ab3f51d912aeaa5.jpg)  |
+| [<font color=Blue>PWLU</font>](https://0809zheng.github.io/2020/10/22/plu.html):分段线性近似 | $\text{PWLU}_N(x,B_L,B_R,Y_P,K_L,K_R) = \\ \begin{cases}  (x-B_L)*K_L+Y_P^0, & x<B_L \\ (x-B_R)*K_R+Y_P^N, & x\geq B_R \\ (x-B_{idx})*K_{idx}+Y_P^{idx}, & B_L\leq x<B_R \end{cases}$ | ![](https://pic.imgdb.cn/item/6196180a2ab3f51d912bffcc.jpg)  |
+| [<font color=Blue>OPAU</font>](https://0809zheng.github.io/2021/10/25/opade.html):正交Padé近似 | $\text{OPAU}(x) =\frac{c_0+c_1f_1(x)+c_2f_2(x)+...+c_kf_k(x)}{1+\|d_1\|\|f_1(x)\|+\|d_2\|\|f_2(x)\|+...+\|d_l\|\|f_l(x)\|}$ | 见**PAU**  |
+| [<font color=Blue>SAU</font>](https://0809zheng.github.io/2021/11/05/sau.html): 使用Dirac函数近似 | $\text{SAU}(x) =  \frac{(1-\alpha)\sigma}{\sqrt{2\pi}}  e^{-\frac{x^2}{2\sigma^2}}+  \frac{ x}{2} +  \frac{(1-\alpha) x}{2}\text{erf}(\frac{x}{\sqrt{2}\sigma})$ | ![](https://pic.imgdb.cn/item/61938c232ab3f51d919b76d7.jpg)  |
+| [<font color=Blue>SMU</font>](https://0809zheng.github.io/2021/11/17/smu.html): 最大值函数的光滑近似 | $\text{SMU}(x) =  \frac{(1+\alpha)x+(1-\alpha)x \text{erf}(\mu (1-\alpha)x)}{2}$ | ![](https://pic.imgdb.cn/item/6195c47d2ab3f51d91f255d6.jpg)  |
+
+
+
+**Reference**:
+- [Activation Functions: Comparison of trends in Practice and Research for Deep Learning](https://arxiv.org/abs/1811.03378)
