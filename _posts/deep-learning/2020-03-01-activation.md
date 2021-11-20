@@ -107,16 +107,16 @@ table th:first-of-type {
     width: 20%;
 }
 table th:nth-of-type(2) {
-    width: 40%;
+    width: 30%;
 }
 table th:nth-of-type(3) {
-    width: 40%;
+    width: 50%;
 }
 </style>
 
 
 | 激活函数 | 表达式 |  函数图像 |
-| ---- | ---- |   ---- |
+| ---- | :----: |   :----: |
 | Step | $$\begin{cases} 1, & x≥0 \\ 0, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852ce.png)   |
 | Sigmoid | $$\frac{1}{1+e^{-x}}$$ |![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837b8.png)   |
 | [<font color=Blue>Hardsigmoid</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh):降低Sigmoid计算量 | $$\begin{cases} 1, & x≥1 \\ (x+1)/2, & -1<x<1 \\ 0, &x≤-1 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e56.png)   |
