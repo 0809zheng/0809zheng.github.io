@@ -30,9 +30,9 @@ n_heads = 8     # 自注意力头数
 class Transformer(nn.Module):
     def __init__(self):
         super(Transformer, self).__init__()
-        self.Encoder = Encoder().cuda()
-        self.Decoder = Decoder().cuda()
-        self.projection = nn.Linear(d_model, tgt_vocab_size, bias=False).cuda()
+        self.Encoder = Encoder()
+        self.Decoder = Decoder()
+        self.projection = nn.Linear(d_model, tgt_vocab_size, bias=False)
 
     def forward(self, enc_inputs, dec_inputs):                         # enc_inputs: [batch_size, src_len]  
                                                                        # dec_inputs: [batch_size, tgt_len]
@@ -136,6 +136,7 @@ class MultiHeadAttention(nn.Module):
         self.W_K = nn.Linear(d_model, d_k * n_heads, bias=False)
         self.W_V = nn.Linear(d_model, d_v * n_heads, bias=False)
         self.fc = nn.Linear(n_heads * d_v, d_model, bias=False)
+        self.layernorm = nn.LayerNorm(d_model)
         
     def forward(self, input_Q, input_K, input_V, attn_mask):    # input_Q: [batch_size, len_q, d_model]
                                                                 # input_K: [batch_size, len_k, d_model]
@@ -150,7 +151,7 @@ class MultiHeadAttention(nn.Module):
                                                                                  # attn: [batch_size, n_heads, len_q, len_k]
         context = context.transpose(1, 2).reshape(batch_size, -1, n_heads * d_v) # context: [batch_size, len_q, n_heads * d_v]
         output = self.fc(context)                                                # [batch_size, len_q, d_model]
-        return nn.LayerNorm(d_model).cuda()(output + residual), attn
+        return self.layernorm(output + residual), attn
 ```
 
 前馈神经网络层采用两层全连接层，全连接层作用于序列的每个位置，其中间特征维度为`d_ff=2048`。该层最后也使用了残差连接和**Layer Norm**：
@@ -191,11 +192,11 @@ class Decoder(nn.Module):
                                                                                           # enc_intpus: [batch_size, src_len]
                                                                                           # enc_outputs: [batsh_size, src_len, d_model]
         dec_outputs = self.tgt_emb(dec_inputs)                                            # [batch_size, tgt_len, d_model]       
-        dec_outputs = self.pos_emb(dec_outputs).cuda()                                    # [batch_size, tgt_len, d_model]
-        dec_self_attn_pad_mask = get_attn_pad_mask(dec_inputs, dec_inputs).cuda()         # [batch_size, tgt_len, tgt_len]
-        dec_self_attn_subsequence_mask = get_attn_subsequence_mask(dec_inputs).cuda()     # [batch_size, tgt_len, tgt_len]
+        dec_outputs = self.pos_emb(dec_outputs)                                           # [batch_size, tgt_len, d_model]
+        dec_self_attn_pad_mask = get_attn_pad_mask(dec_inputs, dec_inputs)                # [batch_size, tgt_len, tgt_len]
+        dec_self_attn_subsequence_mask = get_attn_subsequence_mask(dec_inputs)            # [batch_size, tgt_len, tgt_len]
         dec_self_attn_mask = torch.gt((dec_self_attn_pad_mask + 
-                                       dec_self_attn_subsequence_mask), 0).cuda()         # [batch_size, tgt_len, tgt_len]
+                                       dec_self_attn_subsequence_mask), 0)                # [batch_size, tgt_len, tgt_len]
         dec_enc_attn_mask = get_attn_pad_mask(dec_inputs, enc_inputs)                     # [batc_size, tgt_len, src_len]
         dec_self_attns, dec_enc_attns = [], []
         for layer in self.layers:                             # dec_outputs: [batch_size, tgt_len, d_model]
@@ -262,11 +263,11 @@ class PositionalEncoding(nn.Module):
         if pos != 0 else np.zeros(d_model) for pos in range(max_len)])
         pos_table[1:, 0::2] = np.sin(pos_table[1:, 0::2])                  # 字嵌入维度为偶数时
         pos_table[1:, 1::2] = np.cos(pos_table[1:, 1::2])                  # 字嵌入维度为奇数时
-        self.pos_table = torch.FloatTensor(pos_table).cuda()               # enc_inputs: [seq_len, d_model]
+        self.pos_table = torch.FloatTensor(pos_table)                      # enc_inputs: [seq_len, d_model]
 
     def forward(self, enc_inputs):                                         # enc_inputs: [batch_size, seq_len, d_model]
         enc_inputs += self.pos_table[:enc_inputs.size(1), :]
-        return self.dropout(enc_inputs.cuda())
+        return self.dropout(enc_inputs)
 ```
 
 ### ④ 模型比较
