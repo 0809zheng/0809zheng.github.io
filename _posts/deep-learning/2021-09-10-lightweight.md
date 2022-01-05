@@ -70,9 +70,6 @@ class VanillaConv(nn.Module):
 
 
 
-- ：(arXiv2104)EfficientNetV2: 更小的模型和更快的训练。
-
-
 ### ⚪  [<font color=Blue>SqueezeNet</font>](https://0809zheng.github.io/2021/09/16/squeezenet.html)：使用Fire模块代替普通卷积
 
 ![](https://pic.imgdb.cn/item/618334e22ab3f51d915cc600.jpg)
