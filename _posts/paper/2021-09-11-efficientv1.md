@@ -26,7 +26,7 @@ $$ \mathcal{N} = \mathop{\bigodot}_{i=1,...,s} \mathcal{F}_i^{L_i}(X_{<H_i,W_i,C
 
 使用缩放因子可以对模型的深度、宽度和分辨率分别缩放。通过$r$可以调整模型的特征分辨率，通过$d$可以调整模型的深度，通过$w$可以调整模型的宽度。作者旨在给定资源约束的条件下获得精度尽可能高的卷积网络，表述为一个优化问题：
 
-$$ \begin{align} \mathop{\max}_{d,w,r} & Accuracy(N(d,w,r)) \\ s.t. & N(d,w,r)=\mathop{\bigodot}_{i=1,...,s} \mathcal{F}_i^{d\cdot L_i}(X_{<r\cdot H_i,r\cdot W_i,w\cdot C_i>}) \\ & \text{Memory}(N)<\text{target memory} \\ & \text{FLOPS}(N)<\text{target flops} \end{align} $$
+$$ \begin{align} \mathop{\max}_{d,w,r} \quad & Accuracy(N(d,w,r)) \\ s.t. \quad & N(d,w,r)=\mathop{\bigodot}_{i=1,...,s} \mathcal{F}_i^{d\cdot L_i}(X_{<r\cdot H_i,r\cdot W_i,w\cdot C_i>}) \\ & \text{Memory}(N)<\text{target memory} \\ & \text{FLOPS}(N)<\text{target flops} \end{align} $$
 
 作者通过实验发现，单独增大网络的深度、宽度或分辨率都能够提高网络的精度，但是模型较大时精度的提升会趋于饱和。
 
@@ -38,11 +38,11 @@ $$ \begin{align} \mathop{\max}_{d,w,r} & Accuracy(N(d,w,r)) \\ s.t. & N(d,w,r)=\
 
 作者提出了一种**复合缩放**(**compound scaling**)方法，通过复合系数$\phi$均匀地缩放网络的深度、宽度或分辨率：
 
-$$ \begin{align} \text{depth}: &d=\alpha^{\phi} \\ \text{width}: &w=\beta^{\phi} \\ \text{resolution}: &r=\gamma^{\phi} \\ s.t. &\alpha \cdot \beta^2 \cdot \gamma^2 ≈2 \\ &\alpha \geq 1, \beta \geq 1, \gamma \geq 1 \end{align} $$
+$$ \begin{align} \text{depth}: \quad &d=\alpha^{\phi} \\ \text{width}: \quad &w=\beta^{\phi} \\ \text{resolution}: \quad &r=\gamma^{\phi} \\ s.t. \quad &\alpha \cdot \beta^2 \cdot \gamma^2 ≈2 \\ &\alpha \geq 1, \beta \geq 1, \gamma \geq 1 \end{align} $$
 
 常规的卷积网络的**FLOPS**与网络的深度$d$成正比，与宽度的平方$w^2$和分辨率的平方$r^2$成正比。参数$\alpha,\beta,\gamma$是通过网格搜索得到的常数，表示将可用的网络资源分配给深度、宽度和分辨率的程度。若约束$\alpha \cdot \beta^2 \cdot \gamma^2 ≈2$（初始可用资源为$2$倍），则用户指定复合系数$\phi$后网络的**FLOPS**会增长$2^{\phi}$倍。
 
-作者通过神经结构搜索设计了基线网络**EfficientNet-B0**，搜索目标是$ACC\times [FLOPS/T]^{-0.07}$，$T$为目标FLOPS，设置为$400$M。**EfficientNet-B0**的基本结构如下。其中基本模块采用[MobileNetV2](https://0809zheng.github.io/2021/09/14/mobilenetv2.html)中的**MBConv**（**mobile inverted bottleneck**）。
+作者通过神经结构搜索设计了基线网络**EfficientNet-B0**，搜索目标是$ACC\times [FLOPS/T]^{-0.07}$，$T$为目标FLOPS，设置为$400$M。**EfficientNet-B0**的基本结构如下。其中基本模块采用[MobileNetV3](https://0809zheng.github.io/2021/09/15/mobilenetv3.html)中的**MBConv**（**mobile inverted bottleneck**）。
 
 ![](https://pic.imgdb.cn/item/61d4fac42ab3f51d91e5af64.jpg)
 
