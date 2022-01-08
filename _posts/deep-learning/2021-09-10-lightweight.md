@@ -144,8 +144,10 @@ class DSConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.depthwise_separable_conv = nn.Sequential(
-            VanillaConv(in_channels, in_channels, kernel_size=3, padding=1, groups=in_channels), # 此处激活函数为 nn.ReLU6(inplace=True)
-            VanillaConv(in_channels, out_channels, kernel_size=1, padding=0), # 此处激活函数为 nn.ReLU6(inplace=True)
+            VanillaConv(in_channels, in_channels, kernel_size=3, padding=1, groups=in_channels),
+            # 此处激活函数为 nn.ReLU6(inplace=True)
+            VanillaConv(in_channels, out_channels, kernel_size=1, padding=0),
+            # 此处激活函数为 nn.ReLU6(inplace=True)
         )
 
     def forward(self, x):
@@ -166,8 +168,10 @@ class DSConvv2(nn.Module):
     def __init__(self, in_channels, out_channels, t=6):
         super().__init__()
         self.inverted_residual = nn.Sequential(
-            VanillaConv(in_channels, t*in_channels, kernel_size=1, padding=0), # 此处激活函数为 nn.ReLU6(inplace=True)
-            VanillaConv(t*in_channels, t*in_channels, kernel_size=3, padding=1, groups=t*in_channels), # 此处激活函数为 nn.ReLU6(inplace=True)
+            VanillaConv(in_channels, t*in_channels, kernel_size=1, padding=0),
+            # 此处激活函数为 nn.ReLU6(inplace=True)
+            VanillaConv(t*in_channels, t*in_channels, kernel_size=3, padding=1, groups=t*in_channels),
+            # 此处激活函数为 nn.ReLU6(inplace=True)
             VanillaConv(t*in_channels, out_channels, kernel_size=1, padding=0, relu=False)
         )
         if in_channels != out_channels:
@@ -212,8 +216,10 @@ class DSConvv3(nn.Module):
     def __init__(self, in_channels, out_channels, t=6):
         super().__init__()
         self.block = nn.Sequential(
-            VanillaConv(in_channels, t*in_channels, kernel_size=1, padding=0), # 此处激活函数为 nn.Hardswish(inplace=True)
-            VanillaConv(t*in_channels, t*in_channels, kernel_size=3, padding=1, groups=t*in_channels), # 此处激活函数为 nn.Hardswish(inplace=True)
+            VanillaConv(in_channels, t*in_channels, kernel_size=1, padding=0),
+            # 此处激活函数为 nn.Hardswish(inplace=True)
+            VanillaConv(t*in_channels, t*in_channels, kernel_size=3, padding=1, groups=t*in_channels),
+            # 此处激活函数为 nn.Hardswish(inplace=True)
             SELayer(t*in_channels),
             VanillaConv(t*in_channels, out_channels, kernel_size=1, padding=0, relu=True)
         )
