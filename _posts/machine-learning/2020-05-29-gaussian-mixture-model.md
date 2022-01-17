@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'GMM：高斯混合模型'
+title: 'Gaussian Mixture Model(GMM)：高斯混合模型'
 date: 2020-05-29
 author: 郑之杰
 cover: 'https://img.imgdb.cn/item/60763e328322e6675c8cb89f.jpg'
