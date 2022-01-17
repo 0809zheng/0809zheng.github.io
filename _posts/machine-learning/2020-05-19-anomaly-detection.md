@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '异常检测'
+title: 'Anomaly Detection：异常检测'
 date: 2020-05-19
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5eb51281c2a9a83be56f3c55.jpg'
