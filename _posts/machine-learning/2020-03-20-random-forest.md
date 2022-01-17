@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '随机森林'
+title: 'Random Forest：随机森林'
 date: 2020-03-20
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5efb023c14195aa5948bf48e.jpg'
