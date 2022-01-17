@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '稀疏编码'
+title: 'Sparse Coding：稀疏编码'
 date: 2020-04-08
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e8db2d5504f4bcb043bd7cf.jpg'
