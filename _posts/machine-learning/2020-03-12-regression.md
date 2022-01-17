@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '回归'
+title: 'Regression：回归'
 date: 2020-03-12
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ed758f4c2a9a83be54c0e00.jpg'
