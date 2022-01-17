@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '多臂老虎机'
+title: 'Multi-Armed Bandit(MAB)：多臂老虎机'
 date: 2020-09-02
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5f505cc9160a154a671bb05b.jpg'
