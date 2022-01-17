@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '感知机'
+title: 'Perceptron：感知机'
 date: 2020-03-11
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5eca7715c2a9a83be521b412.jpg'
