@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '深度信念网络'
+title: 'Deep Belief Network：深度信念网络'
 date: 2020-04-16
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e97dbe0c2a9a83be538717b.jpg'
