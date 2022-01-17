@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'RBF：径向基函数网络'
+title: 'Radial Basis Function(RBF)：径向基函数网络'
 date: 2020-04-18
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5edf57bfc2a9a83be5dd5cc4.jpg'
