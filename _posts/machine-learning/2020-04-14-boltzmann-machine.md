@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '玻尔兹曼机'
+title: 'Boltzmann Machine：玻尔兹曼机'
 date: 2020-04-14
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e954cbbc2a9a83be594d120.jpg'
