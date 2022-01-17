@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '迁移学习'
+title: 'Transfer Learning：迁移学习'
 date: 2020-05-22
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5efc584614195aa5940f63f1.jpg'
