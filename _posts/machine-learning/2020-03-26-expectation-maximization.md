@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '期望最大算法'
+title: 'EM：期望最大算法'
 date: 2020-03-26
 author: 郑之杰
 cover: 'https://img.imgdb.cn/item/6074ef4d8322e6675cfb7a34.jpg'
