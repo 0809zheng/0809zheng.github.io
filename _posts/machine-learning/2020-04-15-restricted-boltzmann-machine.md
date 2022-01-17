@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '受限玻尔兹曼机'
+title: 'Restricted Boltzmann Machine：受限玻尔兹曼机'
 date: 2020-04-15
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e9676a8c2a9a83be55aca1e.jpg'
