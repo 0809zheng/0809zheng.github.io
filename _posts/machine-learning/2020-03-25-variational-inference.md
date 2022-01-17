@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '变分推断'
+title: 'Variational Inference：变分推断'
 date: 2020-03-25
 author: 郑之杰
 cover: ''
