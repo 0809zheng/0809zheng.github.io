@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Hopfield神经网络'
+title: 'Hopfield Neural Network：Hopfield神经网络'
 date: 2020-04-13
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e9464d5c2a9a83be50658b8.jpg'
