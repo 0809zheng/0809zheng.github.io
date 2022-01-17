@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'SVR：支持向量回归'
+title: 'Support Vector Regression(SVR)：支持向量回归'
 date: 2020-03-15
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ed759b9c2a9a83be54d254c.jpg'
