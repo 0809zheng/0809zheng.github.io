@@ -148,7 +148,7 @@ table th:nth-of-type(3) {
 | [<font color=Blue>OPAU</font>](https://0809zheng.github.io/2021/10/25/opade.html):正交Padé近似 | $$\frac{c_0+c_1f_1(x)+c_2f_2(x)+...+c_kf_k(x)}{1+\|d_1\|\|f_1(x)\|+\|d_2\|\|f_2(x)\|+...+\|d_l\|\|f_l(x)\|}$$ | 见**PAU**  |
 | [<font color=Blue>SAU</font>](https://0809zheng.github.io/2021/11/05/sau.html): 使用Dirac函数近似 | $$\frac{(1-\alpha)\sigma}{\sqrt{2\pi}}  e^{-\frac{x^2}{2\sigma^2}}+  \frac{ x}{2} +  \frac{(1-\alpha) x}{2}\text{erf}(\frac{x}{\sqrt{2}\sigma})$$ | ![](https://pic.imgdb.cn/item/61938c232ab3f51d919b76d7.jpg)  |
 | [<font color=Blue>SMU</font>](https://0809zheng.github.io/2021/11/17/smu.html): 最大值函数的光滑近似 | $$\frac{(1+\alpha)x+(1-\alpha)x \text{erf}(\mu (1-\alpha)x)}{2}$$ | ![](https://pic.imgdb.cn/item/6195c47d2ab3f51d91f255d6.jpg)  |
-| [<font color=Blue>Squareplus</font>](https://0809zheng.github.io/2021/11/17/smu.html): Softplus的代数近似 | $$\text{squareplus}(x,b) =\frac{1}{2}(x+\sqrt{x^2+b})$$ | ![](https://pic.imgdb.cn/item/61ec097b2ab3f51d9130a921.png)  |
+| [<font color=Blue>Squareplus</font>](https://0809zheng.github.io/2021/11/19/squareplus.html): Softplus的代数近似 | $$\text{squareplus}(x,b) =\frac{1}{2}(x+\sqrt{x^2+b})$$ | ![](https://pic.imgdb.cn/item/61ec097b2ab3f51d9130a921.png)  |
 
 
 
