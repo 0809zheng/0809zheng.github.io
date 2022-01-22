@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '深度学习中的Activation Function'
+title: '深度学习中的激活函数(Activation Function)'
 date: 2020-03-01
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/5e7b4db6504f4bcb040071f1.png'
@@ -116,38 +116,39 @@ table th:nth-of-type(3) {
 
 
 | 激活函数 | 表达式 |  函数图像 |
-| :----: | :----: |   :----: |
-| Step | $$y=\begin{cases} 1, & x≥0 \\ 0, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852ce.png)   |
-| Sigmoid | $$y=\frac{1}{1+e^{-x}}$$ |![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837b8.png)   |
-| [<font color=Blue>Hardsigmoid</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh):降低Sigmoid计算量 | $$y=\begin{cases} 1, & x≥1 \\ (x+1)/2, & -1<x<1 \\ 0, &x≤-1 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e56.png)   |
-| Tanh | $$y=2\text{Sigmoid}(2x)-1=\frac{e^{x}-e^{-x}}{e^{x}+e^{-x}}$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852e3.png)  |
-| [<font color=Blue>Hardtanh</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh):降低Tanh计算量 | $$y=\begin{cases} 1, & x>1 \\ x, & -1≤x≤1 \\ -1, &x<-1 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e5e.png)   |
-| [Softplus](https://www.researchgate.net/publication/4933639_Incorporating_Second-Order_Functional_Knowledge_for_Better_Option_Pricing):连续形式的ReLU | $$y=\int_{}^{}\text{Sigmoid}(x)dx=\ln(1+e^x)$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852c7.png)  |
-| [ReLU](http://www.cs.toronto.edu/~fritz/absps/reluICML.pdf) | $$y=\max(x,0)=\begin{cases} x, & x≥0 \\ 0, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837b0.png)  |
-| [<font color=Blue>ReLU6</font>](https://0809zheng.github.io/2021/09/13/mobilenetv1.html):部署移动端 | $$y=\min(\max(x,0),6) =\begin{cases} 6, & x\geq 6 \\ x, & 0\leq x<6 \\ 0, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/619630e92ab3f51d91394de8.png)  |
-| [<font color=Blue>Maxout</font>](https://0809zheng.github.io/2021/10/23/maxout.html)：分段线性单元 |$$y=\mathop{\max}_{j\in [1,k]}x^TW_{i,j}+b_{ij}$$ | ![](https://pic.imgdb.cn/item/619785362ab3f51d91ee819c.jpg)| 
-| [<font color=Blue>LeakyReLU</font>](https://0809zheng.github.io/2021/08/29/lrelu.html):解决Dead ReLU | $$y=\max(x,0.01x) =\begin{cases} x, & x≥0 \\ 0.01x, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837a5.png)  |
-| [<font color=Blue>APL</font>](https://0809zheng.github.io/2021/10/26/apl.html):通过ReLU构造分段线性 | $$y=\max(0,x)+\sum_{s=1}^{S}a^s\max (0,-x+b^s)$$ | ![](https://pic.imgdb.cn/item/619618512ab3f51d912c24a3.jpg)  |
-| [<font color=Blue>PReLU</font>](https://0809zheng.github.io/2021/08/30/prelu.html):可学习参数$\alpha$ | $$y=\max(x,\alpha x)=\begin{cases} x, & x≥0 \\ \alpha x, &x<0 \end{cases}$$ |  ![](https://pic.imgdb.cn/item/61962f902ab3f51d9138b61c.png)|
-| [<font color=Blue>RReLU</font>](https://0809zheng.github.io/2021/08/31/rrelu.html):均匀分布采样$\alpha$ | $$y=\max(x,\alpha x)=\begin{cases} x, & x≥0 \\ \alpha x, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/619631e82ab3f51d9139c736.jpg) |
-| [<font color=Blue>ELU</font>](https://0809zheng.github.io/2021/08/25/elu.html):解决bias shift | $$y=\begin{cases}x,  & x≥0 \\α(e^x-1), & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/61962fcd2ab3f51d9138cec7.png)  |
-| [<font color=Blue>GELU</font>](https://0809zheng.github.io/2021/08/24/gelu.html):引入正则化 | $$y=x\int_{-∞}^{x} \frac{e^{-\frac{t^2}{2}}}{\sqrt{2\pi}}dt   = x\cdot \frac{1}{2}(1+\text{erf}(\frac{x}{\sqrt{2}}))$$ |![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e52.png)  |
-| [<font color=Blue>CELU</font>](https://0809zheng.github.io/2021/08/22/celu.html):连续可微的ELU | $$y=\begin{cases}x,  & x≥0 \\α(e^{\frac{x}{\alpha}}-1), & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/619631b52ab3f51d9139acb4.png)  |
-| [<font color=Blue>SELU</font>](https://0809zheng.github.io/2021/09/02/selu.html):自标准化的ELU | $$y=\begin{cases}\lambda x,  & x≥0 \\\lambda α(e^x-1), & x<0\end{cases} \\ \alpha=1.6732632423543772848170429916717 \\\lambda = 1.0507009873554804934193349852946$$ | ![](https://pic.imgdb.cn/item/6196301d2ab3f51d9138f58d.png)  |
-| [<font color=Blue>Swish</font>](https://0809zheng.github.io/2021/09/04/swish.html):自动搜索 | $$y=x\cdot \text{Sigmoid}(\beta x)  = \frac{x}{1+e^{-\beta x}}$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852d6.png) |
-| [<font color=Blue>HardSwish</font>](https://0809zheng.github.io/2021/09/15/mobilenetv3.html):降低Swish计算量 | $$y=x \cdot \frac{\text{ReLU6}(x+3)}{6}  = \begin{cases} x , & x \geq 3 \\ \frac{x(x+3)}{6} , & -3 \leq x <3 \\ 0, & x < -3 \end{cases}$$ |![](https://pic.imgdb.cn/item/6196309c2ab3f51d91392d93.png) |
-| [<font color=Blue>ELiSH</font>](https://0809zheng.github.io/2021/09/03/elish.html):遗传算法 | $$y=\text{Sigmoid}(x) \cdot \text{ELU}(x) = \begin{cases}\frac{x}{1+e^{-x}},  & x≥0 \\\frac{e^x-1}{1+e^{-x}}, & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e4d.png)  |
-| [<font color=Blue>HardELiSH</font>](https://0809zheng.github.io/2021/09/03/elish.html):降低ELiSH计算量 | $$y=\text{HardSigmoid}(x) \cdot \text{ELU}(x) \\= \begin{cases} x, & x≥1 \\ x(x+1)/2, & 0 \leq x<1 \\ (e^x-1)(x+1)/2, & -1\leq x<0 \\ 0, &x≤-1 \end{cases}$$ | ![](https://pic.imgdb.cn/item/619632bf2ab3f51d913a2484.png)  |
-| [<font color=Blue>PAU</font>](https://0809zheng.github.io/2021/10/24/pade.html):Padé近似 | $$y=\frac{a_0+a_1x+a_2x^2+...+a_mx^m}{1+\|b_1\|\|x\|+\|b_2\|\|x\|^2+...+\|b_n\|\|x\|^n}$$ |![](https://pic.imgdb.cn/item/619618fc2ab3f51d912c898d.jpg)  |
-| [<font color=Blue>Mish</font>](https://0809zheng.github.io/2021/08/21/mish.html):进一步搜索Swish | $$y=x\cdot \text{tanh}(\text{softplus}(x))  =x\cdot \text{tanh}(\ln(1+e^x))$$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837a8.png)  |
-| [<font color=Blue>Dynamic ReLU</font>](https://0809zheng.github.io/2021/10/27/dyrelu.html)：动态ReLU | $$y=\mathop{\max}_{1\leq k \leq K} \{a_c^k(x)x_c+b_c^k(x)\}$$ | ![](https://pic.imgdb.cn/item/619707a22ab3f51d919c2561.jpg) |
-| [<font color=Blue>Dynamic Shift-Max</font>](https://0809zheng.github.io/2021/11/09/micronet.html):循环移位多输入 | $$y=\mathcal{\max}_{1\leq k\leq K} \{\sum_{j=0}^{J-1} a_{i,j}^k(x)x_{\frac{C}{G}}(i,j)\}$$ | ![](https://pic.imgdb.cn/item/619393ea2ab3f51d919f26bd.jpg)  |
-| [<font color=Blue>FReLU</font>](https://0809zheng.github.io/2020/09/05/frelu.html):卷积窗口输入 | $$y=\mathcal{\max}_{1\leq k\leq K} \{\sum_{j=0}^{J-1} a_{i,j}^k(x)x_{\frac{C}{G}}(i,j)\}$$ | ![](https://pic.imgdb.cn/item/619632ec2ab3f51d913a3a3a.jpg)  |
-| [<font color=Blue>ACON</font>](https://0809zheng.github.io/2021/11/18/acon.html):最大值函数的$\alpha$-**softmax**近似 | $$y=(p_1-p_2)x\sigma(\beta (p_1-p_2)x)+p_2x$$ | ![](https://pic.imgdb.cn/item/619616512ab3f51d912aeaa5.jpg)  |
-| [<font color=Blue>PWLU</font>](https://0809zheng.github.io/2020/10/22/plu.html):分段线性近似 | $$y=\begin{cases}  (x-B_L)*K_L+Y_P^0, & x<B_L \\ (x-B_R)*K_R+Y_P^N, & x\geq B_R \\ (x-B_{idx})*K_{idx}+Y_P^{idx}, & \text{others} \end{cases}$$ | ![](https://pic.imgdb.cn/item/6196180a2ab3f51d912bffcc.jpg)  |
-| [<font color=Blue>OPAU</font>](https://0809zheng.github.io/2021/10/25/opade.html):正交Padé近似 | $$y=\frac{c_0+c_1f_1(x)+c_2f_2(x)+...+c_kf_k(x)}{1+\|d_1\|\|f_1(x)\|+\|d_2\|\|f_2(x)\|+...+\|d_l\|\|f_l(x)\|}$$ | 见**PAU**  |
-| [<font color=Blue>SAU</font>](https://0809zheng.github.io/2021/11/05/sau.html): 使用Dirac函数近似 | $$y=\frac{(1-\alpha)\sigma}{\sqrt{2\pi}}  e^{-\frac{x^2}{2\sigma^2}}+  \frac{ x}{2} +  \frac{(1-\alpha) x}{2}\text{erf}(\frac{x}{\sqrt{2}\sigma})$$ | ![](https://pic.imgdb.cn/item/61938c232ab3f51d919b76d7.jpg)  |
-| [<font color=Blue>SMU</font>](https://0809zheng.github.io/2021/11/17/smu.html): 最大值函数的光滑近似 | $$y=\frac{(1+\alpha)x+(1-\alpha)x \text{erf}(\mu (1-\alpha)x)}{2}$$ | ![](https://pic.imgdb.cn/item/6195c47d2ab3f51d91f255d6.jpg)  |
+| ---- | ---- |   ---- |
+| Step | $$\begin{cases} 1, & x≥0 \\ 0, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852ce.png)   |
+| Sigmoid | $$\frac{1}{1+e^{-x}}$$ |![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837b8.png)   |
+| [<font color=Blue>Hardsigmoid</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh):降低Sigmoid计算量 | $$\begin{cases} 1, & x≥1 \\ (x+1)/2, & -1<x<1 \\ 0, &x≤-1 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e56.png)   |
+| Tanh | $$2\text{Sigmoid}(2x)-1\\=\frac{e^{x}-e^{-x}}{e^{x}+e^{-x}}$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852e3.png)  |
+| [<font color=Blue>Hardtanh</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh):降低Tanh计算量 | $$\begin{cases} 1, & x>1 \\ x, & -1≤x≤1 \\ -1, &x<-1 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e5e.png)   |
+| [Softplus](https://www.researchgate.net/publication/4933639_Incorporating_Second-Order_Functional_Knowledge_for_Better_Option_Pricing):连续形式的ReLU | $$\int_{}^{}\text{Sigmoid}(x)dx \\=\ln(1+e^x)$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852c7.png)  |
+| [ReLU](http://www.cs.toronto.edu/~fritz/absps/reluICML.pdf) | $$\max(x,0) \\=\begin{cases} x, & x≥0 \\ 0, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837b0.png)  |
+| [<font color=Blue>ReLU6</font>](https://0809zheng.github.io/2021/09/13/mobilenetv1.html):部署移动端 | $$\min(\max(x,0),6) \\=\begin{cases} 6, & x\geq 6 \\ x, & 0\leq x<6 \\ 0, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/619630e92ab3f51d91394de8.png)  |
+| [<font color=Blue>Maxout</font>](https://0809zheng.github.io/2021/10/23/maxout.html)：分段线性单元 |$$\mathop{\max}_{j\in [1,k]}x^TW_{i,j}+b_{ij}$$ | ![](https://pic.imgdb.cn/item/619785362ab3f51d91ee819c.jpg)| 
+| [<font color=Blue>LeakyReLU</font>](https://0809zheng.github.io/2021/08/29/lrelu.html):解决Dead ReLU | $$\max(x,0.01x) \\=\begin{cases} x, & x≥0 \\ 0.01x, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837a5.png)  |
+| [<font color=Blue>APL</font>](https://0809zheng.github.io/2021/10/26/apl.html):通过ReLU构造分段线性 | $$\max(0,x)\\+\sum_{s=1}^{S}a^s\max (0,-x+b^s)$$ | ![](https://pic.imgdb.cn/item/619618512ab3f51d912c24a3.jpg)  |
+| [<font color=Blue>PReLU</font>](https://0809zheng.github.io/2021/08/30/prelu.html):可学习参数$\alpha$ | $$\max(x,\alpha x) \\=\begin{cases} x, & x≥0 \\ \alpha x, &x<0 \end{cases}$$ |  ![](https://pic.imgdb.cn/item/61962f902ab3f51d9138b61c.png)|
+| [<font color=Blue>RReLU</font>](https://0809zheng.github.io/2021/08/31/rrelu.html):均匀分布采样$\alpha$ | $$\max(x,\alpha x) \\=\begin{cases} x, & x≥0 \\ \alpha x, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/619631e82ab3f51d9139c736.jpg) |
+| [<font color=Blue>ELU</font>](https://0809zheng.github.io/2021/08/25/elu.html):解决bias shift | $$\begin{cases}x,  & x≥0 \\α(e^x-1), & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/61962fcd2ab3f51d9138cec7.png)  |
+| [<font color=Blue>GELU</font>](https://0809zheng.github.io/2021/08/24/gelu.html):引入正则化 | $$x\Phi(x)=x\int_{-∞}^{x} \frac{e^{-\frac{t^2}{2}}}{\sqrt{2\pi}}dt \\  = x\cdot \frac{1}{2}(1+\text{erf}(\frac{x}{\sqrt{2}}))$$ |![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e52.png)  |
+| [<font color=Blue>CELU</font>](https://0809zheng.github.io/2021/08/22/celu.html):连续可微的ELU | $$\begin{cases}x,  & x≥0 \\α(e^{\frac{x}{\alpha}}-1), & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/619631b52ab3f51d9139acb4.png)  |
+| [<font color=Blue>SELU</font>](https://0809zheng.github.io/2021/09/02/selu.html):自标准化的ELU | $$\begin{cases}\lambda x,  & x≥0 \\\lambda α(e^x-1), & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/6196301d2ab3f51d9138f58d.png)  |
+| [<font color=Blue>Swish</font>](https://0809zheng.github.io/2021/09/04/swish.html):自动搜索 | $$x\cdot \text{Sigmoid}(\beta x) \\ = \frac{x}{1+e^{-\beta x}}$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852d6.png) |
+| [<font color=Blue>HardSwish</font>](https://0809zheng.github.io/2021/09/15/mobilenetv3.html):降低Swish计算量 | $$x \cdot \frac{\text{ReLU6}(x+3)}{6} \\ = \begin{cases} x , & x \geq 3 \\ \frac{x(x+3)}{6} , & -3 \leq x <3 \\ 0, & x < -3 \end{cases}$$ |![](https://pic.imgdb.cn/item/6196309c2ab3f51d91392d93.png) |
+| [<font color=Blue>ELiSH</font>](https://0809zheng.github.io/2021/09/03/elish.html):遗传算法 | $$\text{Sigmoid}(x) \cdot \text{ELU}(x) \\= \begin{cases}\frac{x}{1+e^{-x}},  & x≥0 \\\frac{e^x-1}{1+e^{-x}}, & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e4d.png)  |
+| [<font color=Blue>HardELiSH</font>](https://0809zheng.github.io/2021/09/03/elish.html):降低ELiSH计算量 | $$\text{HardSigmoid}(x) \cdot \text{ELU}(x) \\= \begin{cases} x, & x≥1 \\ x(x+1)/2, & 0 \leq x<1 \\ (e^x-1)(x+1)/2, & -1\leq x<0 \\ 0, &x≤-1 \end{cases}$$ | ![](https://pic.imgdb.cn/item/619632bf2ab3f51d913a2484.png)  |
+| [<font color=Blue>PAU</font>](https://0809zheng.github.io/2021/10/24/pade.html):Padé近似 | $$\frac{a_0+a_1x+a_2x^2+...+a_mx^m}{1+\|b_1\|\|x\|+\|b_2\|\|x\|^2+...+\|b_n\|\|x\|^n}$$ |![](https://pic.imgdb.cn/item/619618fc2ab3f51d912c898d.jpg)  |
+| [<font color=Blue>Mish</font>](https://0809zheng.github.io/2021/08/21/mish.html):进一步搜索Swish | $$x\cdot \text{tanh}(\text{softplus}(x)) \\ =x\cdot \text{tanh}(\ln(1+e^x))$$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837a8.png)  |
+| [<font color=Blue>Dynamic ReLU</font>](https://0809zheng.github.io/2021/10/27/dyrelu.html)：动态ReLU | $$\mathop{\max}_{1\leq k \leq K} \{a_c^k(x)x_c+b_c^k(x)\}$$ | ![](https://pic.imgdb.cn/item/619707a22ab3f51d919c2561.jpg) |
+| [<font color=Blue>Dynamic Shift-Max</font>](https://0809zheng.github.io/2021/11/09/micronet.html):循环移位多输入 | $$\mathcal{\max}_{1\leq k\leq K} \{\sum_{j=0}^{J-1} a_{i,j}^k(x)x_{\frac{C}{G}}(i,j)\}$$ | ![](https://pic.imgdb.cn/item/619393ea2ab3f51d919f26bd.jpg)  |
+| [<font color=Blue>FReLU</font>](https://0809zheng.github.io/2020/09/05/frelu.html):卷积窗口输入 | $$\mathcal{\max}_{1\leq k\leq K} \{\sum_{j=0}^{J-1} a_{i,j}^k(x)x_{\frac{C}{G}}(i,j)\}$$ | ![](https://pic.imgdb.cn/item/619632ec2ab3f51d913a3a3a.jpg)  |
+| [<font color=Blue>ACON</font>](https://0809zheng.github.io/2021/11/18/acon.html):最大值函数的$\alpha$-**softmax**近似 | $$(p_1-p_2)x\sigma(\beta (p_1-p_2)x)+p_2x$$ | ![](https://pic.imgdb.cn/item/619616512ab3f51d912aeaa5.jpg)  |
+| [<font color=Blue>PWLU</font>](https://0809zheng.github.io/2020/10/22/plu.html):分段线性近似 | $$\begin{cases}  (x-B_L)*K_L+Y_P^0, & x<B_L \\ (x-B_R)*K_R+Y_P^N, & x\geq B_R \\ (x-B_{idx})*K_{idx}+Y_P^{idx}, & \text{others} \end{cases}$$ | ![](https://pic.imgdb.cn/item/6196180a2ab3f51d912bffcc.jpg)  |
+| [<font color=Blue>OPAU</font>](https://0809zheng.github.io/2021/10/25/opade.html):正交Padé近似 | $$\frac{c_0+c_1f_1(x)+c_2f_2(x)+...+c_kf_k(x)}{1+\|d_1\|\|f_1(x)\|+\|d_2\|\|f_2(x)\|+...+\|d_l\|\|f_l(x)\|}$$ | 见**PAU**  |
+| [<font color=Blue>SAU</font>](https://0809zheng.github.io/2021/11/05/sau.html): 使用Dirac函数近似 | $$\frac{(1-\alpha)\sigma}{\sqrt{2\pi}}  e^{-\frac{x^2}{2\sigma^2}}+  \frac{ x}{2} +  \frac{(1-\alpha) x}{2}\text{erf}(\frac{x}{\sqrt{2}\sigma})$$ | ![](https://pic.imgdb.cn/item/61938c232ab3f51d919b76d7.jpg)  |
+| [<font color=Blue>SMU</font>](https://0809zheng.github.io/2021/11/17/smu.html): 最大值函数的光滑近似 | $$\frac{(1+\alpha)x+(1-\alpha)x \text{erf}(\mu (1-\alpha)x)}{2}$$ | ![](https://pic.imgdb.cn/item/6195c47d2ab3f51d91f255d6.jpg)  |
+| [<font color=Blue>Squareplus</font>](https://0809zheng.github.io/2021/11/17/smu.html): Softplus的代数近似 | $$\text{squareplus}(x,b) =\frac{1}{2}(x+\sqrt{x^2+b})$$ | ![](https://pic.imgdb.cn/item/61ec097b2ab3f51d9130a921.png)  |
 
 
 
