@@ -9,7 +9,7 @@ tags: 论文阅读
 
 > 探讨深度集成学习的损失曲面.
 
-- paper：mixup: Deep Ensembles: A Loss Landscape Perspective
+- paper：Deep Ensembles: A Loss Landscape Perspective
 - arXiv：[link](https://arxiv.org/abs/1912.02757v1)
 
 深度学习模型在进行训练时最终会收敛到局部极小值附近。之前的研究表明，一个损失函数存在许多局部极小值，在这些值上函数的表现是类似的。
