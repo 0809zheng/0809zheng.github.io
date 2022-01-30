@@ -42,7 +42,7 @@ $$ \theta^*=\mathcal{\arg \min}_{\theta} L(\theta) $$
 ![](https://pic.imgdb.cn/item/61ef7c112ab3f51d912b2ade.jpg)
 
 # 2. 基于梯度的优化算法
-深度学习中的优化算法通常用**梯度下降(Gradient Descent, GD)**算法求解，它是一种一阶近似方法。将神经网络的参数为$θ$初始化为$θ_0$，对损失函数$l(θ)$在$θ_0$处进行一阶**Taylor**展开：
+深度学习中的优化问题通常用**梯度下降(Gradient Descent, GD)**算法求解，它是一种一阶近似方法。将神经网络的参数为$θ$初始化为$θ_0$，对损失函数$l(θ)$在$θ_0$处进行一阶**Taylor**展开：
 
 $$ l(θ)=l(θ_0)+\nabla_{\theta} l(θ_0)(θ-θ_0)+o(θ-θ_0)^2 $$
 
@@ -52,9 +52,9 @@ $$ \nabla_{\theta} l(θ_0)(θ-θ_0)<0 $$
 
 当梯度$\nabla_{\theta} l(θ_0)$大于零时，应该减小$\theta$；当梯度$\nabla_{\theta} l(θ_0)$小于零时，应该增大$\theta$。综上所述，应该沿梯度$l'(θ_0)$的负方向更新参数。
 
-在执行梯度下降时需要指定每次计算梯度时所使用数据的**批量(batch)** $\mathcal{B}$ 和**学习率(learning rate)** $α$。若记第$t$次参数更新时的梯度为$g_t=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla_{\theta} l(θ_{t-1})$，则参数更新公式：
+在执行梯度下降时需要指定每次计算梯度时所使用数据的**批量(batch)** $\mathcal{B}$ 和**学习率(learning rate)** $\gamma$。若记第$t$次参数更新时的梯度为$g_t=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla_{\theta} l(θ_{t-1})$，则参数更新公式：
 
-$$ θ_t=θ_{t-1}-αg_t $$
+$$ θ_t=θ_{t-1}-\gamma g_t $$
 
 ## (1) 超参数的选择
 ### ① 超参数 batch size
@@ -156,23 +156,14 @@ $$ \begin{align} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla
 | 优化算法 | 参数定义(缺省值/初始值) |  更新形式 |
 | ---- | ---- |   ---- |
 | GD | $$g_t\text{: 梯度} \\ \gamma\text{: 学习率}$$ | $$\begin{align} g_t&=\nabla_{\theta} l(θ_{t-1}) \\ θ_t&=θ_{t-1}-\gamma g_t \end{align}$$   |
-| Momentum | $$M_t\text{: 动量}(0) \\ \mu \text{: 衰减率}(0.9)$$ | $$\begin{align} M_t = \mu M_{t-1} + g_t \\ θ_t&=θ_{t-1}-\gamma M_t \end{align}$$   |
+| [<font color=Blue>RProp</font>](https://0809zheng.github.io/2020/12/07/rprop.html) | $$\eta_+\text{: 步长增加值}(1.2) \\ \eta__\text{: 步长减小值}(0.5) \\ \Gamma_{max} \text{: 最大步长} \\ \Gamma_{min} \text{: 最小步长}$$ | $$\begin{align} \eta_t &= \begin{cases} \min(\eta_{t-1}\eta_+,\Gamma_{max}) & \text{if }g_{t-1}g_t>0 \\ \max(\eta_{t-1}\eta_{\_},\Gamma_{min}) & \text{if }g_{t-1}g_t<0  \\ \eta_{t-1}& \text{else} \end{cases} \\θ_{t} &= θ_{t-1} -\eta_t \text{sign}(g_t) \end{align}$$   |
+| Momentum | $$M_t\text{: 动量}(0) \\ \gamma\text{: 学习率} \\ \mu \text{: 衰减率}(0.9)$$ | $$\begin{align} M_t &= \mu M_{t-1} + g_t \\ θ_t&=θ_{t-1}-\gamma M_t \end{align}$$   |
+| [<font color=Blue>Nesterov Momentum</font>](https://0809zheng.github.io/2020/12/08/nesterov.html) | $$M_t\text{: 动量}(0) \\ \gamma\text{: 学习率} \\ \mu \text{: 衰减率}(0.9)$$ | $$\begin{align}  M_t &= \mu M_{t-1} + \nabla_{\theta} l(θ_{t-1}+\mu M_{t-1}) \\ θ_t&=θ_{t-1}-\gamma M_t \\---------------\\ M_t & = \mu M_{t-1} +  g_t \\ θ_t & =θ_{t-1}-\gamma(\mu M_t + g_t) \end{align}$$   |
 | [AdaGrad](http://jmlr.org/papers/v12/duchi11a.html) | $$G_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \epsilon \text{: 小值}(1e-10)$$ | $$\begin{align} G_t &=  G_{t-1} + g_t^2 \\ θ_{t} &= θ_{t-1} -\gamma \frac{g_t}{\sqrt{G_t}+\epsilon} \end{align}$$   |
 | [RMSProp](https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf) | $$G_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \rho \text{: 衰减率}(0.99) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} G_t &= \rho G_{t-1} + (1-\rho)g_t^2 \\θ_{t} &= θ_{t-1} -\gamma \frac{g_t}{\sqrt{G_t}+\epsilon} \end{align}$$   |
 | [<font color=Blue>Adadelta</font>](https://0809zheng.github.io/2020/12/06/adadelta.html) | $$G_t\text{: 平方梯度}(0) \\ X_t\text{: 平方参数更新量}(0) \\ \rho \text{: 衰减率}(0.9) \\ \epsilon \text{: 小值}(1e-6)$$ | $$\begin{align} G_t &= \rho G_{t-1} + (1-\rho)g_t^2 \\ X_{t-1} &= \rho X_{t-2} + (1-\rho)\Delta θ_{t-1}^2 \\ Δθ_t &= -\frac{\sqrt{X_{t-1}+\epsilon}}{\sqrt{G_t+\epsilon}} g_t \\θ_{t} &= θ_{t-1} +Δθ_t \end{align}$$   |
 
 
-
-# 4. Nesterov Momentum
-Momentum更新方向是当前动量方向和当前梯度方向的矢量和；而[Nesterov Momentum](https://www.researchgate.net/publication/23629541_Gradient_methods_for_minimizing_composite_functions)更新方向是当前动量方向和沿动量方向的下一次梯度方向的矢量和：
-
-$$ M^t = ρM^{t-1} + g(x^{t-1}+ρM^{t-1}) $$
-
-$$ θ^t=θ^{t-1}-αM^t $$
-
-Momentum和Nesterov Momentum对比如下：
-
-![](https://pic.downk.cc/item/5e90327d504f4bcb047deaef.jpg)
 
 
 
