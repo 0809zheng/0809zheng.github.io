@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Don't Decay the Learning Rate, Increase the Batch Size'
+title: 'Don\'t Decay the Learning Rate, Increase the Batch Size'
 date: 2020-12-05
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/61f00bd32ab3f51d91b4fab7.jpg'
