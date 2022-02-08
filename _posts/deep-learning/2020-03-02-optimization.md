@@ -24,7 +24,7 @@ $$ L(\theta)= \frac{1}{N}\sum_{x \in X}^{}l(x;\theta) $$
 $$ \theta^*=\mathcal{\arg \min}_{\theta} L(\theta) $$
 
 在实践中，优化深度网络存在以下困难：
-1. **网络结构多样性**：深度网络是高度非线性的模型，网络结构的多样性阻碍了实现通用的优化方法；网络通常含有比较多的参数，难以优化。
+1. **网络结构多样性**：深度网络是高度非线性的模型，网络结构的多样性阻碍了构造通用的优化方法；网络通常含有比较多的参数，难以优化。
 2. **非凸优化**：深度网络的损失函数是高维空间的非凸函数，其损失曲面存在大量**局部极小(local minima)**和**鞍点(saddle point)**，这些点也满足梯度为$0$。
 目前常用的优化方法大多数是基于梯度的，因此在寻找损失函数的全局最小值点的过程中，有可能会落入局部极小值点或鞍点上。
 
@@ -50,7 +50,7 @@ $$ l(θ)=l(θ_0)+\nabla_{\theta} l(θ_0)(θ-θ_0)+o(θ-θ_0)^2 $$
 
 $$ \nabla_{\theta} l(θ_0)(θ-θ_0)<0 $$
 
-当梯度$\nabla_{\theta} l(θ_0)$大于零时，应该减小$\theta$；当梯度$\nabla_{\theta} l(θ_0)$小于零时，应该增大$\theta$。综上所述，应该沿梯度$l'(θ_0)$的负方向更新参数。
+当梯度$\nabla_{\theta} l(θ_0)$大于零时，应该减小$\theta$；当梯度$\nabla_{\theta} l(θ_0)$小于零时，应该增大$\theta$。综上所述，应该沿梯度$\nabla_{\theta}$的负方向更新参数。
 
 在执行梯度下降时需要指定每次计算梯度时所使用数据的**批量(batch)** $\mathcal{B}$ 和**学习率(learning rate)** $\gamma$。若记第$t$次参数更新时的梯度为$g_t=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla_{\theta} l(θ_{t-1})$，则参数更新公式：
 
@@ -69,11 +69,11 @@ $$ θ_t=θ_{t-1}-\gamma g_t $$
 
 ### ② 超参数 learning rate
 
-学习率$α$决定了梯度下降时的更新步长。学习率太大，可能会使梯度更新不收敛甚至发散(**diverge**)；学习率太小，导致收敛速度慢。
+学习率$\gamma$决定了梯度下降时的更新步长。学习率太大，可能会使梯度更新不收敛甚至发散(**diverge**)；学习率太小，导致收敛速度慢。
 
 ### ③ 选择超参数
 
-学习率$α$和批量大小$\|\mathcal{B}\|$的选择可以参考以下工作：
+学习率$\gamma$和批量大小$\|\mathcal{B}\|$的选择可以参考以下工作：
 - [<font color=Blue>Don't Decay the Learning Rate, Increase the Batch Size</font>](https://0809zheng.github.io/2020/12/05/increasebatch.html)：在训练模型时通过增加批量大小替代学习率衰减，在相同的训练轮数下能够取得相似的测试精度，但前者所进行的参数更新次数更少，并行性更好，缩短了训练时间。
 
 也有[实验](https://arxiv.org/abs/1609.04836v1)表明**batch size**越小，越有可能收敛到**flat minima**。
@@ -90,7 +90,7 @@ $$ \dot θ =-g $$
 
 该动力系统是一个**保守**动力系统，因此它最终可以收敛到一个不动点($\dot \theta = 0$)，并可以进一步证明该稳定的不动点是一个极小值点。求解上述常微分方程**ODE**可以采用**欧拉解法**（该方法是指将方程$dy/dx=f(x,y)$转化为$y_{n+1}-y_n≈f(x_n,y_n)h$）。因此有：
 
-$$ θ_t-θ_{t-1}=-αg $$
+$$ θ_t-θ_{t-1}=-\gamma g $$
 
 上式即为梯度下降算法的更新公式。对于小批量梯度下降，其每一批量上损失函数的梯度是总损失函数的梯度的近似估计，假设梯度估计的误差服从方差为$\sigma^2$的正态分布，则相当于在动力系统中引入高斯噪声：
 
@@ -100,7 +100,7 @@ $$ \dot θ =-g+\sigma \xi $$
 
 $$ P(\theta) \text{ ~ } \exp(-\frac{l(\theta)}{\sigma^2}) $$
 
-从上式中可以看出，当$\sigma^2$越大时，$P(\theta)$越接近均匀分布，此时参数$\theta$可能的取值范围也越大，允许探索更大比例的参数空间。当$\sigma^2$越小时，$P(\theta)$的极大值点(对应$l(\theta)$的极小值点)附近的区域越突出，则参数$\theta$落入极值点附近。在实践中，参数$\theta$通常和**batch size**呈负相关。
+从上式中可以看出，当$\sigma^2$越大时，$P(\theta)$越接近均匀分布，此时参数$\theta$可能的取值范围也越大，允许探索更大比例的参数空间。当$\sigma^2$越小时，$P(\theta)$的极大值点(对应$l(\theta)$的极小值点)附近的区域越突出，则参数$\theta$落入极值点附近。在实践中，**batch size**越小，则参数$\sigma^2$越大。
 
 ![](https://pic.imgdb.cn/item/61f0098c2ab3f51d91b25d4d.jpg)
 
@@ -143,11 +143,11 @@ $$ \Delta \theta^* = -\nabla_g \ln Z(||g||) = -\frac{Z'(||g||)}{Z(||g||)} \nabla
 
 标准的批量梯度下降方法存在一些缺陷：
 - 更新过程中容易陷入局部极小值或鞍点(这些点处的梯度也为$0$)；常见解决措施是在梯度更新中引入**动量**(如**momentum**,**Nesterov**)。
-- 参数的不同方向的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；损失函数的**条件数(Condition number**，指损失函数的**Hessian**矩阵最大奇异值与最小奇异值之比)越大，这一现象越严重。常见解决措施是对梯度大小进行修正(如**AdaGrad**, **RMSprop**, **AdaDelta**)。![](https://pic.downk.cc/item/5e902a62504f4bcb04758232.jpg)
+- 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；损失函数的**条件数(Condition number**，指损失函数的**Hessian**矩阵最大奇异值与最小奇异值之比)越大，这一现象越严重。常见解决措施是根据每个特征调整学习速率(如**AdaGrad**, **RMSprop**, **AdaDelta**)。![](https://pic.downk.cc/item/5e902a62504f4bcb04758232.jpg)
 - 批量大小难以选择。批量较小时，引入较大的梯度噪声；批量较大时，内存负担较大。
 
 
-在实际应用梯度下降算法时，可以根据截止到当前步$t$的梯度信息$g_{1},...,g_{t}$，计算修正的参数更新量$h_t$，从而弥补上述缺陷。因此梯度下降算法的一般形式可以表示为：
+在实际应用梯度下降算法时，可以根据截止到当前步$t$的历史梯度信息$$\{g_{1},...,g_{t}\}$$计算修正的参数更新量$h_t$，从而弥补上述缺陷。因此梯度下降算法的一般形式可以表示为：
 
 $$ \begin{align} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla_{\theta} l(θ_{t-1}) \\ h_t &= f(g_{1},...,g_{t}) \\ θ_t&=θ_{t-1}-\gamma h_t \end{align} $$
 
@@ -156,38 +156,17 @@ $$ \begin{align} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla
 | 优化算法 | 参数定义(缺省值/初始值) |  更新形式 |
 | ---- | ---- |   ---- |
 | GD | $$g_t\text{: 梯度} \\ \gamma\text{: 学习率}$$ | $$\begin{align} g_t&=\nabla_{\theta} l(θ_{t-1}) \\ θ_t&=θ_{t-1}-\gamma g_t \end{align}$$   |
-| [<font color=Blue>RProp</font>](https://0809zheng.github.io/2020/12/07/rprop.html) | $$\eta_+\text{: 步长增加值}(1.2) \\ \eta_{\_}\text{: 步长减小值}(0.5) \\ \Gamma_{max} \text{: 最大步长} \\ \Gamma_{min} \text{: 最小步长}$$ | $$\begin{align} \eta_t &= \begin{cases} \min(\eta_{t-1}\eta_+,\Gamma_{max}) & \text{if }g_{t-1}g_t>0 \\ \max(\eta_{t-1}\eta_{\_},\Gamma_{min}) & \text{if }g_{t-1}g_t<0  \\ \eta_{t-1}& \text{else} \end{cases} \\θ_{t} &= θ_{t-1} -\eta_t \text{sign}(g_t) \end{align}$$   |
+| [<font color=Blue>RProp</font>](https://0809zheng.github.io/2020/12/07/rprop.html) | $$\eta_t\text{: 弹性步长} \\ \eta_+\text{: 步长增加值}(1.2) \\ \eta_{\_}\text{: 步长减小值}(0.5) \\ \Gamma_{max} \text{: 最大步长} \\ \Gamma_{min} \text{: 最小步长}$$ | $$\begin{align} \eta_t &= \begin{cases} \min(\eta_{t-1}\eta_+,\Gamma_{max}) & \text{if }g_{t-1}g_t>0 \\ \max(\eta_{t-1}\eta_{\_},\Gamma_{min}) & \text{if }g_{t-1}g_t<0  \\ \eta_{t-1}& \text{else} \end{cases} \\θ_{t} &= θ_{t-1} -\eta_t \text{sign}(g_t) \end{align}$$   |
 | Momentum | $$M_t\text{: 动量}(0) \\ \gamma\text{: 学习率} \\ \mu \text{: 衰减率}(0.9)$$ | $$\begin{align} M_t &= \mu M_{t-1} + g_t \\ θ_t&=θ_{t-1}-\gamma M_t \end{align}$$   |
-| [<font color=Blue>Nesterov Momentum</font>](https://0809zheng.github.io/2020/12/08/nesterov.html) | $$M_t\text{: 动量}(0) \\ \gamma\text{: 学习率} \\ \mu \text{: 衰减率}(0.9)$$ | $$\begin{align}  M_t &= \mu M_{t-1} + \nabla_{\theta} l(θ_{t-1}+\mu M_{t-1}) \\ θ_t&=θ_{t-1}-\gamma M_t \\-&--------------\\ M_t & = \mu M_{t-1} +  g_t \\ θ_t & =θ_{t-1}-\gamma(\mu M_t + g_t) \end{align}$$   |
+| [<font color=Blue>Nesterov Momentum</font>](https://0809zheng.github.io/2020/12/08/nesterov.html) | $$M_t\text{: 动量}(0) \\ \gamma\text{: 学习率} \\ \mu \text{: 衰减率}(0.9)$$ | $$\begin{align}  M_t &= \mu M_{t-1} + \nabla_{\theta} l(θ_{t-1}-\mu M_{t-1}) \\ θ_t&=θ_{t-1}-\gamma M_t \\-&-------------\\ M_t & = \mu M_{t-1} +  g_t \\ θ_t & =θ_{t-1}-\gamma(\mu M_t + g_t) \end{align}$$   |
 | [AdaGrad](http://jmlr.org/papers/v12/duchi11a.html) | $$G_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \epsilon \text{: 小值}(1e-10)$$ | $$\begin{align} G_t &=  G_{t-1} + g_t^2 \\ θ_{t} &= θ_{t-1} -\gamma \frac{g_t}{\sqrt{G_t}+\epsilon} \end{align}$$   |
 | [RMSProp](https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf) | $$G_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \rho \text{: 衰减率}(0.99) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} G_t &= \rho G_{t-1} + (1-\rho)g_t^2 \\θ_{t} &= θ_{t-1} -\gamma \frac{g_t}{\sqrt{G_t}+\epsilon} \end{align}$$   |
 | [<font color=Blue>Adadelta</font>](https://0809zheng.github.io/2020/12/06/adadelta.html) | $$G_t\text{: 平方梯度}(0) \\ X_t\text{: 平方参数更新量}(0) \\ \rho \text{: 衰减率}(0.9) \\ \epsilon \text{: 小值}(1e-6)$$ | $$\begin{align} G_t &= \rho G_{t-1} + (1-\rho)g_t^2 \\ X_{t-1} &= \rho X_{t-2} + (1-\rho)\Delta θ_{t-1}^2 \\ Δθ_t &= -\frac{\sqrt{X_{t-1}+\epsilon}}{\sqrt{G_t+\epsilon}} g_t \\θ_{t} &= θ_{t-1} +Δθ_t \end{align}$$   |
+| [<font color=Blue>Adam</font>](https://0809zheng.github.io/2020/12/09/adam.html) | $$M_t\text{: 动量}(0) \\ G_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} M_t &= β_1M_{t-1} + (1-β_1)g_t \\ G_t &= β_2G_{t-1} + (1-β_2)g_t^2 \\\hat{M}_t &= \frac{M_t}{1-β_1^t} \\ \hat{G}_t &= \frac{G_t}{1-β_2^t} \\ θ_t&=θ_{t-1}-\eta \frac{\hat{M}_t}{\sqrt{\hat{G}_t}+ε} \end{align}$$   |
+| [<font color=Blue>Adamax</font>](https://0809zheng.github.io/2020/12/09/adam.html) | $$M_t\text{: 动量}(0) \\ G_t\text{: Lp范数梯度}(0) \\ \gamma\text{: 学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} M_t &= β_1M_{t-1} + (1-β_1)g_t \\ G_t &= \max(\beta_2 G_{t-1}, \|g_t\|+\epsilon) \\\hat{M}_t &= \frac{M_t}{1-β_1^t}  \\ θ_t&=θ_{t-1}-\eta \frac{\hat{M}_t}{G_t} \end{align}$$   |
 
 
 
-
-
-
-# 8. Adam
-[**Adam(自适应矩估计,Adaptive Moment Estimation)**](https://arxiv.org/abs/1412.6980v8)可以看作Momentum和RMSprop的结合。
-
-一方面，计算梯度的加权平均值：
-
-$$ M^t = β_1M^{t-1} + (1-β_1)g^t $$
-
-另一方面，计算梯度平方的加权平均值：
-
-$$ G^t = β_2G^{t-1} + (1-β_2)g^t·g^t $$
-
-其中$β_1$,$β_2$为衰减率，一般取0.9,0.999。
-
-迭代初期$M$和$G$很小，而$β_1$,$β_2$接近1，会使更新步长很小；引入偏差修正：
-
-$$ \hat{M^t} = \frac{M^t}{1-β_1^t} $$
-
-$$ \hat{G^t} = \frac{G^t}{1-β_2^t} $$
-
-$$ θ^t=θ^{t-1}-α\frac{\hat{M^t}}{\sqrt{\hat{G^t}}+ε} $$
 
 # 9. Nadam
 Adam算法是Momentum和RMSprop的结合，[**Nadam**](https://openreview.net/forum?id=OM0jvwB8jIp57ZJjtNEZ&noteId=OM0jvwB8jIp57ZJjtNEZ)是Nesterov Momentum和RMSprop的结合。
