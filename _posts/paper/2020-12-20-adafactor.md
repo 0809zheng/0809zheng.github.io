@@ -105,5 +105,5 @@ $$ u_t= \frac{g_t}{\sqrt{\hat{v}_t}} \\ \hat{u}_t = u_t \times\frac{\max(\epsilo
 综上所述，对**Adam**改进后作者提出了**Adafactor**：
 
 
-$$ \begin{align} \hat{\beta}_{2,t} &= 1-\frac{1}{t^c} \\ v_{i;t}^{(r)}  &= \hat{\beta}_{2,t}v_{i;t-1}^{(r)} + (1-\hat{\beta}_{2,t})\sum_{j}^{} (g_{i,j;t}^2+\epsilon_1) \\ v_{j;t}^{(c)}  &= \hat{\beta}_{2,t}v_{j;t-1}^{(c)} + (1-\hat{\beta}_{2,t})\sum_{i}^{} (g_{i,j;t}^2+\epsilon_1) \\ \hat{v}_{i,j;t} &= \frac{v_{i;t}^{(r)} v_{j;t}^{(c)} }{\sum_{j}^{} v_{j;t}^{(c)} } \\ u_t &= \frac{g_t}{\sqrt{\hat{v}_t}} \\ \hat{u}_t &= u_t \frac{\max(\epsilon_2,|\theta_{t-1}|)}{\max(1,|u_t| /d)} \\  θ_t&=θ_{t-1}-\gamma \frac{g_t}{\sqrt{\hat{v}_t}} \end{align} $$
+$$ \begin{align} \hat{\beta}_{2,t} &= 1-\frac{1}{t^c} \\ v_{i;t}^{(r)}  &= \hat{\beta}_{2,t}v_{i;t-1}^{(r)} + (1-\hat{\beta}_{2,t})\sum_{j}^{} (g_{i,j;t}^2+\epsilon_1) \\ v_{j;t}^{(c)}  &= \hat{\beta}_{2,t}v_{j;t-1}^{(c)} + (1-\hat{\beta}_{2,t})\sum_{i}^{} (g_{i,j;t}^2+\epsilon_1) \\ \hat{v}_{i,j;t} &= \frac{v_{i;t}^{(r)} v_{j;t}^{(c)} }{\sum_{j}^{} v_{j;t}^{(c)} } \\ u_t &= \frac{g_t}{\sqrt{\hat{v}_t}} \\ \hat{u}_t &= u_t \frac{\max(\epsilon_2,|\theta_{t-1}|)}{\max(1,|u_t| /d)} \\  θ_t&=θ_{t-1}-\gamma \hat{u}_t \end{align} $$
 
