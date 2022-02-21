@@ -3,7 +3,7 @@ layout: post
 title: 'Gradients without Backpropagation'
 date: 2022-02-19
 author: 郑之杰
-cofer: 'https://pic.imgdb.cn/item/6210ddf92ab3f51d91a169da.jpg'
+cover: 'https://pic.imgdb.cn/item/6210ddf92ab3f51d91a169da.jpg'
 tags: 论文阅读
 ---
 
