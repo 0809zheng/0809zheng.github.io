@@ -13,6 +13,7 @@ tags: 深度学习
 1. 深度学习中的优化问题
 2. 基于梯度的优化算法
 3. 常用的梯度下降算法
+4. 其他优化算法
 
 # 1. 深度学习中的优化问题
 深度学习中的**优化**(**optimization**)问题通常是指在已有的数据集上实现最小的训练误差(**training error**)。记深度网络的待优化参数为$\theta$，包含$N$个训练样本$x$的数据集为$X$，损失度量为$l(x;\theta)$；则损失函数定义为：
@@ -75,10 +76,11 @@ $$ θ_t=θ_{t-1}-\gamma g_t $$
 
 学习率$\gamma$和批量大小$\|\mathcal{B}\|$的选择可以参考以下工作：
 - [<font color=Blue>Don't Decay the Learning Rate, Increase the Batch Size</font>](https://0809zheng.github.io/2020/12/05/increasebatch.html)：在训练模型时通过增加批量大小替代学习率衰减，在相同的训练轮数下能够取得相似的测试精度，但前者所进行的参数更新次数更少，并行性更好，缩短了训练时间。
+- [<font color=Blue>Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour</font>](https://0809zheng.github.io/2020/12/24/linearrate.html)：学习率的**线性缩放规则**(**linear scaling rule**)：当批量大小增大$k$倍时，学习率也增大$k$倍，并保持其它超参数不变。学习率的**warmup**：训练开始时使用较小的学习率。
 
 也有[实验](https://arxiv.org/abs/1609.04836v1)表明**batch size**越小，越有可能收敛到**flat minima**。
 
-**Goyal**提出了选择**batch size**和**learning rate**的[linear scaling rule](https://arxiv.org/abs/1706.02677)：**batch size**增加$k$倍时，**learning rate**也增加$k$倍。
+
 
 ## (2) 从不同角度理解梯度下降
 
@@ -144,7 +146,7 @@ $$ \Delta \theta^* = -\nabla_g \ln Z(||g||) = -\frac{Z'(||g||)}{Z(||g||)} \nabla
 标准的批量梯度下降方法存在一些缺陷：
 - 更新过程中容易陷入局部极小值或鞍点(这些点处的梯度也为$0$)；常见解决措施是在梯度更新中引入**动量**(如**momentum**,**Nesterov**)。
 - 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；损失函数的**条件数(Condition number**，指损失函数的**Hessian**矩阵最大奇异值与最小奇异值之比)越大，这一现象越严重。常见解决措施是为每个特征设置**自适应**学习率(如**AdaGrad**, **RMSprop**, **AdaDelta**)。这类算法的缺点是改变了梯度更新的方向，一定程度上造成精度损失。![](https://pic.downk.cc/item/5e902a62504f4bcb04758232.jpg)
-- 批量大小难以选择。批量较小时，引入较大的梯度噪声；批量较大时，内存负担较大。在分布式训练大规模神经网络时，整体批量通常较大，训练的模型精度会剧烈降低。这是因为总训练轮数保持不变时，批量增大意味着权重更新的次数减少。常见解决措施是为网络每一层参数设置**层级自适应**学习率(如**LARS**, **LAMB**, **NovoGrad**)。
+- 批量大小难以选择。批量较小时，引入较大的梯度噪声；批量较大时，内存负担较大。在分布式训练大规模神经网络时，整体批量通常较大，训练的模型精度会剧烈降低。这是因为总训练轮数保持不变时，批量增大意味着权重更新的次数减少。常见解决措施是通过**层级自适应**实现每一层的梯度归一化(如**LARS**, **LAMB**, **NovoGrad**)，从而使得更新步长依赖于参数的数值大小而不是梯度的大小。
 
 在实际应用梯度下降算法时，可以根据截止到当前步$t$的历史梯度信息$$\{g_{1},...,g_{t}\}$$计算修正的参数更新量$h_t$（比如累积动量、累积二阶矩校正学习率等），从而弥补上述缺陷。因此梯度下降算法的一般形式可以表示为：
 
@@ -164,13 +166,31 @@ $$ \begin{align} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla
 | [<font color=Blue>Adam</font>](https://0809zheng.github.io/2020/12/09/adam.html)：结合动量与RMSProp | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} m_t &= β_1m_{t-1} + (1-β_1)g_t \\ v_t &= β_2v_{t-1} + (1-β_2)g_t^2 \\\hat{m}_t &= \frac{m_t}{1-β_1^t} \\ \hat{v}_t &= \frac{v_t}{1-β_2^t} \\ θ_t&=θ_{t-1}-\gamma \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+ε} \end{align}$$   |
 | [<font color=Blue>Adamax</font>](https://0809zheng.github.io/2020/12/09/adam.html)：使用L-∞范数调整学习率 | $$m_t\text{: 动量}(0) \\ v_t\text{: L-∞范数梯度}(0) \\ \gamma\text{: 学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} m_t &= β_1m_{t-1} + (1-β_1)g_t \\ v_t &= \max(\beta_2 v_{t-1}, \|g_t\|+\epsilon) \\\hat{m}_t &= \frac{m_t}{1-β_1^t}  \\ θ_t&=θ_{t-1}-\gamma \frac{\hat{m}_t}{v_t} \end{align}$$   |
 | [<font color=Blue>Nadam</font>](https://0809zheng.github.io/2020/12/12/nadam.html)：将Nesterov动量引入Adam | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \psi \text{: 衰减率}(0.004) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} \mu_t &= \beta_1(1-\frac{1}{2}0.96^{t\psi}) \\ \mu_{t+1} &= \beta_1(1-\frac{1}{2}0.96^{(t+1)\psi}) \\ m_t &= β_1m_{t-1} + (1-β_1)g_t \\ v_t &= β_2v_{t-1} + (1-β_2)g_t^2 \\\hat{m}_t &= \frac{\mu_{t+1} m_{t}}{1-\prod_{i=1}^{t}\mu_i}+\frac{(1-\mu_t) g_t}{1-\prod_{i=1}^{t}\mu_i} \\ \hat{v}_t &= \frac{v_t}{1-β_2^t} \\ θ_t&=θ_{t-1}-\gamma \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+ε} \end{align}$$   |
-| [<font color=Blue>Adafactor</font>](https://0809zheng.github.io/2020/12/20/adafactor.html)：减少Adam的显存占用 | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ c \text{: 衰减系数}(0.8) \\ d \text{: 截断系数}(1) \\ \epsilon_1 \text{: 小值}(1e-30) \\ \epsilon_2 \text{: 小值}(1e-3)$$ | $$\begin{align} \hat{\beta}_{2,t} &= 1-\frac{1}{t^c} \\ v_{i;t}^{(r)}  &= \hat{\beta}_{2,t}v_{i;t-1}^{(r)} + (1-\hat{\beta}_{2,t})\sum_{j}^{} (g_{i,j;t}^2+\epsilon_1) \\ v_{j;t}^{(c)}  &= \hat{\beta}_{2,t}v_{j;t-1}^{(c)} + (1-\hat{\beta}_{2,t})\sum_{i}^{} (g_{i,j;t}^2+\epsilon_1) \\ \hat{v}_{i,j;t} &= \frac{v_{i;t}^{(r)} v_{j;t}^{(c)} }{\sum_{j}^{} v_{j;t}^{(c)} } \\ u_t &= \frac{g_t}{\sqrt{\hat{v}_t}} \\ \hat{u}_t &= u_t \frac{\max(\epsilon_2,\|\theta_{t-1}\|)}{\max(1,\|u_t\| /d)} \\  θ_t&=θ_{t-1}-\gamma \hat{u}_t \end{align}$$   |
 | [<font color=Blue>AMSGrad</font>](https://0809zheng.github.io/2020/12/10/amsgrad.html)：改善Adam的收敛性 | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} m_t &= β_1m_{t-1} + (1-β_1)g_t \\ v_t &= β_2v_{t-1} + (1-β_2)g_t^2 \\\hat{m}_t &= \frac{m_t}{1-β_1^t} \\ \hat{v}_t &= \frac{v_t}{1-β_2^t} \\ \hat{v}_t^{max} &= \max(\hat{v}_{t-1}^{max},\hat{v}_t) \\ θ_t&=θ_{t-1}-\gamma \frac{\hat{m}_t}{\sqrt{\hat{v}_t^{max}}+ε} \end{align}$$   |
 | [<font color=Blue>Radam</font>](https://0809zheng.github.io/2020/12/13/radam.html)：减小Adam中自适应学习率的早期方差 | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} \rho_∞ &= \frac{2}{1-\beta_2} - 1 \\ m_t &= β_1m_{t-1} + (1-β_1)g_t \\ v_t &= β_2v_{t-1} + (1-β_2)g_t^2 \\ \hat{m}_t &= \frac{m_t}{1-β_1^t} \\ \rho_t &= \rho_∞ -  \frac{2t\beta_2^t}{1-\beta_2^t} \\ \text{if } \rho_t &> 4: \\ \hat{v}_t &= \frac{v_t}{1-β_2^t} \\ r_t &= \sqrt{\frac{(\rho_t-4)(\rho_t-2)\rho_∞}{(\rho_∞-4)(\rho_∞-2)\rho_t}} \\ θ_t&=θ_{t-1}-\gamma r_t \frac{\hat{m}_t}{\sqrt{\hat{v}_t}+ε} \\ \text{else} & :\\ θ_t&=θ_{t-1}-\gamma \hat{m}_t \end{align}$$   |
+| [<font color=Blue>Adafactor</font>](https://0809zheng.github.io/2020/12/20/adafactor.html)：减少Adam的显存占用 | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ c \text{: 衰减系数}(0.8) \\ d \text{: 截断系数}(1) \\ \epsilon_1 \text{: 小值}(1e-30) \\ \epsilon_2 \text{: 小值}(1e-3)$$ | $$\begin{align} \hat{\beta}_{2,t} &= 1-\frac{1}{t^c} \\ v_{i;t}^{(r)}  &= \hat{\beta}_{2,t}v_{i;t-1}^{(r)} + (1-\hat{\beta}_{2,t})\sum_{j}^{} (g_{i,j;t}^2+\epsilon_1) \\ v_{j;t}^{(c)}  &= \hat{\beta}_{2,t}v_{j;t-1}^{(c)} + (1-\hat{\beta}_{2,t})\sum_{i}^{} (g_{i,j;t}^2+\epsilon_1) \\ \hat{v}_{i,j;t} &= \frac{v_{i;t}^{(r)} v_{j;t}^{(c)} }{\sum_{j}^{} v_{j;t}^{(c)} } \\ u_t &= \frac{g_t}{\sqrt{\hat{v}_t}} \\ \hat{u}_t &= u_t \frac{\max(\epsilon_2,\|\theta_{t-1}\|)}{\max(1,\|u_t\| /d)} \\  θ_t&=θ_{t-1}-\gamma \hat{u}_t \end{align}$$   |
+| [<font color=Blue>AdaX</font>](https://0809zheng.github.io/2020/12/21/adax.html)：引入二阶矩的指数长期记忆 | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.0001) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} m_t &= β_1m_{t-1} + (1-β_1)g_t \\ v_t &= (1+\beta_2)v_{t-1}+\beta_2 g_t^2 \\ \hat{v}_t &= \frac{v_t}{(1+\beta_2)^t-1} \\ θ_t&=θ_{t-1}-\gamma \frac{m_t}{\sqrt{\hat{v}_t}+ε} \end{align}$$   |
 | [<font color=Blue>LARS</font>](https://0809zheng.github.io/2020/12/15/lars.html)：层级自适应学习率+momentum | $$m_t\text{: 动量}(0) \\ \gamma\text{: 全局学习率} \\ \mu \text{: 衰减率}(0.9)$$ | $$\begin{align}  m_t &= \mu m_{t-1} + g_t \\ θ_t^{(i)}&=θ_{t-1}^{(i)}-\gamma \frac{\| θ_{t-1}^{(i)} \|}{\| m_t^{(i)} \|} m_t^{(i)}, \text{for all }i \in [L] \end{align}$$   |
 | [<font color=Blue>LAMB</font>](https://0809zheng.github.io/2020/12/17/lamb.html)：层级自适应学习率+Adam | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 全局学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} m_t &= β_1m_{t-1} + (1-β_1)g_t \\ v_t &= β_2v_{t-1} + (1-β_2)g_t^2 \\\hat{m}_t &= \frac{m_t}{1-β_1^t} \\ \hat{v}_t &= \frac{v_t}{1-β_2^t} \\ θ_t^{(i)}&=θ_{t-1}^{(i)}-\gamma \frac{\| θ_{t-1}^{(i)} \|}{\|\frac{\hat{m}_t^{(i)}}{\sqrt{\hat{v}_t^{(i)}}+ε}\|} \frac{\hat{m}_t^{(i)}}{\sqrt{\hat{v}_t^{(i)}}+ε} , \text{for all }i \in [L]  \end{align}$$   |
+| [<font color=Blue>NovoGrad</font>](https://0809zheng.github.io/2020/12/19/novograd.html)：使用层级自适应二阶矩进行梯度归一化 | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 全局学习率} \\ \lambda\text{: 权重衰减率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.25) \\ \epsilon \text{: 小值}(1e-8)$$ | $$\begin{align} v_1^{(i)}&=\|g_1^{(i)}\|^2, m_1^{(i)}=\frac{g_1^{(i)}}{\sqrt{v_1^{(i)}}}+\lambda w_1^l \\ v_t^{(i)} &= \beta_2 \cdot v_{t-1}^{(i)} + (1-\beta_2) \cdot \|g_t^{(i)}\|^2 \\  m_t^{(i)} &= \beta_1 \cdot m_{t-1}^{(i)} + (\frac{g_t^{(i)}}{\sqrt{v_t^{(i)}}+\epsilon}+\lambda \theta_t^{(i)})  \\ θ_t^{(i)}&=θ_{t-1}^{(i)}-\gamma m_t^{(i)} , \text{for all }i \in [L] \end{align}$$   |
 | [<font color=Blue>Lookahead</font>](https://0809zheng.github.io/2020/12/14/lookahead.html)：快权重更新k次,慢权重更新1次 | $$\phi_t\text{: 慢权重} \\ k\text{: 快权重更新次数}(5) \\ \alpha \text{: 慢权重更新步长}(0.5)  \\ \gamma\text{: 学习率}$$ | $$\begin{align} h_t &= f(g_{1},...,g_{t}) \\ θ_t&=θ_{t-1}-\gamma h_t \\ \text{if } t \text{ mod }&k =0: \\ \phi_{t} &= \phi_{t-1} +\alpha(\theta_{t}-\phi_{t-1}) \\ \theta_t &= \phi_t \end{align}$$   |
 
 
 
 
+
+
+# 4. 其他优化算法
+
+
+### ⚪ [<font color=Blue>Gradients without Backpropagation</font>](https://0809zheng.github.io/2022/02/19/fgradient.html)：使用前向梯度代替反向传播梯度
+
+本文提出了一种基于方向导数的梯度计算方法，通关单次前向传播同时计算损失函数值和**前向梯度(forward gradient)**。前向梯度 $g:\Bbb{R}^{n} \to \Bbb{R}^{n}$定义为：
+
+$$ g(\theta) = (\nabla f(\theta)\cdot v) v $$
+
+其中$\theta \in \Bbb{R}^{n}$是计算梯度的参数点，$v \in \Bbb{R}^{n}$是从多元标准正态分布中采样的干扰向量$v\text{~}\mathcal{N}(0,I)$，$\nabla f(\theta)\cdot v \in \Bbb{R}$表示在$\theta$点指向$v$的方向导数，可以在单次前向传播中计算得到。
+
+前向梯度$g(\theta)$是真实梯度$\nabla f(\theta)$的无偏估计。使用前向梯度代替反向传播计算的梯度，可以实现仅依赖单次前向传播的**前向梯度下降(forward gradient descent, FGD)**算法，从而省去反向传播过程。
+
+![](https://pic.imgdb.cn/item/6210a6302ab3f51d9160d8c5.jpg)
