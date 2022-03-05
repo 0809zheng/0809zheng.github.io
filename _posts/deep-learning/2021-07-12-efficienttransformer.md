@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '降低Transformer的计算复杂度'
+title: '降低Transformer的计算复杂度: 稀疏化和线性化'
 date: 2021-07-12
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/60ebbe525132923bf878e6c3.jpg'
@@ -103,19 +103,19 @@ $$ 3Nd^2+2N^2d>8Nd^2 $$
 
 ### ② 一些稀疏化方法
 
-- [<font color=Blue>Sparse Transformer</font>](https://0809zheng.github.io/2021/07/13/sparsetransformer.html)：窗口注意力+空洞注意力
+- [Sparse Transformer](https://0809zheng.github.io/2021/07/13/sparsetransformer.html)：窗口注意力+空洞注意力
 
 ![](https://pic.imgdb.cn/item/60ed1c745132923bf80f980e.jpg)
 
-- [<font color=Blue>Reformer</font>](https://0809zheng.github.io/2021/08/11/reformer.html)：使用局部敏感哈希选择注意力位置
+- [Reformer](https://0809zheng.github.io/2021/08/11/reformer.html)：使用局部敏感哈希选择注意力位置
 
 ![](https://pic.imgdb.cn/item/6115e64d5132923bf86784a5.jpg)
 
-- [<font color=Blue>Longformer</font>](https://0809zheng.github.io/2021/08/14/longformer.html)：窗口注意力+空洞注意力+全局注意力
+- [Longformer](https://0809zheng.github.io/2021/08/14/longformer.html)：窗口注意力+空洞注意力+全局注意力
 
 ![](https://pic.imgdb.cn/item/61179cb95132923bf8100609.jpg)
 
-- [<font color=Blue>Big Bird</font>](https://0809zheng.github.io/2020/08/08/bigbird.html)：随机注意力+窗口注意力+全局注意力
+- [Big Bird](https://0809zheng.github.io/2020/08/08/bigbird.html)：随机注意力+窗口注意力+全局注意力
 
 ![](https://pic.downk.cc/item/5f2e340114195aa594463791.jpg)
 
@@ -153,37 +153,41 @@ $$ \frac{\sum_{j=1}^{N}\text{sim}(q_i,k_j)v_j}{\sum_{j=1}^{N}\text{sim}(q_i,k_j)
 
 ### ③ 一些线性化方法
 
-- [<font color=Blue>Efficient Attention</font>](https://0809zheng.github.io/2021/08/15/efficient.html)：对$Q$的每一行,$K$的每一列进行归一化：
+- [Efficient Attention](https://0809zheng.github.io/2021/08/15/efficient.html)：对$Q$的每一行,$K$的每一列进行归一化：
 
 $$ \text{Attention}(Q,K,V)==\rho_Q(Q)\rho_K(K)^TV $$
 
-- [<font color=Blue>Synthesizer</font>](https://0809zheng.github.io/2020/07/14/synthesizer.html)：使用全连接神经网络(或随机)生成自注意力矩阵:
+- [Synthesizer](https://0809zheng.github.io/2020/07/14/synthesizer.html)：使用全连接神经网络(或随机)生成自注意力矩阵:
 
 $$ \text{Attention}(Q,K,V)=\text{FFN}(X)V $$
 
-- [<font color=Blue>Linformer</font>](https://0809zheng.github.io/2021/08/13/linformer.html)：
+- [Linformer](https://0809zheng.github.io/2021/08/13/linformer.html)：
 为$K$和$V$引入了低秩映射$E,F \in \Bbb{R}^{k \times N}$：
 
 $$ \text{Attention}(Q,K,V)=\text{softmax}(\frac{Q(EK)^T}{\sqrt{d}})(FV) $$
 
-- [<font color=Blue>Linear Transformer</font>](https://0809zheng.github.io/2021/08/10/linear.html)：使用线性注意力实现快速自回归的Transformer。
+- [Linear Transformer](https://0809zheng.github.io/2021/08/10/linear.html)：使用线性注意力实现快速自回归的Transformer。
 
 $$ \text{sim}(q,k)=(\text{elu}(q)+1)^T(\text{elu}(k)+1), \quad \text{elu}(x)=\begin{cases} x, & x>0 \\ e^x-1, & x≤0 \end{cases} $$
 
 
-- [<font color=Blue>Performer</font>](https://0809zheng.github.io/2021/08/12/performer.html)：通过随机投影将Attention的复杂度线性化。
+- [Performer](https://0809zheng.github.io/2021/08/12/performer.html)：通过随机投影将Attention的复杂度线性化。
 
 $$ \text{sim}(q,k) =e^{q\cdot k} = \Bbb{E}_{\omega \text{~} \mathcal{N}(\omega;0,1_d)} [e^{w\cdot q-||q||^2/2}\times e^{w\cdot k-||k||^2/2}] \\ ≈ \frac{1}{\sqrt{m}} \begin{pmatrix} e^{w_1\cdot q-||q||^2/2} \\ e^{w_2\cdot q-||q||^2/2} \\ \cdots \\ e^{w_m\cdot q-||q||^2/2} \end{pmatrix} \cdot \frac{1}{\sqrt{m}} \begin{pmatrix} e^{w_1\cdot k-||k||^2/2} \\ e^{w_2\cdot k-||k||^2/2} \\ \cdots \\ e^{w_m\cdot k-||k||^2/2} \end{pmatrix}  = \tilde{q}\cdot\tilde{k} $$
 
-- [<font color=Blue>Nyströmformer</font>](https://0809zheng.github.io/2021/04/29/nystromformer.html)：使用Nyström方法近似自注意力运算。
+- [Nyströmformer](https://0809zheng.github.io/2021/04/29/nystromformer.html)：使用Nyström方法近似自注意力运算。
 
 $$ \text{Attention}(Q,K,V)= (\tilde{F}\times\tilde{A}\times\tilde{B})V $$
 
 $$ \tilde{F} =  \text{softmax}(\frac{Q\tilde{K}^T}{\sqrt{d_q}} ) , \tilde{B} =  \text{softmax}(\frac{\tilde{Q}K^T}{\sqrt{d_q}} ), \tilde{A} = \text{softmax}(\frac{\tilde{Q}\tilde{K}^T}{\sqrt{d_q}} )^{-1} $$
 
-- [<font color=Blue>External Attention</font>](https://0809zheng.github.io/2021/08/09/external.html)：将$K$和$V$用全局共享的记忆单元$M_k$和$M_v$表示。
+- [External Attention](https://0809zheng.github.io/2021/08/09/external.html)：将$K$和$V$用全局共享的记忆单元$M_k$和$M_v$表示。
 
 $$ \text{Attention}(Q,M_k,M_v) = \text{Norm}(Q^TM_k)M_v $$
+
+- [FLASH](https://0809zheng.github.io/2022/03/05/flash.html)：对输入序列不重叠地分块，并使用局部注意力和全局注意力的混合。
+
+$$ \text{Attention}(Q^{quad},K^{quad},V)=\frac{1}{ns} \text{relu}^2(Q_g^{quad}{K_g^{quad}}^T)V_g \\ \text{Attention}(Q^{lin},K^{lin},V) =\frac{1}{n}Q_g^{lin} \sum_{h=1}^{n/c} {K_h^{lin}}^TV_h $$
 
 ## (3) 从秩的角度理解自注意力机制的改进
 下面从信息损失的角度分析自注意力机制。自注意力机制中最重要的步骤之一是计算自注意力矩阵$A\in \Bbb{R}^{N \times N}$，它是由$Q,K\in \Bbb{R}^{N \times d}$通过$\text{softmax}(QK^T)$计算得到。$N$是输入序列长度，$d$是注意力的**key size**，通常$d<N$。因此矩阵$QK^T$的秩不超过$d$，离满秩$N$差距较大。通常更大的秩能保留更多有效信息，使得信息瓶颈效应更弱。而**softmax**函数计算$e^{QK^T}$，由于指数函数可能会使矩阵的秩增加(比如秩为$0$的全$0$矩阵取指数后变为秩为$1$的全$1$矩阵)，因此**softmax**函数使得注意力矩阵具有**升秩**的可能性，从而提高有效处理信息的能力。
