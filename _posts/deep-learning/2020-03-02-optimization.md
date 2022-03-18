@@ -216,7 +216,7 @@ $$ \tilde{\nabla}_xf(x) = \Bbb{E}_{u\text{~}p(u)}[\frac{f(x+\epsilon u)-f(x)}{\e
 
 尽管零阶优化中的采样分布是固定的(通常选择均匀分布)，可以在算法的每次迭代中选择采样半径$r_t$。如简单地通过二分搜索设置一系列半径：
 
-![](https://pic.imgdb.cn/item/62295fb15baa1a80abd04cf6.jpg)
+![](https://pic.imgdb.cn/item/623473e49fc7fcef118b0306.jpg)
 
 ### ⚪ [<font color=Blue>Gradients without Backpropagation</font>](https://0809zheng.github.io/2022/02/19/fgradient.html)：使用前向梯度代替反向传播梯度
 
