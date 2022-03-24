@@ -78,10 +78,7 @@ $$ θ_t=θ_{t-1}-\gamma g_t $$
 学习率$\gamma$和批量大小$\|\mathcal{B}\|$的选择可以参考以下工作：
 - [<font color=Blue>Don't Decay the Learning Rate, Increase the Batch Size</font>](https://0809zheng.github.io/2020/12/05/increasebatch.html)：在训练模型时通过增加批量大小替代学习率衰减，在相同的训练轮数下能够取得相似的测试精度，但前者所进行的参数更新次数更少，并行性更好，缩短了训练时间。
 - [<font color=Blue>Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour</font>](https://0809zheng.github.io/2020/12/24/linearrate.html)：学习率的**线性缩放规则**(**linear scaling rule**)：当批量大小增大$k$倍时，学习率也增大$k$倍，并保持其它超参数不变。学习率的**warmup**：训练开始时使用较小的学习率。
-
-也有[实验](https://arxiv.org/abs/1609.04836v1)表明**batch size**越小，越有可能收敛到**flat minima**。
-
-
+- [On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima](https://arxiv.org/abs/1609.04836v1)：较大的批量使网络倾向于收敛到尖锐极小值(**sharp minima**)，从而导致较差的泛化性。
 
 ## (2) 从不同角度理解梯度下降
 
@@ -200,6 +197,53 @@ $$ \begin{align} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla
 
 
 # 4. 其他优化算法
+
+### ⚪ [<font color=Blue>Averaging Weights Leads to Wider Optima and Better Generalization</font>](https://0809zheng.github.io/2020/11/29/swa.html)：随机权重平均 SWA
+
+随机权重平均是指在梯度下降过程中累积历史权重的平均值，通常与周期或恒定学习率一起使用。
+若学习率变化周期为$c$(对于恒定学习率$c=1$)，当训练轮数$i$每完成一个周期时($\text{mod}(i,c)=0$)，通过已累积的模型数量$n_{\text{model}} = i/c$累积平均权重$w_{\text{SWA}}$：
+
+$$ w_{\text{SWA}} = \frac{n_{\text{model}} \cdot w_{\text{SWA}}+w_i}{n_{\text{model}}+1} $$
+
+如果网络存在**BatchNorm**，则应在训练结束后使用平均权重$w_{\text{SWA}}$对数据额外进行一次前向传播，从而计算每一层神经元的相关统计量。
+
+![](https://pic.imgdb.cn/item/623a898127f86abb2a3008ca.jpg)
+
+使用[**Pytorch**](https://pytorch.org/docs/stable/optim.html#stochastic-weight-averaging)实现**SWA**：
+
+```python
+dataloader, optimizer, model, loss_fn = ...
+swa_model = torch.optim.swa_utils.AveragedModel(model)
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=300)
+swa_start = 160  # 从160轮开始累积权重
+swa_scheduler = torch.optim.swa_utils.SWALR(
+    optimizer, anneal_strategy="linear", anneal_epochs=5, swa_lr=0.05)
+# SWALR在每轮的前5次更新内将学习率线性退火到0.05并保持恒定
+
+for epoch in range(300):
+    for input, target in dataloader:
+        optimizer.zero_grad()
+        loss_fn(model(input), target).backward()
+        optimizer.step()
+    if epoch > swa_start:
+        swa_model.update_parameters(model)
+        swa_scheduler.step()
+    else:
+        scheduler.step()
+    
+torch.optim.swa_utils.update_bn(dataloader, swa_model)  # 更新bn参数
+preds = swa_model(test_input)  # 测试数据
+```
+
+在实践中，也可以累积权重的指数滑动平均值(**exponential moving average, EMA**, 也称**Polyak averaging**):
+
+$$ w_{\text{EMA}} = \beta w_{\text{EMA}} +(1-\beta) w_i $$
+
+```python
+ema_avg = lambda averaged_model_parameter, model_parameter, num_averaged:\
+        0.1 * averaged_model_parameter + 0.9 * model_parameter
+ema_model = torch.optim.swa_utils.AveragedModel(model, avg_fn=ema_avg)
+```
 
 
 ### ⚪ [<font color=Blue>Gradientless Descent: High-Dimensional Zeroth-Order Optimization</font>](https://0809zheng.github.io/2022/03/09/gradientless.html)：不计算梯度的零阶优化方法
