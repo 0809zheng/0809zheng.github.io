@@ -23,19 +23,23 @@ $$ -\log p(y|x) = -\log \frac{e^{f_y(x)}}{\sum_{i=1}^{K}e^{f_i(x)}} = \log[1+\su
 # 2. 拟合互信息
 
 除了拟合条件概率$p(y\|x)$，也可以拟合下面的统计量，且后者是对称的，能够捕捉样本与标签更本质的信息：
+
 $$ \frac{p(y|x)}{p(y)} = \frac{p(x,y)}{p(x)(y)} $$
 
 上式计算了样本$x$与标签$y$共同出现的概率与它们随机出现概率的倍数。如果该值远大于$1$，则表明样本与标签倾向于共同出现而不是随机组合；如果该值远小于$1$，则表明样本与标签倾向于不同时出现。
 
 对上式取对数，即为**点互信息(pointwise mutual information, PMI)**:
+
 $$ \log \frac{p(y|x)}{p(y)} $$
 
 # 3. Logit Adjustment Loss
 
 若使用神经网络建模互信息，则有：
+
 $$ f(x) = \log \frac{p(y|x)}{p(y)} $$
 
 上式也写为：
+
 $$ \log p(y|x) = f(x) + \log p(y) $$
 
 应用**softmax**函数后有：
@@ -54,6 +58,7 @@ $$ -\log p(y|x) = -\log  \frac{e^{f_y(x)+\tau \log p(y)}}{\sum_{i=1}^{K}e^{f_i(x
 
 # 4. post-hoc
 该方法也可以应用于训练完成的模型。在预测过程中，不是直接输出条件概率$p(y\|x)$最大的类别$y$，而是输出使得互信息最大的类别，即：
+
 $$ y^{*} = \mathop{\arg \max}_{y} f_y(x) +\tau \log p(y) $$
 
 # 5. 实验分析
