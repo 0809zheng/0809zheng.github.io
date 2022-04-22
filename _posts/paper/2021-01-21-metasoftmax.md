@@ -20,7 +20,7 @@ tags: 论文阅读
 # 1. 平衡Softmax损失 Balanced Softmax
 $k$类别分类的输出通过**Softmax**函数建模为多项分布：
 
-$$ \phi=\phi_1^{\bold{1}\{y=1\}}\phi_2^{\bold{1}\{y=2\}} \cdots \phi_k^{\bold{1}\{y=k\}} \\ \phi_j = \frac{e^{\eta_j}}{\sum_{i=1}^{k}e^{\eta_i}},  \sum_{j=1}^{k}\phi_j=1 $$
+$$ \phi=\phi_1^{\Bbb{I}\{y=1\}}\phi_2^{\Bbb{I}\{y=2\}} \cdots \phi_k^{\Bbb{I}\{y=k\}} \\ \phi_j = \frac{e^{\eta_j}}{\sum_{i=1}^{k}e^{\eta_i}},  \sum_{j=1}^{k}\phi_j=1 $$
 
 根据贝叶斯推断，第$j$个类别的条件概率$\phi_j$可以写作：
 
