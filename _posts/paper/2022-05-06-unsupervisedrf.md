@@ -60,7 +60,7 @@ $$ \mathcal{L}_r = \sum_{i=1}^{T} ||D_{\delta}(\Bbb{R}(E_{\theta}(M(x))_i,b_i))-
 
 $$ \mathcal{L}_c = -\sum_{j=1}^{N} \sum_{i=1}^{T} \sum_{m=1}^{S} \log \frac{\exp(\text{sim} (z_{2i}^j,z_{2i-S+2m}^j)/t)}{\sum_{l=1}^{N}\sum_{k=1}^{2T} \Bbb{1}_{k \ne 2i || l \ne j} \exp (\text{sim} (z_{2i}^j,z_{k}^l)/t))} $$
 
-其中相似度函数选用余弦相似度$$\text{sim}(u,v) = \frac{u^Tv}{\|\|u\|\|_2\|\|v\|\|_2}$$。边界框的增强$\tau_1$和$\tau_2$是对边界框进行裁剪和调整。
+其中相似度函数选用余弦相似度$$\text{sim}(u,v) = \frac{u^Tv}{\|u\|_2\|v\|_2}$$。边界框的增强$\tau_1$和$\tau_2$是对边界框进行裁剪和调整。
 
 编码器即为上述框架中的特征提取模块，由9个残差模块组成的时空卷积特征网络。投影头采用带1个残差块的空间卷积网络。
 
