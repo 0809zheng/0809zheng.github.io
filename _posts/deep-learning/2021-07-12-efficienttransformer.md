@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '降低Transformer的计算复杂度'
+title: '降低Transformer的计算复杂度: 稀疏化和线性化'
 date: 2021-07-12
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/60ebbe525132923bf878e6c3.jpg'
@@ -9,8 +9,9 @@ tags: 深度学习
 
 > Efficient Transformers.
 
-- **Reference**: [Efficient Transformers: A Survey](https://arxiv.org/abs/2009.06732v2)
-
+本文目录：
+1. Transformer的计算复杂度
+2. 改进自注意力机制
 
 # 1. Transformer的计算复杂度
 
@@ -196,3 +197,19 @@ $$ \text{Attention}(Q^{quad},K^{quad},V)=\frac{1}{ns} \text{relu}^2(Q_g^{quad}{K
 
 自注意力矩阵的**稀疏化**则有时能够提高自注意力矩阵的秩。一般而言，稀疏的自注意力矩阵表示输入序列的每一个位置能够显著地与序列中的有限个位置关联。标准**Attention**中的指数运算$e^{QK^T}$能够放大不同$q\cdot k$
 之间的差距，使得自注意力矩阵具有稀疏化的趋势。而线性**Attention**的注意力结果是稠密的，当序列长度$N$较大时，结果趋近于平均池化。
+
+
+# ⚪ 参考文献
+- [Efficient Transformers: A Survey](https://arxiv.org/abs/2009.06732v2)：(arXiv2009)一篇高效Transformer综述。
+- [<font color=Blue>Efficient Attention: Attention with Linear Complexities</font>](https://0809zheng.github.io/2021/08/15/efficient.html)：(arXiv1812)具有线性复杂度的高效自注意力机制。
+- [<font color=Blue>Generating Long Sequences with Sparse Transformers</font>](https://0809zheng.github.io/2021/07/13/sparsetransformer.html)：(arXiv1904)Sparse Transformer：使用稀疏注意力的Transformer。
+- [<font color=Blue>Reformer: The Efficient Transformer</font>](https://0809zheng.github.io/2021/08/11/reformer.html)：(arXiv2001)Reformer: 使用局部敏感哈希和可逆FFN实现高效Transformer。
+- [<font color=Blue>Longformer: The Long-Document Transformer</font>](https://0809zheng.github.io/2021/08/14/longformer.html)：(arXiv2004)Longformer: 适用于长文本的Transformer。
+- [<font color=Blue>Synthesizer: Rethinking Self-Attention in Transformer Models</font>](https://0809zheng.github.io/2020/07/14/synthesizer.html)：(arXiv2005)Synthesizer：使用合成注意力的Transformer模型。
+- [<font color=Blue>Linformer: Self-Attention with Linear Complexity</font>](https://0809zheng.github.io/2021/08/13/linformer.html)：(arXiv2006)Linformer: 线性复杂度的自注意力机制。
+- [<font color=Blue>Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention</font>](https://0809zheng.github.io/2021/08/10/linear.html)：(arXiv2006)Linear Transformer: 使用线性注意力实现快速自回归的Transformer。
+- [<font color=Blue>Big Bird: Transformers for Longer Sequences</font>](https://0809zheng.github.io/2020/08/08/bigbird.html)：(arXiv2007)Big Bird：一种应用于长序列的Transformer模型。
+- [<font color=Blue>Rethinking Attention with Performers</font>](https://0809zheng.github.io/2021/08/12/performer.html)：(arXiv2009)Performer: 通过随机投影将Attention的复杂度线性化。
+- [<font color=Blue>Nyströmformer: A Nyström-Based Algorithm for Approximating Self-Attention</font>](https://0809zheng.github.io/2021/04/29/nystromformer.html)：(arXiv2102)Nyströmformer：使用Nyström方法近似自注意力运算。
+- [<font color=Blue>Beyond Self-attention: External Attention using Two Linear Layers for Visual Tasks</font>](https://0809zheng.github.io/2021/08/09/external.html)：(arXiv2105)External Attention: 使用两个外部记忆单元的注意力机制。
+- [<font color=Blue>Transformer Quality in Linear Time</font>](https://0809zheng.github.io/2022/03/05/flash.html)：(arXiv2202)FLASH: 基于门控注意力单元的线性Transformer。

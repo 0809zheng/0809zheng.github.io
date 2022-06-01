@@ -144,10 +144,8 @@ class DSConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.depthwise_separable_conv = nn.Sequential(
-            VanillaConv(in_channels, in_channels, kernel_size=3, padding=1, groups=in_channels),
-            # 此处激活函数为 nn.ReLU6(inplace=True)
-            VanillaConv(in_channels, out_channels, kernel_size=1, padding=0),
-            # 此处激活函数为 nn.ReLU6(inplace=True)
+            VanillaConv(in_channels, in_channels, kernel_size=3, padding=1, groups=in_channels), # 此处激活函数为 nn.ReLU6(inplace=True)
+            VanillaConv(in_channels, out_channels, kernel_size=1, padding=0), # 此处激活函数为 nn.ReLU6(inplace=True)
         )
 
     def forward(self, x):
@@ -168,10 +166,8 @@ class DSConvv2(nn.Module):
     def __init__(self, in_channels, out_channels, t=6):
         super().__init__()
         self.inverted_residual = nn.Sequential(
-            VanillaConv(in_channels, t*in_channels, kernel_size=1, padding=0),
-            # 此处激活函数为 nn.ReLU6(inplace=True)
-            VanillaConv(t*in_channels, t*in_channels, kernel_size=3, padding=1, groups=t*in_channels),
-            # 此处激活函数为 nn.ReLU6(inplace=True)
+            VanillaConv(in_channels, t*in_channels, kernel_size=1, padding=0), # 此处激活函数为 nn.ReLU6(inplace=True)
+            VanillaConv(t*in_channels, t*in_channels, kernel_size=3, padding=1, groups=t*in_channels), # 此处激活函数为 nn.ReLU6(inplace=True)
             VanillaConv(t*in_channels, out_channels, kernel_size=1, padding=0, relu=False)
         )
         if in_channels != out_channels:
@@ -216,10 +212,8 @@ class DSConvv3(nn.Module):
     def __init__(self, in_channels, out_channels, t=6):
         super().__init__()
         self.block = nn.Sequential(
-            VanillaConv(in_channels, t*in_channels, kernel_size=1, padding=0),
-            # 此处激活函数为 nn.Hardswish(inplace=True)
-            VanillaConv(t*in_channels, t*in_channels, kernel_size=3, padding=1, groups=t*in_channels),
-            # 此处激活函数为 nn.Hardswish(inplace=True)
+            VanillaConv(in_channels, t*in_channels, kernel_size=1, padding=0), # 此处激活函数为 nn.Hardswish(inplace=True)
+            VanillaConv(t*in_channels, t*in_channels, kernel_size=3, padding=1, groups=t*in_channels), # 此处激活函数为 nn.Hardswish(inplace=True)
             SELayer(t*in_channels),
             VanillaConv(t*in_channels, out_channels, kernel_size=1, padding=0, relu=True)
         )
@@ -476,4 +470,23 @@ $$ pq=2^s, \quad s=\log_2p+\log_2q $$
 
 因此计算$p$和$q$的乘积，可以先通过**Mitchell**近似计算快速对数$\log_2p$和$\log_2q$，将其相加后得到$s$；再通过**Mitchell**近似计算快速指数$2^s$。
 
+# ⚪ 参考文献
 
+- [<font color=Blue>SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <0.5MB model size</font>](https://0809zheng.github.io/2021/09/16/squeezenet.html)：(arXiv1602)SqueezeNet: 与AlexNet精度相当的轻量级模型。
+- [<font color=Blue>MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications</font>](https://0809zheng.github.io/2021/09/13/mobilenetv1.html)：(arXiv1704)MobileNet: 使用深度可分离卷积构造轻量网络。
+- [<font color=Blue>ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices</font>](https://0809zheng.github.io/2021/09/18/shufflenet.html)：(arXiv1707)ShuffleNet: 使用组卷积与通道打乱构造高效网络。
+- [<font color=Blue>Interleaved Group Convolutions for Deep Neural Networks</font>](https://0809zheng.github.io/2021/09/21/igc.html)：(arXiv1707)IGCNet: 交错组卷积网络。
+- [<font color=Blue>MobileNetV2: Inverted Residuals and Linear Bottlenecks</font>](https://0809zheng.github.io/2021/09/14/mobilenetv2.html)：(arXiv1801)MobileNetV2: 倒残差与线性瓶颈。
+- [<font color=Blue>SqueezeNext: Hardware-Aware Neural Network Design</font>](https://0809zheng.github.io/2021/09/17/squeezenext.html)：(arXiv1803)SqueezeNext: 针对硬件特性的神经网络设计。
+- [<font color=Blue>IGCV2: Interleaved Structured Sparse Convolutional Neural Networks</font>](https://0809zheng.github.io/2021/09/22/igcv2.html)：(arXiv1804)IGCV2: 交错结构化稀疏卷积。
+- [<font color=Blue>ShuffleNet V2: Practical Guidelines for Efficient CNN Architecture Design</font>](https://0809zheng.github.io/2021/09/19/shufflenetv2.html)：(arXiv1807)ShuffleNet V2: 高效卷积神经网络结构设计的实践准则。
+- [<font color=Blue>ChannelNets: Compact and Efficient Convolutional Neural Networks via Channel-Wise Convolutions</font>](https://0809zheng.github.io/2021/09/20/channelnet.html)：(arXiv1809)ChannelNets: 使用通道卷积构建高效卷积神经网络。
+- [<font color=Blue>Searching for MobileNetV3</font>](https://0809zheng.github.io/2021/09/15/mobilenetv3.html)：(arXiv1905)使用神经结构搜索寻找MobileNet V3。
+- [<font color=Blue>EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks</font>](https://0809zheng.github.io/2021/09/11/efficientv1.html)：(arXiv1905)EfficientNet: 重新考虑卷积神经网络的缩放。
+- [<font color=Blue>GhostNet: More Features from Cheap Operations</font>](https://0809zheng.github.io/2021/11/08/ghostnet.html)：(arXiv1911)GhostNet：使用廉价操作构造更多特征。
+- [<font color=Blue>AdderNet: Do We Really Need Multiplications in Deep Learning?</font>](https://0809zheng.github.io/2020/09/26/addernet.html)：(arXiv1912)AdderNet：仅使用加法运算的卷积神经网络。
+- [<font color=Blue>MicroNet: Towards Image Recognition with Extremely Low FLOPs</font>](https://0809zheng.github.io/2021/11/09/micronet.html)：(arXiv2011)MicroNet：极低FLOPs的图像识别网络。
+- [<font color=Blue>Deep Neural Network Training without Multiplications</font>](https://0809zheng.github.io/2021/08/08/mitchell.html)：(arXiv2012)使用Mitchell近似构造加法神经网络。
+- [<font color=Blue>EfficientNetV2: Smaller Models and Faster Training</font>](https://0809zheng.github.io/2021/09/12/efficientv2.html)：(arXiv2104)EfficientNetV2: 更小的模型和更快的训练。
+- [<font color=Blue>CompConv: A Compact Convolution Module for Efficient Feature Learning</font>](https://0809zheng.github.io/2021/08/03/compconv.html)：(arXiv2106)CompConv：使用分治法的紧凑卷积模块。
+  

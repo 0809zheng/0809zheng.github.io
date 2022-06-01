@@ -9,9 +9,7 @@ tags: 深度学习
 
 > Pretrained Language Models.
 
-- Reference: [Pre-trained Models for Natural Language Processing: A Survey](https://arxiv.org/abs/2003.08271)
-
-**预训练语言模型**(**Pretrained Language Models,PLMs**)是一种从大量无标签的语料库中学习通用的自然语言特征表示的方法。笔者认为，预训练模型之于自然语言处理，就好比[backbone](https://0809zheng.github.io/2020/06/03/CNN-architecture.html)之于计算机视觉。使用预训练语言模型的步骤如下：
+**预训练语言模型**(**Pretrained Language Models,PLMs**)是一种从大量无标签的语料库中学习通用的自然语言特征表示的方法。笔者认为，预训练模型之于自然语言处理，就好比**backbone**之于计算机视觉。使用预训练语言模型的步骤如下：
 1. 在大量无标签的语料库上进行特定任务的**预训练**；
 2. 在下游任务的语料库上进行**微调**。
 
@@ -64,9 +62,6 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 
 
-
-
-
 | 预训练模型 | 结构 | 预训练任务 | 参数量(M百万,B十亿) |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---: | :---: | :----: |
 | [ELMo](https://0809zheng.github.io/2021/01/01/elmo.html) | 双向LSTM | LM | - |
@@ -80,7 +75,31 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 | [MASS](https://0809zheng.github.io/2021/08/18/mass.html) | Transformer | Seq2Seq MLM | $220$M-$11$B |
 | [UniLM](https://0809zheng.github.io/2021/08/17/unilm.html) | Transformer编码器 | Seq2Seq MLM | $340$M |
 | [T5](https://0809zheng.github.io/2021/01/08/t5.html) | Transformer | Seq2Seq MLM | $220$M-$11$B |
+| [T5.1.1](https://0809zheng.github.io/2021/01/09/t511.html) | Transformer | Seq2Seq MLM | $220$M-$11$B |
 | [mT5](https://0809zheng.github.io/2021/01/10/mt5.html) | Transformer | Seq2Seq MLM | $300$M-$13$B |
 | [RoBERTa](https://0809zheng.github.io/2021/08/16/roberta.html) | Transformer编码器 | E-MLM(Dynamic Masking) | $355$M |
 | [DeBERTa](https://0809zheng.github.io/2021/04/02/deberta.html) | Transformer编码器 | E-MLM(Disentangled Attention+Enhanced Mask Decoder) | $390$M |
 | [XLNet](https://0809zheng.github.io/2021/08/19/xlnet.html) | Transformer编码器 | PLM | $110$-$340$M |
+
+
+
+
+# ⚪ 参考文献
+- [Pre-trained Models for Natural Language Processing: A Survey](https://arxiv.org/abs/2003.08271)：(arXiv2003)一篇预训练模型的综述。
+- [<font color=Blue>Deep contextualized word representations</font>](https://0809zheng.github.io/2021/01/01/elmo.html)：(arXiv1802)ELMo：使用语言模型进行词嵌入。
+- [<font color=Blue>Improving Language Understanding by Generative Pre-Training</font>](https://0809zheng.github.io/2021/01/03/gpt.html)：(NLPIR2018)GPT：使用生成式预训练模型提高对语言的理解。
+- [<font color=Blue>BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</font>](https://0809zheng.github.io/2021/01/02/bert.html)：(arXiv1810)BERT：从Transformer中获得上下文的编码表示。
+- [<font color=Blue>MASS: Masked Sequence to Sequence Pre-training for Language Generation</font>](https://0809zheng.github.io/2021/08/18/mass.html)：(arXiv1905)MASS：序列到序列的掩码语言建模。
+- [<font color=Blue>Unified Language Model Pre-training for Natural Language Understanding and Generation</font>](https://0809zheng.github.io/2021/08/17/unilm.html)：(arXiv1905)UniLM：使用BERT实现序列到序列的预训练。
+- [<font color=Blue>XLNet: Generalized Autoregressive Pretraining for Language Understanding</font>](https://0809zheng.github.io/2021/08/19/xlnet.html)：(arXiv1906)XLNet：使用排列语言建模训练语言模型。
+- [<font color=Blue>RoBERTa: A Robustly Optimized BERT Pretraining Approach</font>](https://0809zheng.github.io/2021/08/16/roberta.html)：(arXiv1907)RoBERTa：鲁棒优化的BERT预训练方法。
+- [<font color=Blue>ALBERT: A Lite BERT for Self-supervised Learning of Language Representations</font>](https://0809zheng.github.io/2021/01/14/albert.html)：(arXiv1909)ALBERT：一种轻量型的BERT模型。
+- [<font color=Blue>Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer</font>](https://0809zheng.github.io/2021/01/08/t5.html)：(arXiv1910)T5：编码器-解码器结构的预训练语言模型。
+- [<font color=Blue>Language Models are Unsupervised Multitask Learners</font>](https://0809zheng.github.io/2021/01/11/gpt2.html)：(2019)GPT2：语言模型是无监督的多任务模型。
+- [<font color=Blue>REALM: Retrieval-Augmented Language Model Pre-Training</font>](https://0809zheng.github.io/2020/12/27/realm.html)：(arXiv2002)REALM：通过检索增强预训练语言模型。
+- [<font color=Blue>GLU Variants Improve Transformer</font>](https://0809zheng.github.io/2021/01/09/t511.html)：(arXiv2002)T5.1.1：使用GLU改进预训练语言模型T5。
+- [<font color=Blue>ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators</font>](https://0809zheng.github.io/2021/01/16/electra.html)：(arXiv2003)ELECTRA：判别式的预训练语言模型。
+- [<font color=Blue>Language Models are Few-Shot Learners</font>](https://0809zheng.github.io/2020/07/13/gpt3.html)：(arXiv2005)GPT3：语言模型是少样本学习模型。
+- [<font color=Blue>DeBERTa: Decoding-enhanced BERT with Disentangled Attention</font>](https://0809zheng.github.io/2021/04/02/deberta.html)：(arXiv2006)DeBERTa：使用分解注意力机制和增强型掩膜解码器改进预训练语言模型。
+- [<font color=Blue>mT5: A massively multilingual pre-trained text-to-text transformer</font>](https://0809zheng.github.io/2021/01/10/mt5.html)：(arXiv2010)mT5：多语言版本的预训练语言模型T5。
+

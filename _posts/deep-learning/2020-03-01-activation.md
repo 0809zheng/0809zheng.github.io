@@ -152,5 +152,26 @@ table th:nth-of-type(3) {
 
 
 
-**Reference**:
-- [Activation Functions: Comparison of trends in Practice and Research for Deep Learning](https://arxiv.org/abs/1811.03378)
+# ⚪ 参考文献
+- [Activation Functions: Comparison of trends in Practice and Research for Deep Learning](https://arxiv.org/abs/1811.03378)：(arXiv1811)一篇激活函数综述。
+- [<font color=Blue>Rectifier Nonlinearities Improve Neural Network Acoustic Models</font>](https://0809zheng.github.io/2021/08/29/lrelu.html)：(ICML2013)LeakyReLU：使用修正的非线性提高神经网络声学模型。
+- [<font color=Blue>Maxout Networks</font>](https://0809zheng.github.io/2021/10/23/maxout.html)：(arXiv1302)Maxout：自适应分段线性单元。
+- [<font color=Blue>Learning Activation Functions to Improve Deep Neural Networks</font>](https://0809zheng.github.io/2021/10/26/apl.html)：(arXiv1412)APL：自适应分段线性单元。
+- [<font color=Blue>Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification</font>](https://0809zheng.github.io/2021/08/30/prelu.html)：(arXiv1502)PReLU：分类任务超越人类表现。
+- [<font color=Blue>Empirical Evaluation of Rectified Activations in Convolutional Network</font>](https://0809zheng.github.io/2021/08/31/rrelu.html)：(arXiv1505)RReLU：受限激活函数的经验验证。
+- [<font color=Blue>Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)</font>](https://0809zheng.github.io/2021/08/25/elu.html)：(arXiv1511)ELU：消除偏差偏置的指数线性单元。
+- [<font color=Blue>Bridging Nonlinearities and Stochastic Regularizers with Gaussian Error Linear Units</font>](https://0809zheng.github.io/2021/08/24/gelu.html)：(arXiv1606)GELU：随机正则化的高斯误差线性单元。
+- [<font color=Blue>Continuously Differentiable Exponential Linear Units</font>](https://0809zheng.github.io/2021/08/22/celu.html)：(arXiv1704)CELU：连续可微的指数线性单元。
+- [<font color=Blue>Self-Normalizing Neural Networks</font>](https://0809zheng.github.io/2021/09/02/selu.html)：(arXiv1706)SELU：自标准化的指数线性单元。
+- [<font color=Blue>Searching for Activation Functions</font>](https://0809zheng.github.io/2021/09/04/swish.html)：(arXiv1710)Swish：自动搜索得到的一种自门控的激活函数。
+- [<font color=Blue>The Quest for the Golden Activation Function</font>](https://0809zheng.github.io/2021/09/03/elish.html)：(arXiv1808)ELiSH：使用遗传算法寻找最优激活函数。
+- [<font color=Blue>Padé Activation Units: End-to-end Learning of Flexible Activation Functions in Deep Networks</font>](https://0809zheng.github.io/2021/10/24/pade.html)：(arXiv1907)PAU：基于Padé近似的可学习激活函数。
+- [<font color=Blue>Mish: A Self Regularized Non-Monotonic Activation Function</font>](https://0809zheng.github.io/2021/08/21/mish.html)：(arXiv1908)Mish：一种自正则化的非单调激活函数。
+- [<font color=Blue>Dynamic ReLU</font>](https://0809zheng.github.io/2021/10/27/dyrelu.html)：(arXiv2003)DY-ReLU：动态整流线性单元。
+- [<font color=Blue>Funnel Activation for Visual Recognition</font>](https://0809zheng.github.io/2020/09/05/frelu.html)：(arXiv2007)FReLU：为视觉任务设计的激活函数。
+- [<font color=Blue>Activate or Not: Learning Customized Activation</font>](https://0809zheng.github.io/2021/11/18/acon.html)：(arXiv2009)ACON：学习自定义的激活函数。
+- [<font color=Blue>Learning specialized activation functions with the Piecewise Linear Unit</font>](https://0809zheng.github.io/2020/10/22/plu.html)：(arXiv2104)PWLU：使用分段线性单元学习激活函数。
+- [<font color=Blue>Orthogonal-Padé Activation Functions: Trainable Activation functions for smooth and faster convergence in deep networks</font>](https://0809zheng.github.io/2021/10/25/opade.html)：(arXiv2106)OPAU：基于正交Padé近似的可训练激活函数。
+- [<font color=Blue>SAU: Smooth activation function using convolution with approximate identities</font>](https://0809zheng.github.io/2021/11/05/sau.html)：(arXiv2109)SAU：使用Dirac函数构造激活函数的光滑近似。
+- [<font color=Blue>SMU: smooth activation function for deep networks using smoothing maximum technique</font>](https://0809zheng.github.io/2021/11/17/smu.html)：(arXiv2111)SMU：基于光滑最大值技术的光滑激活函数。
+- [<font color=Blue>Squareplus: A Softplus-Like Algebraic Rectifier</font>](https://0809zheng.github.io/2021/11/19/squareplus.html)：(arXiv2112)Squareplus：一种类似softplus的代数整流器。

@@ -158,10 +158,10 @@ $$ \Delta \theta^* = -\nabla_g \ln Z(||g||) = -\frac{Z'(||g||)}{Z(||g||)} \nabla
 # 3. 常用的梯度下降算法
 
 标准的批量梯度下降方法存在一些缺陷：
-- 更新过程中容易陷入局部极小值或鞍点(这些点处的梯度也为$0$)；常见解决措施是在梯度更新中引入**动量**(如**momentum**,**NAG**)。
+- 更新过程中容易陷入局部极小值或鞍点(这些点处的梯度也为$0$)；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**)。
 - 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；损失函数的**条件数(Condition number**，指损失函数的**Hessian**矩阵最大奇异值与最小奇异值之比)越大，这一现象越严重。常见解决措施是为每个特征设置**自适应**学习率(如**AdaGrad**, **RMSprop**, **AdaDelta**)。这类算法的缺点是改变了梯度更新的方向，一定程度上造成精度损失。![](https://pic.downk.cc/item/5e902a62504f4bcb04758232.jpg)
 - 批量大小难以选择。批量较小时，引入较大的梯度噪声；批量较大时，内存负担较大。在分布式训练大规模神经网络时，整体批量通常较大，训练的模型精度会剧烈降低。这是因为总训练轮数保持不变时，批量增大意味着权重更新的次数减少。常见解决措施是通过**层级自适应**实现每一层的梯度归一化(如**LARS**, **LAMB**, **NovoGrad**)，从而使得更新步长依赖于参数的数值大小而不是梯度的大小。
-- 上述优化算法通常会占用较多内存。比如常用的**Adam**算法需要存储与模型参数具有相同尺寸的动量和方差。一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
+- 上述优化算法通常会占用较多内存，比如常用的**Adam**算法需要存储与模型参数具有相同尺寸的动量和方差。一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
 
 在实际应用梯度下降算法时，可以根据截止到当前步$t$的历史梯度信息$$\{g_{1},...,g_{t}\}$$计算修正的参数更新量$h_t$（比如累积动量、累积二阶矩校正学习率等），从而弥补上述缺陷。因此梯度下降算法的一般形式可以表示为：
 
@@ -272,3 +272,31 @@ $$ g(\theta) = (\nabla f(\theta)\cdot v) v $$
 前向梯度$g(\theta)$是真实梯度$\nabla f(\theta)$的无偏估计。使用前向梯度代替反向传播计算的梯度，可以实现仅依赖单次前向传播的**前向梯度下降(forward gradient descent, FGD)**算法，从而省去反向传播过程。
 
 ![](https://pic.imgdb.cn/item/6210a6302ab3f51d9160d8c5.jpg)
+
+
+# ⚪ 参考文献
+
+- [<font color=Blue>A Direct Adaptive Method for Faster Backpropagation Learning: The RPROP Algorithm</font>](https://0809zheng.github.io/2020/12/07/rprop.html)：(ICNN 1993)RProp：一种快速反向传播学习的直接自适应方法。
+- [<font color=Blue>ADADELTA: An Adaptive Learning Rate Method</font>](https://0809zheng.github.io/2020/12/06/adadelta.html)：(arXiv1212)Adadelta：一种自适应学习率方法。
+- [<font color=Blue>On the importance of initialization and momentum in deep learning</font>](https://0809zheng.github.io/2020/12/08/nesterov.html)：(ICML 2013)Nesterov Momentum：一种动量梯度更新方法。
+- [<font color=Blue>Adam: A Method for Stochastic Optimization</font>](https://0809zheng.github.io/2020/12/09/adam.html)：(arXiv1412)Adam：自适应矩估计。
+- [<font color=Blue>Incorporating Nesterov Momentum into Adam</font>](https://0809zheng.github.io/2020/12/12/nadam.html)：(ICLR 2016)Nadam：将Nesterov动量引入Adam算法。
+- [<font color=Blue>Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour</font>](https://0809zheng.github.io/2020/12/24/linearrate.html)：(arXiv1706)大批量分布式训练的线性缩放规则和warmup。
+- [<font color=Blue>Large Batch Training of Convolutional Networks</font>](https://0809zheng.github.io/2020/12/15/lars.html)：(arXiv1708)LARS：层级自适应学习率缩放。
+- [<font color=Blue>Don't Decay the Learning Rate, Increase the Batch Size</font>](https://0809zheng.github.io/2020/12/05/increasebatch.html)：(arXiv1711)通过增加批量大小代替学习率衰减。
+- [<font color=Blue>Averaging Weights Leads to Wider Optima and Better Generalization</font>](https://0809zheng.github.io/2020/11/29/swa.html)：(arXiv1803)SWA：通过随机权重平均寻找更宽的极小值。
+- [<font color=Blue>Adafactor: Adaptive Learning Rates with Sublinear Memory Cost</font>](https://0809zheng.github.io/2020/12/20/adafactor.html)：(arXiv1804)Adafactor：减少Adam的显存占用。
+- [<font color=Blue>Memory-Efficient Adaptive Optimization</font>](https://0809zheng.github.io/2020/11/30/sm3.html)：(arXiv1901)SM3：内存高效的自适应优化算法。
+- [<font color=Blue>On the Convergence of Adam and Beyond</font>](https://0809zheng.github.io/2020/12/10/amsgrad.html)：(arXiv1904)AMSGrad：改进Adam算法的收敛性。
+- [<font color=Blue>Large Batch Optimization for Deep Learning: Training BERT in 76 minutes</font>](https://0809zheng.github.io/2020/12/17/lamb.html)：(arXiv1904)LAMB：结合层级自适应学习率与Adam。
+- [<font color=Blue>Stochastic Gradient Methods with Layer-wise Adaptive Moments for Training of Deep Networks</font>](https://0809zheng.github.io/2020/12/19/novograd.html)：(arXiv1905)NovoGrad：使用层级自适应二阶矩进行梯度归一化。
+- [<font color=Blue>Lookahead Optimizer: k steps forward, 1 step back</font>](https://0809zheng.github.io/2020/12/14/lookahead.html)：(arXiv1907)Lookahead：快权重更新k次，慢权重更新1次。
+- [<font color=Blue>On the Variance of the Adaptive Learning Rate and Beyond</font>](https://0809zheng.github.io/2020/12/13/radam.html)：(arXiv1908)Radam：修正Adam算法中自适应学习率的早期方差。
+- [<font color=Blue>Gradientless Descent: High-Dimensional Zeroth-Order Optimization</font>](https://0809zheng.github.io/2022/03/09/gradientless.html)：(arXiv1911)高维参数空间中的零阶优化方法。
+- [<font color=Blue>Deep Ensembles: A Loss Landscape Perspective</font>](https://0809zheng.github.io/2020/07/12/deep-ensemble.html)：(arXiv1912)探讨深度集成学习的损失曲面。
+- [<font color=Blue>AdaX: Adaptive Gradient Descent with Exponential Long Term Memory</font>](https://0809zheng.github.io/2020/12/21/adax.html)：(arXiv2004)AdaX：基于指数长期记忆的自适应梯度下降。
+- [<font color=Blue>Descending through a Crowded Valley - Benchmarking Deep Learning Optimizers</font>](https://0809zheng.github.io/2021/07/08/optimizer.html)：(arXiv2007)对不同深度学习优化器的基准测试。
+- [<font color=Blue>Implicit Gradient Regularization</font>](https://0809zheng.github.io/2020/12/25/igr.html)：(arXiv2009)隐式梯度正则化。
+- [<font color=Blue>Every Model Learned by Gradient Descent Is Approximately a Kernel Machine</font>](https://0809zheng.github.io/2021/05/19/kernalmachine.html)：(arXiv2012)使用梯度下降优化的深度学习模型近似于核方法。
+- [<font color=Blue>Step-size Adaptation Using Exponentiated Gradient Updates</font>](https://0809zheng.github.io/2022/03/04/stepadap.html)：(arXiv2202)基于指数梯度更新的步长自适应学习率。
+- [<font color=Blue>Gradients without Backpropagation</font>](https://0809zheng.github.io/2022/02/19/fgradient.html)：(arXiv2202)使用前向梯度代替反向传播。
