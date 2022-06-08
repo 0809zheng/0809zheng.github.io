@@ -16,11 +16,11 @@ tags: 论文阅读
 
 **VAE**优化**对数似然的变分下界**:
 
-$$ \log p(x)  = \log \Bbb{E}_{z \text{~} q(z|x)}[\frac{p(x,z)}{q(z|x)}] \geq \Bbb{E}_{z \text{~} q(z|x)}[\log \frac{p(x,z)}{q(z|x)}] \\ \text{ELBO} = - KL[q(z|x)||p(z)]+\mathbb{E}_{z \text{~} q(z|x)} [\log p(x | z)]  $$
+$$ \begin{aligned} \log p(x)  &= \log \Bbb{E}_{z \text{~} q(z|x)}[\frac{p(x,z)}{q(z|x)}] \geq \Bbb{E}_{z \text{~} q(z|x)}[\log \frac{p(x,z)}{q(z|x)}] \\ \text{ELBO} &= - KL[q(z|x)||p(z)]+\mathbb{E}_{z \text{~} q(z|x)} [\log p(x | z)] \end{aligned} $$
 
 作者对**ELBO**中的**KL**散度进行分解。首先对每个训练样本指定唯一的索引$n$，并且定义一个在$[1,N]$上均匀的随机变量$p(n)$与训练样本相关联，表示每个样本被选择的概率相同。分解过程如下：
 
-$$ KL[q(z|x)||p(z)] = \Bbb{E}_{q(z|x)}[\log \frac{q(z|x)}{p(z)}] = \Bbb{E}_{p(x)} [\Bbb{E}_{q(z|x)}[\log \frac{q(z|x)}{p(z)}]] \\ = \sum_{x}p(x)\sum_{z} q(z|x) \log \frac{q(z|x)}{p(z)} = \sum_{x}p(x)\sum_{z} \frac{q(z,x)}{p(x)} \log \frac{q(z|x)}{q(z)}\frac{q(z)}{p(z)} \\ = \sum_{x}\sum_{z} q(z,x) \log \frac{q(z|x)}{q(z)} + \sum_{x}\sum_{z} q(z,x) \log \frac{q(z)}{p(z)} \\ = \sum_{x}\sum_{z} q(z,x) \log \frac{q(z,x)}{q(z)p(x)} + \sum_{z} q(z) \log \frac{q(z)}{p(z)} \\ = I(x;z) + KL(q(z)||p(z))  $$
+$$ \begin{aligned} KL[q(z|x)||p(z)] &= \Bbb{E}_{q(z|x)}[\log \frac{q(z|x)}{p(z)}] = \Bbb{E}_{p(x)} [\Bbb{E}_{q(z|x)}[\log \frac{q(z|x)}{p(z)}]] \\ &= \sum_{x}p(x)\sum_{z} q(z|x) \log \frac{q(z|x)}{p(z)} = \sum_{x}p(x)\sum_{z} \frac{q(z,x)}{p(x)} \log \frac{q(z|x)}{q(z)}\frac{q(z)}{p(z)} \\ &= \sum_{x}\sum_{z} q(z,x) \log \frac{q(z|x)}{q(z)} + \sum_{x}\sum_{z} q(z,x) \log \frac{q(z)}{p(z)} \\ &= \sum_{x}\sum_{z} q(z,x) \log \frac{q(z,x)}{q(z)p(x)} + \sum_{z} q(z) \log \frac{q(z)}{p(z)} \\ &= I(x;z) + KL(q(z)||p(z)) \end{aligned} $$
 
 分解式的第一项$I(x;z)$表示随机变量$x$和$z$的互信息，即知道随机变量$x$的信息后，随机变量$z$的不确定性的减少量。对该项进行惩罚将会导致随机变量$z$中包含$x$的信息减少，通过$z$重构出$x$的难度增大，即降低了模型的重构能力。
 
