@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '自编码器'
+title: 'Autoencoder: 自编码器'
 date: 2020-04-09
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e8eb7ff504f4bcb040d0c17.jpg'
