@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '轻量级卷积神经网络'
+title: '轻量级(LightWeight)卷积神经网络'
 date: 2021-09-10
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/6183331c2ab3f51d915b0c47.jpg'
