@@ -80,13 +80,13 @@ $$ f(j, k) = r_je^{i(\theta_j+\omega_j k)} $$
 
 其中振幅$r_j$、角频率$\omega_j$和初相位$\theta_j$是要学习的参数（为同一个词设置三组词嵌入）。振幅$r_j$只和词表索引$j$有关，相当于该词的词嵌入；角频率$\omega_j$表示该词对位置的敏感程度；相位$\theta_j+\omega_j pos$引入该词在文本中的位置信息。
 
-## (5) [<font color=Blue>RoPE</font>](https://0809zheng.github.io/2022/07/05/urpe.html)：旋转式位置编码
+## (5) [<font color=Blue>RoPE</font>](https://0809zheng.github.io/2022/07/06/roformer.html)：旋转式位置编码
 
 旋转式位置编码是指在构造查询矩阵$q$和键矩阵$k$时，根据其绝对位置引入旋转矩阵$\mathcal{R}$：
 
 $$ q_i = \mathcal{R}_ix_i W^Q , k_j = \mathcal{R}_jx_j W^K  $$
 
-旋转矩阵$\mathcal{R}$设计为正交矩阵，且应满足$\mathcal{R}_i^T\mathcal{R}_j=\mathcal{R}_{j-i}$，使得后续注意力矩阵的计算中隐式地包含相对位置信息：
+旋转矩阵$\mathcal{R}$设计为正交矩阵，且应满足$$\mathcal{R}_i^T\mathcal{R}_j=\mathcal{R}_{j-i}$$，使得后续注意力矩阵的计算中隐式地包含相对位置信息：
 
 $$ (\mathcal{R}_ix_i W^Q)^T(\mathcal{R}_jx_j W^K) = (x_i W^Q)^T\mathcal{R}_i^T\mathcal{R}_jx_j W^K = (x_i W^Q)^T\mathcal{R}_{j-i}x_j W^K $$
 
@@ -165,5 +165,5 @@ $$ z_i = \sum_{j=1}^{n} \alpha_{ij}c_{ij}x_jW^V $$
 - [<font color=Blue>Encoding word order in complex embeddings</font>](https://0809zheng.github.io/2022/07/04/complex.html)：(arXiv1910)在复数域空间中构造词嵌入。
 - [<font color=Blue>Learning to Encode Position for Transformer with Continuous Dynamical Model</font>](https://0809zheng.github.io/2022/07/02/floater.html)：(arXiv2003)FLOATER：基于连续动力系统的递归位置编码。
 - [<font color=Blue>DeBERTa: Decoding-enhanced BERT with Disentangled Attention</font>](https://0809zheng.github.io/2021/04/02/deberta.html)：(arXiv2006)DeBERTa：使用分解注意力机制和增强型掩膜解码器改进预训练语言模型。
-- [<font color=Blue>RoFormer: Enhanced Transformer with Rotary Position Embedding</font>](https://0809zheng.github.io/2022/07/05/urpe.html)：(arXiv2104)RoFormer：使用旋转位置编码增强Transformer。
+- [<font color=Blue>RoFormer: Enhanced Transformer with Rotary Position Embedding</font>](https://0809zheng.github.io/2022/07/06/roformer.html)：(arXiv2104)RoFormer：使用旋转位置编码增强Transformer。
 - [<font color=Blue>Your Transformer May Not be as Powerful as You Expect</font>](https://0809zheng.github.io/2022/07/05/urpe.html)：(arXiv2205)使用通用相对位置编码改进Transformer的通用近似性。
