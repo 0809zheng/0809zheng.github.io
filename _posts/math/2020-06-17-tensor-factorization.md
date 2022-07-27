@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '张量分解'
+title: '张量分解(Tensor Decomposition)'
 date: 2020-06-17
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ee9a89da240b370e3bcba63.jpg'
