@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '机器学习中的假设检验'
+title: '机器学习中的假设检验(Hypothesis Test)'
 date: 2021-07-09
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/60e807c55132923bf84e8654.jpg'
