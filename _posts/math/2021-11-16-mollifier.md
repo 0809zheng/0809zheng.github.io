@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '函数的光滑化'
+title: '函数的光滑化(Smoothing)'
 date: 2021-11-16
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/6194c14e2ab3f51d9157ea72.jpg'
