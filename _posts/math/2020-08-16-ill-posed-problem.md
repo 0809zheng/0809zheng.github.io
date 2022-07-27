@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '适定问题与不适定问题'
+title: '适定(well-posed)问题与不适定(ill-posed)问题'
 date: 2020-08-16
 author: 郑之杰
 cover: ''
