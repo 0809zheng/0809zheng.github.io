@@ -18,15 +18,15 @@ tags: 深度学习
 - 深度神经网络的类型
 1. 卷积神经网络：轻量级卷积神经网络
 2. 循环神经网络：
-3. 自注意力网络：预训练语言模型、降低Transformer的计算复杂度
-4. 生成模型：
+3. 自注意力网络：预训练语言模型、Transformer中的位置编码、降低Transformer的计算复杂度
+4. 生成模型：变分自编码器、流模型
 5. 其他类型的网络：
 - 深度学习的基本组件和方法技巧
 1. 深度学习的基本组件：激活函数、优化方法
-2. 深度学习的方法技巧：长尾分布
+2. 深度学习的方法技巧：长尾分布、多任务学习
 - 深度学习的应用
-1. 计算机视觉
-2. 自然语言处理
+1. 计算机视觉：图像超分辨率、时空动作检测
+2. 自然语言处理：
 3. 
 
 # 1. 深度神经网络的类型
@@ -44,9 +44,9 @@ tags: 深度学习
 
 ### ⚪ [卷积神经网络的可视化](https://0809zheng.github.io/2020/12/16/custom.html)
 
-### ⚪ [<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2020/12/16/custom.html)
+### ⚪ [<font color=Blue>轻量级(LightWeight)卷积神经网络</font>](https://0809zheng.github.io/2020/12/16/custom.html)
 
-轻量级网络设计旨在设计计算复杂度更低的卷积网络结构。
+**轻量级**网络设计旨在设计计算复杂度更低的卷积网络结构。
 - 从**结构**的角度考虑，卷积层提取的特征存在冗余，可以设计特殊的卷积操作，减少卷积操作的冗余，从而减少计算量。如**SqueezeNet**, **SqueezeNext**, **MobileNet V1,2,3**, **ShuffleNet V1,2**, **IGCNet V1,2**, **ChannelNet**, **EfficientNet V1,2**, **GhostNet**, **MicroNet**, **CompConv**。
 - 从**计算**的角度，模型推理过程中存在大量乘法运算，而乘法操作(相比于加法)对于目前的硬件设备不友好，可以对乘法运算进行优化，也可以减少计算量。如**AdderNet**使用**L1**距离代替卷积乘法；使用**Mitchell**近似代替卷积乘法。
 
@@ -62,7 +62,7 @@ tags: 深度学习
 ## (3) 自注意力网络
 
 
-### ⚪ [<font color=Blue>预训练语言模型</font>](https://0809zheng.github.io/2020/04/27/elmo-bert-gpt.html)
+### ⚪ [<font color=Blue>预训练语言模型 (Pretrained Language Model)</font>](https://0809zheng.github.io/2020/04/27/elmo-bert-gpt.html)
 
 预训练语言模型是一种从大量无标签的语料库中学习通用的自然语言特征表示的方法。使用预训练语言模型的步骤如下：1. 在大量无标签的语料库上进行特定任务的**预训练**；2. 在下游任务的语料库上进行**微调**。
 
@@ -74,6 +74,15 @@ tags: 深度学习
 - **增强掩码语言建模 Enhanced Masked Language Modeling(E-MLM)**：在掩码语言建模的过程中使用了一些增强方法。如**RoBERTa**, **DeBERTa**。
 - **排列语言建模 Permuted Language Modeling(PLM)**：在输入序列的随机排列上进行语言建模。如**XLNet**。
 
+
+
+### ⚪ [<font color=Blue>Transformer中的位置编码 (Position Encoding)</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)
+
+**Transformer**中的自注意力机制具有置换不变性(**permutation invariant**)，导致打乱输入序列的顺序对输出结果不会产生任何影响。通过**位置编码**把位置信息引入输入序列中，以打破模型的全对称性。
+- **绝对位置编码**：只依赖于单一位置，将绝对位置信息加入到输入序列中，相当于引入索引的嵌入。比如**Sinusoidal**, **Learnable**, **FLOATER**, **Complex-order**, **RoPE**
+- **相对位置编码**：不同位置的交互项，通过微调自注意力运算过程使其能分辨不同**token**之间的相对位置。比如**XLNet**, **T5**, **DeBERTa**, **URPE**
+
+
 ### ⚪ [<font color=Blue>降低Transformer的计算复杂度</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)
 
 自注意力运算中**计算自注意力矩阵**以及**加权求和计算输出**这两个步骤引入了$O(N^2)$的计算复杂度。因此可以改进这两个步骤，从而降低计算复杂度。
@@ -81,13 +90,13 @@ tags: 深度学习
 - 改进输出的加权求和: 这类方法的改进思路是使得自注意力的计算**线性化**。如**Efficient Attention**, **Synthesizer**, **Linformer**, **Linear Transformer**, **Performer**, **Nyströmformer**, **External Attention**, **FLASH**。
 
 
+### ⚪ 
 
 
 - [词嵌入](https://0809zheng.github.io/2020/04/29/word-embedding.html)
 - [注意力机制](https://0809zheng.github.io/2020/04/22/attention.html)
 - [自注意力模型](https://0809zheng.github.io/2020/04/24/self-attention.html)
 - [Transformer](https://0809zheng.github.io/2020/04/25/transformer.html)
-- [Transformer中的位置编码](https://0809zheng.github.io/2021///.html)
 - 语言模型：[Seq2Seq语言模型,指针网络](https://0809zheng.github.io/2020/04/21/sequence-2-sequence.html)
 
 
@@ -97,7 +106,7 @@ tags: 深度学习
 
 $$ p_{\theta}(x) = \int p_{\theta}(x,z) dz = \int p_{\theta}(x|z)p(z) dz  $$
 
-参数$\theta$的求解可以通过极大似然估计。若记真实数据分布为$\tilde{p}(x)$，则优化目标为最大化对数似然$$\Bbb{E}_{x\text{~}\tilde{p}(x)}[\log p_{\theta}(x)]$$。由于该算式包含积分运算，直接求解比较困难。不同的生成模型通过不同的求解技巧避开这个困难。
+参数$\theta$的求解可以通过极大似然估计。若记真实数据分布为$\tilde{p}(x)$，则优化目标为最大化对数似然$$\Bbb{E}_{x\text{~}\tilde{p}(x)}[\log p_{\theta}(x)]$$。由于该算式包含积分运算，直接求解比较困难；不同的生成模型通过不同的求解技巧避开这个困难。
 
 
 ### ⚪ 自回归模型 (Auto-Regressive)
@@ -110,9 +119,9 @@ $$ p_{\theta}(x) = \int p_{\theta}(x,z) dz = \int p_{\theta}(x|z)p(z) dz  $$
 
 GAN则是通过一个交替训练的方法绕开了这个困难，确实保留了模型的精确性，所以它才能有如此好的生成效果。但不管怎么样，GAN也不能说处处让人满意了，所以探索别的解决方法是有意义的。
 
-### ⚪ [变分自编码器 (Variational Autoencoder)](https://0809zheng.github.io/2022/04/01/vae.html)
+### ⚪ [<font color=Blue>变分自编码器 (Variational Autoencoder)</font>](https://0809zheng.github.io/2022/04/01/vae.html)
 
-**变分自编码器 (Variational Autoencoder, VAE)**的优化目标不是对数似然，而是对数似然的变分下界：
+**变分自编码器**的优化目标不是对数似然，而是对数似然的变分下界：
 
 $$  \log p_{\theta}(x)  \geq \mathbb{E}_{z \text{~} q_{\phi}(z|x)} [\log p_{\theta}(x | z)] - KL[q_{\phi}(z|x)||p(z)]  $$
 
@@ -124,9 +133,9 @@ $$  \log p_{\theta}(x)  \geq \mathbb{E}_{z \text{~} q_{\phi}(z|x)} [\log p_{\the
 - 改进整体损失函数：也有方法通过调整整体损失改进模型，如紧凑变分下界(如**IWAE**, **MIWAE**)或引入**Wasserstein**距离(如**WAE**, **SWAE**)。
 - 改进模型结构：如**BN-VAE**通过引入**BatchNorm**缓解**KL**散度消失问题。
 
-### ⚪ [流模型 (Flow-based Model)](https://0809zheng.github.io/2022/05/01/flow.html)
+### ⚪ [<font color=Blue>流模型 (Flow-based Model)</font>](https://0809zheng.github.io/2022/05/01/flow.html)
 
-**流模型**(**flow-based model**)通过一系列可逆变换(双射函数$f$)建立较为简单的先验分布$p(z)$与较为复杂的实际数据分布$p(x)$之间的映射关系：
+**流模型**通过一系列可逆变换(双射函数$f$)建立较为简单的先验分布$p(z)$与较为复杂的实际数据分布$p(x)$之间的映射关系：
 
 $$ \begin{aligned} x&=f_K \circ \cdots \circ f_1(z) \\ p(x) &= p(z)\cdot |\prod_{k=1}^{K} \det J_{f_k}(z_{k-1})|^{-1} \end{aligned} $$
 
@@ -188,18 +197,27 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 
 ### ⚪ [<font color=Blue>长尾分布 (Long-Tailed)</font>](https://0809zheng.github.io/2020/03/02/optimization.html)
 
-实际应用中的数据集大多服从长尾分布，即少数类别(**head class**)占据绝大多数样本，多数类别(**tail class**)仅有少量样本。解决长尾分布问题的方法包括：
+实际应用中的数据集大多服从**长尾分布**，即少数类别(**head class**)占据绝大多数样本，多数类别(**tail class**)仅有少量样本。解决长尾分布问题的方法包括：
 - 重采样 **Re-sampling**：通过对**head class**进行欠采样或对**tail class**进行过采样，人为地构造类别均衡的数据集。包括**Random under/over-sampling**, **Class-balanced sampling**, **Meta Sampler**等。
 - 重加权 **Re-weighting**：在损失函数中对不同类别样本的损失设置不同的权重，通常是对**tail class**对应的损失设置更大的权重。其中在$\log$运算之外调整损失函数的本质是在调节样本权重或者类别权重(如**Inverse Class Frequency Weighting**, **Cost-Sensitive Cross-Entropy Loss**, **Focal Loss**, **Class-Balanced Loss**)。在$\log$运算之内调整损失函数的本质是调整**logits**得分$z$，从而缓解对**tail**类别的负梯度(如**Equalization Loss**, **Equalization Loss v2**, **Logit Adjustment Loss**, **Balanced Softmax Loss**, **Seesaw Loss**)。
 - 其他方法：一些方法将长尾分布问题解耦为特征的表示学习和特征的分类。一些方法按照不同类别的样本数量级对类别进行分组(如**BAGS**)。
 
 
+### ⚪ [<font color=Blue>多任务学习 (Multi-Task Learning)</font>](https://0809zheng.github.io/2021/08/28/MTL.html)
+
+**多任务学习**是指同时学习多个属于不同领域的任务，并通过特定任务的领域信息提高泛化能力。多任务学习的方法设计可以分别从**网络结构**与**损失函数**两个角度出发。
+
+一个高效的多任务网络，应同时兼顾特征共享部分和任务特定部分。根据模型在处理不同任务时网络参数的共享程度，多任务学习方法的网络结构可分为：
+- **硬参数共享 (Hard Parameter Sharing)**：模型的主体部分共享参数，输出结构任务独立。如**Multilinear Relationship Network**, **Fully-adaptive Feature Sharing**。
+- **软参数共享 (Soft Parameter Sharing)**：不同任务采用独立模型，模型参数彼此约束。如**Cross-Stitch Network**, **Sluice Network**, **Multi-Task Attention Network**。
+
+多任务学习将多个相关的任务共同训练，其总损失函数是每个任务的损失函数的加权求和式：$$\mathcal{L}_{total} = \sum_{k}^{} w_k\mathcal{L}_k$$。多任务学习的目的是寻找模型参数$\theta$的**帕累托最优解**，因此需要设置合适的任务权重。一些权重自动设置方法包括**Uncertainty**, **Gradient Normalization**, **Dynamic Weight Average**, **Multi-Objective Optimization**, **Dynamic Task Prioritization**, **Loss-Balanced Task Weighting**
 
 ### ⚪ 
 
 - [深度学习的可解释性](https://0809zheng.github.io/2020/04/28/explainable-DL.html)
 - [对抗攻击](https://0809zheng.github.io/2020/04/30/adversarial-attack.html)：[图像分类中的对抗攻击](https://0809zheng.github.io/2020/07/26/adversirial_attack_in_classification.html)、[目标检测中的对抗攻击](https://0809zheng.github.io/2020/07/25/adversirial_attack_in_object_detection.html)
-- [多任务学习](https://0809zheng.github.io/2021/08/28/MTL.html)
+
 
 
 ## () 网络压缩
@@ -227,7 +245,29 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - [三维人体模型](https://0809zheng.github.io/2021/01/07/3dhuman.html)
 - [人体姿态估计的评估指标](https://0809zheng.github.io/2020/11/26/eval-pose-estimate.html)
 
-### ⚪ [图像超分辨率](https://0809zheng.github.io/2020/08/27/SR.html)
+### ⚪ [<font color=blue>图像超分辨率 (Super Resolution)</font>](https://0809zheng.github.io/2020/08/27/SR.html)
+
+图像**超分辨率**旨在将低分辨率图像**LR**放大为对应的高分辨率图像**HR**，从而使图像更清晰。图像超分辨率的传统方法主要是基于插值的方法，如最邻近插值、双线性插值、双三次插值；而基于深度学习的图像超分辨率方法，可以根据**上采样的位置**不同进行分类：
+
+- **预定义上采样(Predefined upsampling)**：首先对图像应用预定义的插值方法进行上采样，再通过卷积网络增加细节，如**SRCNN**, **VDSR**。
+- **单次上采样(Single upsampling)**：先通过卷积网络提取丰富的特征，再通过预定义或可学习的单次上采样增加分辨率，如**FSRCNN**, **ESPCN**, **EDSR**, **RCAN**, **SAN**。
+- **渐进上采样(Progressive upsampling)**：通过多次上采样逐渐增加分辨率，如**LapSRN**。
+- **循环采样(Iterative up and downsampling)**：循环地进行上采样和下采样，增加丰富的特征信息，如**DBPN**, **DRN**。
+- 其他结构：如**SRGAN**引入生成对抗网络；**LIIF**学习二维图像的连续表达形式。
+
+图像超分辨率的评估指标主要包括峰值信噪比**PSNR**和结构相似度**SSIM**。
+
+### ⚪ [<font color=blue>时空动作检测 (Spatio-Temporal Action Detection)</font>](https://0809zheng.github.io/2021/07/15/stad.html)
+
+**时空动作检测**旨在识别视频中目标动作出现的区间和对应的类别，并在空间范围内用一个包围框标记出人物的空间位置。按照处理方式不同，时空动作检测可方法以分为：
+
+- **帧级的检测器(frame-level detector)**：每次检测时输入单帧图像，得到单帧图像上的检测结果；之后把检测结果沿时间维度进行连接，得到视频检测结果。如**T-CNN**。
+- **管级的检测器(tubelet-level detector)**：每次检测时输入多帧连续视频帧，对每帧上预定义的检测框进行修正，并对不同输入的结果在时序上进行连接。如**ACT-detector**, **MOC-detector**。
+
+
+
+
+### ⚪ [1](https://0809zheng.github.io/2020/08/27/SR.html)
 
 - [人脸检测](https://0809zheng.github.io/2020/05/09/face-detection.html)
 - [人脸识别](https://0809zheng.github.io/2020/05/10/face-recognition.html)
@@ -237,6 +277,8 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 
 
 ## (2) 自然语言处理
+
+### ⚪ [1](https://0809zheng.github.io/2020/08/27/SR.html)
 
 - [文本摘要](https://0809zheng.github.io/2020/05/13/text-summary.html)
 - [图像描述](https://0809zheng.github.io/2020/05/14/image-caption.html)
@@ -251,7 +293,7 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 
 
 ### 深度学习的相关课程
-- [Deep Learning | Coursera （Andrew Ng）](https://www.coursera.org/specializations/deep-learning)
+- [Deep Learning \| Coursera （Andrew Ng）](https://www.coursera.org/specializations/deep-learning)
 - [吴恩达Tensorflow2.0实践系列课程](https://www.bilibili.com/video/BV1zE411T7nb?from=search&seid=890015452850895449)
 - [CS231n：计算机视觉（李飞飞）](http://cs231n.stanford.edu/syllabus.html)
 - [CS294-158：深度无监督学习](https://sites.google.com/view/berkeley-cs294-158-sp20/home)
