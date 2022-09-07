@@ -9,8 +9,7 @@ tags: 论文阅读
 
 > 使用同方差不确定性调整多任务损失权重.
 
-- paper：Multi-Task Learning Using Uncertainty to Weigh Losses for Scene Geometry and Semantics
-- arXiv：[link](https://arxiv.org/abs/1705.07115v3)
+- paper：[Multi-Task Learning Using Uncertainty to Weigh Losses for Scene Geometry and Semantics](https://arxiv.org/abs/1705.07115v3)
 
 多任务学习的优化目标是多个任务目标的组合，通常使用对各个目标损失加权求和的方式构造总损失：
 
@@ -20,7 +19,7 @@ $$ L_{total} = \sum_{i}^{} w_iL_i $$
 
 ![](https://pic.imgdb.cn/item/61318aae44eaada7398e6ccc.jpg)
 
-作者从**不确定性**(**uncertainty**)的角度出发，设计了一种自动设置任务权重的方法。在深度学习建模中，通常会引入两种形式的不确定性：
+作者从**不确定性**(**uncertainty**)的角度出发，设计了一种自动设置任务权重的方法。在深度学习建模中，通常会引入两种形式的[<font color=blue>不确定性</font>](https://0809zheng.github.io/2022/08/02/uncertainty.html)：
 - **认知不确定性**(**epistemic uncertainty**)：模型本身的不确定性，表示由于缺乏训练数据导致模型认知不足，可以通过增加训练数据来降低。
 - **偶然不确定性**(**aleatoric uncertainty**)：表示由数据无法解释的信息导致的不确定性，可以通过增强观察所有解释变量的能力来降低。
 
@@ -40,15 +39,15 @@ $$ p(y|f^W(x)) = \mathcal{N}(f^W(x),\sigma^2) $$
 
 在极大似然推断中，最大化概率模型的对数似然，写作：
 
-$$ \log p(y|f^W(x)) = \log \mathcal{N}(f^W(x),\sigma^2) \\ = \log (\frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{||y-f^W(x)||^2}{2\sigma^2}} ) \\ ∝ -\frac{1}{2\sigma^2}||y-f^W(x)||^2-\log \sigma $$
+$$ \begin{aligned} \log p(y|f^W(x)) &= \log \mathcal{N}(f^W(x),\sigma^2) \\ &= \log (\frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{||y-f^W(x)||^2}{2\sigma^2}} ) \\ &∝ -\frac{1}{2\sigma^2}||y-f^W(x)||^2-\log \sigma \end{aligned} $$
 
 假设模型同时预测两个回归任务，则可以建模为：
 
-$$ p(y_1,y_2|f^W(x)) = p(y_1|f^W(x))\cdot p(y_2|f^W(x)) \\ =  \mathcal{N}(y_1;f^W(x),\sigma_1^2) \cdot \mathcal{N}(y_2;f^W(x),\sigma_2^2) $$
+$$ \begin{aligned} p(y_1,y_2|f^W(x)) &= p(y_1|f^W(x))\cdot p(y_2|f^W(x)) \\ &=  \mathcal{N}(y_1;f^W(x),\sigma_1^2) \cdot \mathcal{N}(y_2;f^W(x),\sigma_2^2) \end{aligned} $$
 
 最大化上述概率模型的对数似然，等价于最小化以下目标函数：
 
-$$ \mathcal{L}(W,\sigma_1,\sigma_2) = -\log(p(y_1,y_2|f^W(x))) \\ ∝ \frac{1}{2\sigma_1^2}||y-f^W(x)||^2+\log \sigma_1+\frac{1}{2\sigma_2^2}||y-f^W(x)||^2+\log \sigma_2 \\= \frac{1}{2\sigma_1^2}\mathcal{L}_1(W) +\log \sigma_1+\frac{1}{2\sigma_2^2}\mathcal{L}_2(W) +\log \sigma_2 $$
+$$ \begin{aligned} \mathcal{L}(W,\sigma_1,\sigma_2) &= -\log(p(y_1,y_2|f^W(x))) \\ &∝ \frac{1}{2\sigma_1^2}||y-f^W(x)||^2+\log \sigma_1+\frac{1}{2\sigma_2^2}||y-f^W(x)||^2+\log \sigma_2 \\&= \frac{1}{2\sigma_1^2}\mathcal{L}_1(W) +\log \sigma_1+\frac{1}{2\sigma_2^2}\mathcal{L}_2(W) +\log \sigma_2 \end{aligned} $$
 
 注意到上式中$\sigma$相当于任务损失的相对权重。噪声$\sigma$越小，表明同方差不确定度越小，则任务损失权重较高。$\log \sigma$相当于正则化项，防止噪声$\sigma$过大。
 
@@ -62,12 +61,12 @@ $$ p(y|f^W(x)) = \text{softmax}(\frac{1}{\sigma^2}f^W(x))) $$
 
 上述分类模型的对数似然表示为：
 
-$$ \log p(y|f^W(x)) = \log \text{softmax}(\frac{1}{\sigma^2}f^W(x))) \\ = \log \frac{\exp(\frac{1}{\sigma^2}f_c^W(x))}{\sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x))} \\ = \frac{1}{\sigma^2}f_c^W(x)-\log \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x)) \\ = \frac{1}{\sigma^2}(f_c^W(x)-\log \sum_{c}^{}\exp(f_c^W(x))) + \frac{1}{\sigma^2}\log \sum_{c}^{}\exp(f_c^W(x))-\log \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x)) \\ = \frac{1}{\sigma^2}(\log \frac{\exp(f_c^W(x))}{\sum_{c}^{}\exp(f_c^W(x))}) + \log (\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma^2}}-\log \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x))  \\ = \frac{1}{\sigma^2}(\log \frac{\exp(f_c^W(x))}{\sum_{c}^{}\exp(f_c^W(x))}) + \log (\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma^2}}-\log \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x)) \\ = \frac{1}{\sigma^2}(\log \text{softmax}(f^W(x))) + \log \frac{(\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma^2}}}{ \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x))}  $$
+$$ \begin{aligned} \log p(y|f^W(x)) &= \log \text{softmax}(\frac{1}{\sigma^2}f^W(x)))  = \log \frac{\exp(\frac{1}{\sigma^2}f_c^W(x))}{\sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x))} \\ &= \frac{1}{\sigma^2}f_c^W(x)-\log \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x)) \\ &= \frac{1}{\sigma^2}(f_c^W(x)-\log \sum_{c}^{}\exp(f_c^W(x))) + \frac{1}{\sigma^2}\log \sum_{c}^{}\exp(f_c^W(x))-\log \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x)) \\ &= \frac{1}{\sigma^2}(\log \frac{\exp(f_c^W(x))}{\sum_{c}^{}\exp(f_c^W(x))}) + \log (\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma^2}}-\log \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x))  \\ &= \frac{1}{\sigma^2}(\log \frac{\exp(f_c^W(x))}{\sum_{c}^{}\exp(f_c^W(x))}) + \log (\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma^2}}-\log \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x)) \\ &= \frac{1}{\sigma^2}(\log \text{softmax}(f^W(x))) + \log \frac{(\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma^2}}}{ \sum_{c}^{}\exp(\frac{1}{\sigma^2}f_c^W(x))} \end{aligned} $$
 
 
 如果模型同时执行回归($y_1$是连续输出)和分类($y_2$是离散输出)任务，则目标函数可以表示为：
 
-$$ \mathcal{L}(W,\sigma_1,\sigma_2) = -\log(p(y_1,y_2=c|f^W(x))) \\ = -\log \mathcal{N}(y_1;f^W(x),\sigma_1^2)\cdot \text{softmax}(y_2=c;f^W(x),\sigma_2^2) \\ =  \frac{1}{2\sigma_1^2}||y-f^W(x)||^2+\log \sigma_1-\log p(y_2=c;f^W(x),\sigma_2^2) \\ = \frac{1}{2\sigma_1^2}||y-f^W(x)||^2+\log \sigma_1 - \frac{1}{\sigma_2^2}(\log \text{softmax}(f^W(x))) - \log \frac{(\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma_2^2}}}{ \sum_{c}^{}\exp(\frac{1}{\sigma_2^2}f_c^W(x))} \\ = \frac{1}{2\sigma_1^2}||y-f^W(x)||^2+\log \sigma_1 + \frac{1}{\sigma_2^2}(-\log \text{softmax}(f^W(x))) + \log \frac{ \sum_{c}^{}\exp(\frac{1}{\sigma_2^2}f_c^W(x))}{(\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma_2^2}}} $$
+$$ \begin{aligned} \mathcal{L}(W,\sigma_1,\sigma_2) &= -\log(p(y_1,y_2=c|f^W(x))) \\ &= -\log \mathcal{N}(y_1;f^W(x),\sigma_1^2)\cdot \text{softmax}(y_2=c;f^W(x),\sigma_2^2) \\ &=  \frac{1}{2\sigma_1^2}||y-f^W(x)||^2+\log \sigma_1-\log p(y_2=c;f^W(x),\sigma_2^2) \\ &= \frac{1}{2\sigma_1^2}||y-f^W(x)||^2+\log \sigma_1 - \frac{1}{\sigma_2^2}(\log \text{softmax}(f^W(x))) - \log \frac{(\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma_2^2}}}{ \sum_{c}^{}\exp(\frac{1}{\sigma_2^2}f_c^W(x))} \\ &= \frac{1}{2\sigma_1^2}||y-f^W(x)||^2+\log \sigma_1 + \frac{1}{\sigma_2^2}(-\log \text{softmax}(f^W(x))) + \log \frac{ \sum_{c}^{}\exp(\frac{1}{\sigma_2^2}f_c^W(x))}{(\sum_{c}^{}\exp(f_c^W(x)))^{\frac{1}{\sigma_2^2}}} \end{aligned} $$
 
 若记回归损失$$\mathcal{L}_1(W)=\|y-f^W(x)\|^2$$，分类损失$\mathcal{L}_2(W)=-\log \text{softmax}(f^W(x))$，则总目标函数表示为：
 
