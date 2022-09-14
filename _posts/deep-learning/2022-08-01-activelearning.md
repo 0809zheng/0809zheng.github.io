@@ -25,9 +25,9 @@ tags: 深度学习
 选择最“有价值”的数据的过程被称为**采样策略(sampling strategy)**或**查询策略(query strategy)**，衡量数据“价值”的函数被称为**获取函数(acquisition function)**。
 
 深度主动学习方法可以根据不同的**采样策略**进行分类：
-- **不确定性采样 (uncertainty sampling)**：选择使得模型预测的不确定性最大的样本。不确定性的衡量可以通过机器学习方法(如**entropy**)、**QBC**方法(如**voter entropy**, **consensus entropy**)、贝叶斯神经网络(如**BALD**, **bayes-by-backprop**)、对抗生成(如**GAAL**, **BGADL**)、对抗攻击(如**DFAL**)、损失预测(如**LPL**)、标签预测(如**forgetable event**)
-- **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**)、对抗学习(如**VAAL**)、对比学习(如**CAL**)
-- **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**BADGS**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
+- **不确定性采样 (uncertainty sampling)**：选择使得模型预测的不确定性最大的样本。不确定性的衡量可以通过机器学习方法(如**entropy**)、**QBC**方法(如**voter entropy**, **consensus entropy**)、贝叶斯神经网络(如**BALD**, **bayes-by-backprop**)、对抗生成(如**GAAL**, **BGADL**)、对抗攻击(如**DFAL**)、损失预测(如**LPL**)、标签预测(如**forgetable event**, **CEAL**)
+- **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**, **Cluster-Margin**)、对抗学习(如**VAAL**)、对比学习(如**CAL**)
+- **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BADGS**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
 
 
 ## 1. 基于不确定性的采样策略 Uncertainty-based Sampling Strategy
@@ -43,7 +43,7 @@ tags: 深度学习
 - 间隔(**margin**)：选择预测结果中排名靠前两个类别的预测概率之差最小的样本：$-[p(\hat{y}_1\|x)-p(\hat{y}_2\|x)]$
 - 最小置信度(**least confidence**)：选择预测结果中排名最前类别的预测概率最小的样本：$-p(\hat{y}\|x)$
 - 变差比(**Variation Ratio**)：与最小置信度类似，衡量置信度的缺乏：$1-p(\hat{y}\|x)$
-- 平均标准偏差(**mean standard deviation**)：选择所有预测类别的平均标准偏差最大的样本：$\frac{1}{k}\sum_k \sqrt{\text{Var}[p(y=k|x)]}$
+- 平均标准偏差(**mean standard deviation**)：选择所有预测类别的平均标准偏差最大的样本：$\frac{1}{k}\sum_k \sqrt{\text{Var}[p(y=k\|x)]}$
 
 ### ⚪ Query-By-Committee (QBC)
 
@@ -102,6 +102,13 @@ $$ \mathcal{L}(\theta) =  \log q(w|\theta) - \log p(w)p(D|w) $$
 
 遗忘事件记录了样本在训练阶段的预测标签的变化情况。如果模型在训练过程中改变预测结果则表明模型对该样本的不确定性较大，因此在采样时选择标签变化次数较多的可遗忘样本。
 
+### ⚪ [<font color=Blue>Cost-Effective Active Learning (CEAL)</font>](https://0809zheng.github.io/2022/08/16/ceal.html)
+
+**CEAL**是一种结合主动学习和自监督学习的框架。一方面通过主动学习选择具有高不确定性的样本进行人工标注，另一方面选择具有较高预测置信度的样本并为它们指定伪标签进行特征学习。
+
+![](https://pic.imgdb.cn/item/63213e1016f2c2beb15d8e2b.jpg)
+
+
 ## 2. 基于多样性的采样策略 Diversity-based Sampling Strategy
 
 
@@ -112,6 +119,12 @@ $$ \mathcal{L}(\theta) =  \log q(w|\theta) - \log p(w)p(D|w) $$
 **core-set**是指能够近似一个较大点集的较小点集，该方法每次选择$b$个未标注样本使得任意未标注样本和与其距离最近的已标注样本的距离的最大值最小化。
 
 ![](https://pic.imgdb.cn/item/631aa9b416f2c2beb1315394.jpg)
+
+### ⚪ [<font color=Blue>Cluster-Margin</font>](https://0809zheng.github.io/2022/08/18/cm.html)
+
+**Cluster-Margin**首先应用具有平均链接的层次聚集聚类算法为未标注样本集生成聚类$C$。然后选择**Margin**得分最低的$k_m$个样本，根据聚类$C$将其划分到不同的聚类簇中。最后采用循环采样的方式从每个簇中采样样本，直至选择$k_t$个样本。
+
+![](https://pic.imgdb.cn/item/63218c3a16f2c2beb1b1bee2.jpg)
 
 
 ### ⚪ [<font color=Blue>Variational Adversarial Active Learning (VAAL)</font>](https://0809zheng.github.io/2021/12/02/VAAL.html)
@@ -128,18 +141,21 @@ $$ \mathcal{L}(\theta) =  \log q(w|\theta) - \log p(w)p(D|w) $$
 ![](https://pic.imgdb.cn/item/631a9ebb16f2c2beb12580df.jpg)
 
 
-### ⚪ 
 
-聚类方法广泛用于基于代表性的策略。在另一种方法中，聚类边缘[12]选择模型最不可靠的一组不同示例。它首先使用平均链接作为预处理运行分层聚集聚类，然后选择具有最低边缘分数（margin）的未标记子集，然后将其过滤到具有b样本的不同集合。与CoreSet相反，集群边缘仅作为预处理运行一次集群。
 
 在基于代表性的DAL中也采用点过程，例如，主动DPP[4]。行列式点过程（DPP）通过构造成对（dis）相似矩阵并计算其行列式来捕获多样性。歧视性AL（DiscAL）[22]是一种代表性的度量，它让人想起GANs，试图欺骗试图区分来自两种不同分布（未标记/标记）的数据的鉴别器。
 
-Wasserstein对抗性AL（WAAL）[63]通过H-散度的对抗性训练搜索多样性未标记批次，该批次也具有比标记样本更大的多样性。
+
 
 
 ## 3. 混合策略 Hybrid Strategy
 
 **混合策略(Hybrid Strategy)**是指在样本的不确定性和多样性之间进行权衡，选择既具有不确定性又具有较强代表性的样本。
+
+
+### ⚪ [<font color=Blue>Exploration-Exploitation</font>](https://0809zheng.github.io/2022/08/17/ee.html)
+
+**exploration-exploitation**采用加权求和的方法同时考虑样本的不确定性得分和多样性得分。**开发(exploitation)**阶段旨在选择具有最大不确定性和最小冗余度的样本；**探索(exploration)**阶段旨在选择距离已标注样本集最远的样本。
 
 
 ### ⚪ [<font color=Blue>Batch Active learning by Diverse Gradient Embedding (BADGE)</font>](https://0809zheng.github.io/2022/08/09/badge.html)
@@ -163,7 +179,7 @@ Wasserstein对抗性AL（WAAL）[63]通过H-散度的对抗性训练搜索多样
 **DBAL**首先选择一批具有较高不确定性的样本，再从中选择具有较高代表性的样本进行标注。其中不确定性是通过加权$k$**-means**算法进行选择的，而代表性是通过$k$**-means**算法进行选择的。
 
 
-加权和优化既简单又灵活，其中目标函数用权重β求和：α加权和=α不确定性+βα代表性。然而，有两个因素限制了它在组合DAL中的使用：1）它引入了额外的超参数β进行调整；2） 与提供每个样本单个分数的基于不确定性的度量不同，代表性通常以矩阵形式表示，这不容易转换为单个样本分数。加权和优化的一个例子是开采勘探[77]选择最不确定和最少冗余（开采）以及最多样化（勘探）的样本。使用DPP是在不引入额外超参数的情况下很好地平衡不确定性分数和成对多样性的自然方式[2，然而，DAL中来自DPP的采样并非微不足道，因为DPP的时间复杂度为O（n3）。
+Wasserstein对抗性AL（WAAL）[63]通过H-散度的对抗性训练搜索多样性未标记批次，该批次也具有比标记样本更大的多样性。
 
 两阶段（多阶段）优化 WAAL使用两阶段优化，通过在阶段1中训练用于鉴别特征的DNN和在阶段2中进行批量选择来实现鉴别学习[63]。
 
@@ -174,11 +190,13 @@ Wasserstein对抗性AL（WAAL）[63]通过H-散度的对抗性训练搜索多样
 - [Awesome Active Learning](https://github.com/SupeRuier/awesome-active-learning#awesome-active-learning)：(github) Hope you can find everything you need about active learning in this repository.
 - [A Comparative Survey of Deep Active Learning](https://arxiv.org/abs/2203.13450)：(arXiv2203)一篇深度主动学习的综述.
 - [<font color=Blue>Weight Uncertainty in Neural Networks</font>](https://0809zheng.github.io/2022/08/05/bbb.html)：(arXiv1505)神经网络中的权重不确定性。
+- [<font color=Blue>Cost-Effective Active Learning for Deep Image Classification</font>](https://0809zheng.github.io/2022/08/16/ceal.html)：(arXiv1701)CEAL：用于深度图像分类的高性价比主动学习。
 - [<font color=Blue>Generative Adversarial Active Learning</font>](https://0809zheng.github.io/2022/08/12/gaal.html)：(arXiv1702)GAAL：生成对抗主动学习。
 - [<font color=Blue>What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?</font>](https://0809zheng.github.io/2022/08/02/uncertainty.html)：(arXiv1703)使用贝叶斯深度学习建模深度学习中的不确定性。
 - [<font color=Blue>Deep Bayesian Active Learning with Image Data</font>](https://0809zheng.github.io/2022/08/03/bald.html)：(arXiv1703)BALD：贝叶斯不一致主动学习。
 - [<font color=Blue>Suggestive Annotation: A Deep Active Learning Framework for Biomedical Image Segmentation</font>](https://0809zheng.github.io/2022/08/14/sa.html)：(arXiv1706)暗示标注：一种用于生物医学图像分割的深度主动学习框架。
 - [<font color=Blue>Active Learning for Convolutional Neural Networks: A Core-Set Approach</font>](https://0809zheng.github.io/2022/08/08/coreset.html)：(arXiv1708)基于核心集的主动学习方法。
+- [<font color=Blue>Deep Similarity-Based Batch Mode Active Learning with Exploration-Exploitation</font>](https://0809zheng.github.io/2022/08/17/ee.html)：(ICDM2017)通过探索-开发实现基于深度相似性的批处理主动学习。
 - [<font color=Blue>Adversarial Active Learning for Deep Networks: a Margin Based Approach</font>](https://0809zheng.github.io/2022/08/11/dfal.html)：(arXiv1802)DFAL：一种基于决策边界的对抗主动学习方法。
 - [<font color=Blue>Diverse mini-batch Active Learning</font>](https://0809zheng.github.io/2022/08/15/dbal.html)：(arXiv1901)DBAL：多样性小批量主动学习。
 - [<font color=Blue>Bayesian Generative Active Deep Learning</font>](https://0809zheng.github.io/2022/08/13/bgadl.html)：(arXiv1904)BGADL：贝叶斯生成深度主动学习。
@@ -187,4 +205,5 @@ Wasserstein对抗性AL（WAAL）[63]通过H-散度的对抗性训练搜索多样
 - [<font color=Blue>Deep Batch Active Learning by Diverse, Uncertain Gradient Lower Bounds</font>](https://0809zheng.github.io/2022/08/09/badge.html)：(arXiv1906)BADGE：基于多样性梯度嵌入的批量主动学习。
 - [<font color=Blue>Minimax Active Learning</font>](https://0809zheng.github.io/2022/08/06/mal.html)：(arXiv2012)MAL：最小最大主动学习。
 - [<font color=Blue>When Deep Learners Change Their Mind: Learning Dynamics for Active Learning</font>](https://0809zheng.github.io/2022/08/10/event.html)：(arXiv2107)基于遗忘事件的主动学习。
+- [<font color=Blue>Batch Active Learning at Scale</font>](https://0809zheng.github.io/2022/08/18/cm.html)：(arXiv2107)Cluster-Margin：一种大规模批量主动学习方法。
 - [<font color=Blue>Active Learning by Acquiring Contrastive Examples</font>](https://0809zheng.github.io/2022/08/07/cal.html)：(arXiv2109)CAL：对比主动学习。
