@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '抽样分布'
+title: '抽样分布(Sampling Distribution)'
 date: 2020-02-01
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e8c6999504f4bcb0428b777.jpg'
