@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '参数估计'
+title: '参数估计(Parameter Estimation)'
 date: 2020-02-02
 author: 郑之杰
 cover: ''
