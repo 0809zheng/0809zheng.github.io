@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '数理统计学的基本概念'
+title: '数理统计学(Mathematic Statistics)的基本概念'
 date: 2020-01-10
 author: 郑之杰
 cover: ''
