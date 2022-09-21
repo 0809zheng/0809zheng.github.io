@@ -27,6 +27,6 @@ $$ \begin{aligned} I(y_1,\cdots,y_B;w | x_1,\cdots,x_B,D_{train}) =& H(y_1,\cdot
 
 $$ E_{p(w|D_{train})}[H(y_1,\cdots,y_B|x_1,\cdots,x_B,w,D_{train})] \\ ≈ \frac{1}{k} \sum_{i=1}^B \sum_{j=1}^k H(y_i|w_j) $$
 
-而第一项寻找平均输出结果的熵较大的样本，由于这一项不显式包含参数项，因此无法直接应用蒙特卡洛近似。作者根据等式$p(y) = E_{p(w)}[p(y|w)]$进行如下近似：
+而第一项寻找平均输出结果的熵较大的样本，由于这一项不显式包含参数项，因此无法直接应用蒙特卡洛近似。作者根据等式$p(y) = E_{p(w)}[p(y\|w)]$进行如下近似：
 
 $$ H(y_1,\cdots,y_B|x_1,\cdots,x_B,D_{train})  = E_{p(y_1,\cdots,y_B)}[-\log p(y_1,\cdots,y_B)] \\ = E_{p(w)}E_{p(y_1,\cdots,y_B|w)}[-\log E_{p(w)} p(y_1,\cdots,y_B | w)] \\ ≈ -\sum_{\hat{y}_{1:B}} (\frac{1}{k}\sum_{j=1}^kp(\hat{y}_{1:B}|w_j)) \log (\frac{1}{k}\sum_{j=1}^kp(\hat{y}_{1:B}|w_j)) $$
