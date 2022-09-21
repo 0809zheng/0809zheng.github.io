@@ -26,8 +26,8 @@ tags: 深度学习
 
 深度主动学习方法可以根据不同的**采样策略**进行分类：
 - **不确定性采样 (uncertainty sampling)**：选择使得模型预测的不确定性最大的样本。不确定性的衡量可以通过机器学习方法(如**entropy**)、**QBC**方法(如**voter entropy**, **consensus entropy**)、贝叶斯神经网络(如**BALD**, **bayes-by-backprop**)、对抗生成(如**GAAL**, **BGADL**)、对抗攻击(如**DFAL**)、损失预测(如**LPL**)、标签预测(如**forgetable event**, **CEAL**)
-- **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**, **Cluster-Margin**)、对抗学习(如**VAAL**)、对比学习(如**CAL**)
-- **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BADGS**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
+- **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**, **Cluster-Margin**)、判别学习(如**VAAL**, **CAL**, **DAL**)
+- **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BatchBALD**, **BADGS**, **Active DPP**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
 
 
 ## 1. 基于不确定性的采样策略 Uncertainty-based Sampling Strategy
@@ -37,13 +37,17 @@ tags: 深度学习
 
 ### ⚪ 经典机器学习方法
 
-一些基于不确定性的深度主动学习方法继承于机器学习方法中基于池的主动学习技术(以分类任务为例)。
+一些基于不确定性的深度主动学习方法继承于机器学习技术中基于池的主动学习方法(以分类任务为例)。
 
-- 最大熵(**maximum entropy**)：选择预测熵最大的样本：$H(y\|x)=-\sum_k p(y=k\|x) \log p(y=k\|x)$
-- 间隔(**margin**)：选择预测结果中排名靠前两个类别的预测概率之差最小的样本：$-[p(\hat{y}_1\|x)-p(\hat{y}_2\|x)]$
-- 最小置信度(**least confidence**)：选择预测结果中排名最前类别的预测概率最小的样本：$-p(\hat{y}\|x)$
-- 变差比(**Variation Ratio**)：与最小置信度类似，衡量置信度的缺乏：$1-p(\hat{y}\|x)$
-- 平均标准偏差(**mean standard deviation**)：选择所有预测类别的平均标准偏差最大的样本：$\frac{1}{k}\sum_k \sqrt{\text{Var}[p(y=k\|x)]}$
+
+| 方法 | 采样策略 | 获取函数 |
+| :---: | :---:  |  :---:  |
+| 最大熵(**maximum entropy**) | 选择预测熵最大的样本 | $$H(y\|x)=-\sum_k p(y=k\|x) \log p(y=k\|x)$$ |
+| 间隔(**margin**) | 选择预测结果中排名靠前两个类别的预测概率之差最小的样本 | $$-[p(\hat{y}_1\|x)-p(\hat{y}_2\|x)]$$ |
+| 最小置信度(**least confidence**) | 选择预测结果中排名最前类别的预测概率最小的样本 | $$-p(\hat{y}\|x)$$ |
+| 变差比(**Variation Ratio**) | 与最小置信度类似，衡量置信度的缺乏 | $$1-p(\hat{y}\|x)$$ |
+| 平均标准偏差(**mean standard deviation**) | 选择所有预测类别的平均标准偏差最大的样本 | $$\frac{1}{k}\sum_k \sqrt{\text{Var}[p(y=k\|x)]}$$ |
+
 
 ### ⚪ Query-By-Committee (QBC)
 
@@ -52,7 +56,7 @@ tags: 深度学习
 若共训练$N$个模型，每个模型的预测结果为$p_1,...,p_N$，则基于**QBC**的获取函数包括：
 - 选民熵(**voter entropy**)：计算标签$y$的票数结果的熵：$H(\frac{\text{vote}(y)}{N})$
 - 一致熵(**consensus entropy**)：计算平均预测结果的熵：$H(\frac{\sum_n p_n}{N})$
-- **KL**散度：计算每个模型预测结果与平均预测结果的**KL**散度：$\frac{1}{N}\sum_n KL(p_n\|\|\frac{\sum_n p_n}{N})$
+- **KL**散度：计算每个模型预测结果与平均预测结果的**KL**散度：$\frac{1}{N}\sum_n KL[p_n\|\|\frac{\sum_n p_n}{N}]$
 
 
 ### ⚪ [<font color=Blue>Bayesian Active Learning by Disagreement (BALD)</font>](https://0809zheng.github.io/2022/08/03/bald.html)
@@ -116,37 +120,34 @@ $$ \mathcal{L}(\theta) =  \log q(w|\theta) - \log p(w)p(D|w) $$
 
 ### ⚪ [<font color=Blue>Core-Set</font>](https://0809zheng.github.io/2022/08/08/coreset.html)
 
-**core-set**是指能够近似一个较大点集的较小点集，该方法每次选择$b$个未标注样本使得任意未标注样本和与其距离最近的已标注样本的距离的最大值最小化。
+**core-set**方法是指选择$b$个样本加入训练集后，未标注样本池中的任意样本与其距离最近的已标注样本的距离最小化。实现时常采用贪心算法：每次选择一个与已标注样本集的距离最大的样本进行标注，重复$b$次。
 
 ![](https://pic.imgdb.cn/item/631aa9b416f2c2beb1315394.jpg)
 
 ### ⚪ [<font color=Blue>Cluster-Margin</font>](https://0809zheng.github.io/2022/08/18/cm.html)
 
-**Cluster-Margin**首先应用具有平均链接的层次聚集聚类算法为未标注样本集生成聚类$C$。然后选择**Margin**得分最低的$k_m$个样本，根据聚类$C$将其划分到不同的聚类簇中。最后采用循环采样的方式从每个簇中采样样本，直至选择$k_t$个样本。
+**Cluster-Margin**首先为未标注样本集应用具有平均链接的层次聚集聚类算法生成聚类$C$。然后选择**Margin**得分最低的$k_m$个样本，根据聚类$C$将其划分到不同的聚类簇中。最后采用循环采样的方式从每个簇中采样样本，直至选择$k_t$个样本。
 
 ![](https://pic.imgdb.cn/item/63218c3a16f2c2beb1b1bee2.jpg)
 
 
 ### ⚪ [<font color=Blue>Variational Adversarial Active Learning (VAAL)</font>](https://0809zheng.github.io/2021/12/02/VAAL.html)
 
-**VAAL**使用$\beta$**-VAE**模型将样本嵌入到低维特征空间，并使用一个判别器区分已标注样本和未标注样本的特征。训练完成后，需要从未标注数据池中采样并补充到标注池中。选择判别器预测概率得分最小的一批样本，因为这些样本与已标注样本具有最小的特征相关性。
-
+**VAAL**使用$\beta$**-VAE**模型将样本嵌入到低维特征空间，并使用一个判别器区分已标注样本和未标注样本的特征。训练完成后，选择判别器预测概率得分最小的一批未标注样本补充到标注池中，因为这些样本与已标注样本具有最小的特征相关性。
 
 ![](https://pic.imgdb.cn/item/61a71dac2ab3f51d91a58f81.jpg)
 
 ### ⚪ [<font color=Blue>Contrastive Active Learning (CAL)</font>](https://0809zheng.github.io/2022/08/07/cal.html)
 
-**CAL**选择对比得分较高的样本。对比得分是未标注样本$x$与其特征空间中距离最近的$k$个标注样本$$\{x^l\}$$特征之间的平均**KL**散度。即选择与不同标签的样本具有相似特征的新样本。
+**CAL**选择对比得分较高的样本。对比得分是未标注样本$x$与其特征空间中距离最近的$k$个标注样本$$\{x^l\}$$特征之间的平均**KL**散度，即选择与不同标签的样本具有相似特征的新样本。
 
 ![](https://pic.imgdb.cn/item/631a9ebb16f2c2beb12580df.jpg)
 
+### ⚪ [<font color=Blue>Discriminative Active Learning (DAL)</font>](https://0809zheng.github.io/2022/08/21/dal.html)
 
+**DAL**把主动学习建模为未标注类别$$\mathcal{U}$$和已标注类别$$\mathcal{L}$$的二分类问题。训练一个二分类器$\Psi$使其能成功区分未标注样本和已标注样本，然后选择未标注类别得分最大的前$K$个样本：
 
-
-在基于代表性的DAL中也采用点过程，例如，主动DPP[4]。行列式点过程（DPP）通过构造成对（dis）相似矩阵并计算其行列式来捕获多样性。歧视性AL（DiscAL）[22]是一种代表性的度量，它让人想起GANs，试图欺骗试图区分来自两种不同分布（未标记/标记）的数据的鉴别器。
-
-
-
+$$ \mathop{\arg \max}_{x \in \mathcal{U}} \hat{P} (y=u|\Psi(x)) $$
 
 ## 3. 混合策略 Hybrid Strategy
 
@@ -157,10 +158,21 @@ $$ \mathcal{L}(\theta) =  \log q(w|\theta) - \log p(w)p(D|w) $$
 
 **exploration-exploitation**采用加权求和的方法同时考虑样本的不确定性得分和多样性得分。**开发(exploitation)**阶段旨在选择具有最大不确定性和最小冗余度的样本；**探索(exploration)**阶段旨在选择距离已标注样本集最远的样本。
 
+### ⚪ [<font color=Blue>BatchBALD</font>](https://0809zheng.github.io/2022/08/20/batchbald.html)
+
+**BatchBALD**将**BALD**扩展为批量形式，其获取函数为一个批量样本的模型输出与模型参数之间的互信息：
+
+$$ \begin{aligned} I(y_1,\cdots,y_B;w | x_1,\cdots,x_B,D_{train}) =& H(y_1,\cdots,y_B|x_1,\cdots,x_B,D_{train}) \\ &- E_{p(w|D_{train})}[H(y_1,\cdots,y_B|x_1,\cdots,x_B,w,D_{train})] \end{aligned} $$
 
 ### ⚪ [<font color=Blue>Batch Active learning by Diverse Gradient Embedding (BADGE)</font>](https://0809zheng.github.io/2022/08/09/badge.html)
 
 **BADGE**把样本映射到网络最后一层参数的梯度空间中，同时捕捉模型的不确定性和数据样本的多样性。其中不确定性通过梯度的量级衡量；多样性通过$k$-**means**++算法在梯度空间中选择样本点。
+
+### ⚪ [<font color=Blue>Active DPP</font>](https://0809zheng.github.io/2022/08/19/adpp.html)
+
+**Active DPP**使用行列式点过程(**DPP**)建模样本的不确定性和多样性。**DPP**是一类排斥点过程，可以用于生成不同批次的样本。作者使用不确定性**DPP**根据学习模型提供的不确定性得分选择数据样本，并使用探索**DPP**寻找新的决策边界。
+
+![](https://pic.imgdb.cn/item/632a715e16f2c2beb18d3f69.jpg)
 
 ### ⚪ [<font color=Blue>Minimax Active Learning (MAL)</font>](https://0809zheng.github.io/2022/08/06/mal.html)
 
@@ -202,7 +214,10 @@ Wasserstein对抗性AL（WAAL）[63]通过H-散度的对抗性训练搜索多样
 - [<font color=Blue>Bayesian Generative Active Deep Learning</font>](https://0809zheng.github.io/2022/08/13/bgadl.html)：(arXiv1904)BGADL：贝叶斯生成深度主动学习。
 - [<font color=Blue>Variational Adversarial Active Learning</font>](https://0809zheng.github.io/2021/12/02/VAAL.html)：(arXiv1904)VAAL: 变分对抗主动学习。
 - [<font color=Blue>Learning Loss for Active Learning</font>](https://0809zheng.github.io/2022/08/04/loss.html)：(arXiv1905)主动学习中的损失预测。
+- [<font color=Blue>BatchBALD: Efficient and Diverse Batch Acquisition for Deep Bayesian Active Learning</font>](https://0809zheng.github.io/2022/08/20/batchbald.html)：(arXiv1906)BatchBALD：深度贝叶斯主动学习的高效多样性批量获取。
 - [<font color=Blue>Deep Batch Active Learning by Diverse, Uncertain Gradient Lower Bounds</font>](https://0809zheng.github.io/2022/08/09/badge.html)：(arXiv1906)BADGE：基于多样性梯度嵌入的批量主动学习。
+- [<font color=Blue>Batch Active Learning Using Determinantal Point Processes</font>](https://0809zheng.github.io/2022/08/19/adpp.html)：(arXiv1906)Active DPP：基于行列式点过程的批量主动学习。
+- [<font color=Blue>Discriminative Active Learning</font>](https://0809zheng.github.io/2022/08/21/dal.html)：(arXiv1907)DAL：判别式主动学习。
 - [<font color=Blue>Minimax Active Learning</font>](https://0809zheng.github.io/2022/08/06/mal.html)：(arXiv2012)MAL：最小最大主动学习。
 - [<font color=Blue>When Deep Learners Change Their Mind: Learning Dynamics for Active Learning</font>](https://0809zheng.github.io/2022/08/10/event.html)：(arXiv2107)基于遗忘事件的主动学习。
 - [<font color=Blue>Batch Active Learning at Scale</font>](https://0809zheng.github.io/2022/08/18/cm.html)：(arXiv2107)Cluster-Margin：一种大规模批量主动学习方法。
