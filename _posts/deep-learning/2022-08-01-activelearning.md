@@ -27,7 +27,7 @@ tags: 深度学习
 深度主动学习方法可以根据不同的**采样策略**进行分类：
 - **不确定性采样 (uncertainty sampling)**：选择使得模型预测的不确定性最大的样本。不确定性的衡量可以通过机器学习方法(如**entropy**)、**QBC**方法(如**voter entropy**, **consensus entropy**)、贝叶斯神经网络(如**BALD**, **bayes-by-backprop**)、对抗生成(如**GAAL**, **BGADL**)、对抗攻击(如**DFAL**)、损失预测(如**LPL**)、标签预测(如**forgetable event**, **CEAL**)
 - **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**, **Cluster-Margin**)、判别学习(如**VAAL**, **CAL**, **DAL**)
-- **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BatchBALD**, **BADGS**, **Active DPP**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
+- **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BatchBALD**, **BADGS**, **Active DPP**, **VAAL**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
 
 
 ## 1. 基于不确定性的采样策略 Uncertainty-based Sampling Strategy
@@ -174,6 +174,17 @@ $$ \begin{aligned} I(y_1,\cdots,y_B;w | x_1,\cdots,x_B,D_{train}) =& H(y_1,\cdot
 
 ![](https://pic.imgdb.cn/item/632a715e16f2c2beb18d3f69.jpg)
 
+### ⚪ [<font color=Blue>Wasserstein Adversarial Active Learning (WAAL)</font>](https://0809zheng.github.io/2022/08/22/waal.html)
+
+**WAAL**采用**Wasserstein**距离将主动学习中的查询过程建模为分布匹配问题，目标函数为：
+
+$$  \mathop{\min}_{\hat{B},h} \hat{R}_{\hat{L}∪ \hat{B}}(h) + \mu \mathcal{W}_1(\hat{D},\hat{L}∪ \hat{B}) $$
+
+在实践中通过对抗学习来实现，对应的网络由三部分构成：特征提取器$\theta^f$、任务预测器$\theta^h$和分布判别器$\theta^d$；对应的问题可以建模为一个最小-最大优化问题：
+
+$$  \mathop{\min}_{\theta^f,\theta^h,\hat{B}} \mathop{\max}_{\theta^d} \hat{R}(\theta^f,\theta^h) + \mu \hat{E}(\theta^f,\theta^d) $$
+
+
 ### ⚪ [<font color=Blue>Minimax Active Learning (MAL)</font>](https://0809zheng.github.io/2022/08/06/mal.html)
 
 **MAL**最小化特征编码网络$F$的熵使得具有相似预测标签的样本具有相似的特征；最大化分类器$C$的熵使得预测结果为更均匀的类别分布；判别器$D$则试图有效地区分标记样本和未标记样本。在采样时通过判别器$D$的得分衡量样本的多样性，通过分类器$C$的熵衡量样本的不确定性。
@@ -218,6 +229,7 @@ Wasserstein对抗性AL（WAAL）[63]通过H-散度的对抗性训练搜索多样
 - [<font color=Blue>Deep Batch Active Learning by Diverse, Uncertain Gradient Lower Bounds</font>](https://0809zheng.github.io/2022/08/09/badge.html)：(arXiv1906)BADGE：基于多样性梯度嵌入的批量主动学习。
 - [<font color=Blue>Batch Active Learning Using Determinantal Point Processes</font>](https://0809zheng.github.io/2022/08/19/adpp.html)：(arXiv1906)Active DPP：基于行列式点过程的批量主动学习。
 - [<font color=Blue>Discriminative Active Learning</font>](https://0809zheng.github.io/2022/08/21/dal.html)：(arXiv1907)DAL：判别式主动学习。
+- [<font color=Blue>Deep Active Learning: Unified and Principled Method for Query and Training</font>](https://0809zheng.github.io/2022/08/22/waal.html)：(arXiv1911)WAAL：使用Wasserstein距离建模主动学习的查询过程。
 - [<font color=Blue>Minimax Active Learning</font>](https://0809zheng.github.io/2022/08/06/mal.html)：(arXiv2012)MAL：最小最大主动学习。
 - [<font color=Blue>When Deep Learners Change Their Mind: Learning Dynamics for Active Learning</font>](https://0809zheng.github.io/2022/08/10/event.html)：(arXiv2107)基于遗忘事件的主动学习。
 - [<font color=Blue>Batch Active Learning at Scale</font>](https://0809zheng.github.io/2022/08/18/cm.html)：(arXiv2107)Cluster-Margin：一种大规模批量主动学习方法。
