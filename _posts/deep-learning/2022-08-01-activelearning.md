@@ -202,10 +202,6 @@ $$  \mathop{\min}_{\theta^f,\theta^h,\hat{B}} \mathop{\max}_{\theta^d} \hat{R}(\
 **DBAL**首先选择一批具有较高不确定性的样本，再从中选择具有较高代表性的样本进行标注。其中不确定性是通过加权$k$**-means**算法进行选择的，而代表性是通过$k$**-means**算法进行选择的。
 
 
-Wasserstein对抗性AL（WAAL）[63]通过H-散度的对抗性训练搜索多样性未标记批次，该批次也具有比标记样本更大的多样性。
-
-两阶段（多阶段）优化 WAAL使用两阶段优化，通过在阶段1中训练用于鉴别特征的DNN和在阶段2中进行批量选择来实现鉴别学习[63]。
-
 ## ⚪ 参考文献
 
 - [Learning with not Enough Data Part 2: Active Learning](https://lilianweng.github.io/posts/2022-02-20-active-learning/)：Blog by Lilian Weng.
