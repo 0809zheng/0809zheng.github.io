@@ -16,29 +16,29 @@ tags: 数学
 
 # 1. 最优传输问题 Optimal Transport Problem
 
-对于两个概率分布$p(\bold{x})$和$q(\bold{x})$，**最优传输问题(optimal transport problem)**是指通过最少的成本把$p(\bold{x})$转变为$q(\bold{x})$，而最佳运输方案所对应的最低成本则称为**Wasserstein距离**。
+对于两个概率分布$p(\textbf{x})$和$q(\textbf{x})$，**最优传输问题(optimal transport problem)**是指通过最少的成本把$p(\textbf{x})$转变为$q(\textbf{x})$，而最佳运输方案所对应的最低成本则称为**Wasserstein距离**。
 
-若假设概率分布$p(\bold{x})$和$q(\bold{x})$代表两堆石子，则问题等价于如何移动一堆石子，通过最小的累积移动距离把它堆成另外一堆石子。因此**Wasserstein**距离也被称作**推土机距离(Earth Mover's Distance)**。
+若假设概率分布$p(\textbf{x})$和$q(\textbf{x})$代表两堆石子，则问题等价于如何移动一堆石子，通过最小的累积移动距离把它堆成另外一堆石子。因此**Wasserstein**距离也被称作**推土机距离(Earth Mover's Distance)**。
 
 ![](https://pic.imgdb.cn/item/6281fd3e0947543129711307.jpg)
 
-记从位置$x$运输到位置$y$的成本为$d(x,y)$，联合分布$\gamma(x,y)$描述了一种可行的运输方案，表示应该从位置$x$处运输多少货物到位置$y$处，才能使$p(\bold{x})$和$q(\bold{x})$具有相同的概率分布。在离散形势下，联合分布$\gamma(x,y)$表示为一个矩阵：
+记从位置$x$运输到位置$y$的成本为$d(x,y)$，联合分布$\gamma(x,y)$描述了一种可行的运输方案，表示应该从位置$x$处运输多少货物到位置$y$处，才能使$p(\textbf{x})$和$q(\textbf{x})$具有相同的概率分布。在离散形势下，联合分布$\gamma(x,y)$表示为一个矩阵：
 
 ![](https://pic1.imgdb.cn/item/6331819916f2c2beb1ca5a64.jpg)
 
-其中矩阵的每一行代表概率分布$p(\bold{x})$的某个位置$x_p$要分配到概率分布$q(\bold{x})$不同位置处的值；每一列代表概率分布$q(\bold{x})$的某个位置$x_q$接收到概率分布$p(\bold{x})$的不同位置分配的值。在该联合分布下，概率分布变换的总成本为：
+其中矩阵的每一行代表概率分布$p(\textbf{x})$的某个位置$x_p$要分配到概率分布$q(\textbf{x})$不同位置处的值；每一列代表概率分布$q(\textbf{x})$的某个位置$x_q$接收到概率分布$p(\textbf{x})$的不同位置分配的值。在该联合分布下，概率分布变换的总成本为：
 
-$$ \sum_{x_p,x_q} \gamma(x_p,x_q) d(x_p,x_q) = \Bbb{E}_{(x,y) \in \gamma(\bold{x},\bold{y})} [d(x,y)] $$
+$$ \sum_{x_p,x_q} \gamma(x_p,x_q) d(x_p,x_q) = \Bbb{E}_{(x,y) \in \gamma(\textbf{x},\textbf{y})} [d(x,y)] $$
 
 一般地，**Wasserstein**距离定义如下：
 
-$$ \begin{aligned} \mathcal{W}[p,q] &= \mathop{\inf}_{\gamma \in \Pi[p,q]} \Bbb{E}_{(x,y) \in \gamma(\bold{x},\bold{y})} [d(x,y)] \\ & = \mathop{\inf}_{\gamma \in \Pi[p,q]} \int \int \gamma(x,y) d(x,y) dxdy \end{aligned} $$
+$$ \begin{aligned} \mathcal{W}[p,q] &= \mathop{\inf}_{\gamma \in \Pi[p,q]} \Bbb{E}_{(x,y) \in \gamma(\textbf{x},\textbf{y})} [d(x,y)] \\ & = \mathop{\inf}_{\gamma \in \Pi[p,q]} \int \int \gamma(x,y) d(x,y) dxdy \end{aligned} $$
 
-其中$\Pi[p,q]$是$p$和$q$的所有可能联合分布的集合，下确界**infimum**表示寻找总运输成本最小的方案。不失一般性地假设$p(\bold{x})$是原始分布，$q(\bold{y})$是目标分布，则约束$p(\bold{x})$和$q(\bold{y})$是联合分布$\gamma(\bold{x},\bold{y})$的边缘分布：
+其中$\Pi[p,q]$是$p$和$q$的所有可能联合分布的集合，下确界**infimum**表示寻找总运输成本最小的方案。不失一般性地假设$p(\textbf{x})$是原始分布，$q(\textbf{y})$是目标分布，则约束$p(\textbf{x})$和$q(\textbf{y})$是联合分布$\gamma(\textbf{x},\textbf{y})$的边缘分布：
 
-$$ \int \gamma(x,y) dy = p(\bold{x}), \quad \int \gamma(x,y)dx = q(\bold{y}) $$
+$$ \int \gamma(x,y) dy = p(\textbf{x}), \quad \int \gamma(x,y)dx = q(\textbf{y}) $$
 
-上式分别表示从$y$处搬运$\gamma(x,y)dy$的物品到$x$处，从而得到概率分布$p(\bold{x})$；以及从$x$处搬运$\gamma(x,y)dx$的物品到$y$处，从而得到概率分布$p(\bold{y})$。
+上式分别表示从每个$dy$处把$\gamma(x,y)$的物品搬回到$x$处，从而还原概率分布$p(\textbf{x})$；以及从每个$dx$处搬运$\gamma(x,y)$的物品到$y$处，从而得到概率分布$p(\textbf{y})$。
 
 
 
