@@ -16,23 +16,33 @@ tags: 数学
 
 # 1. 最优传输问题 Optimal Transport Problem
 
-对于两个概率分布$p(x)$和$q(y)$，**最优传输问题(optimal transport problem)**是指通过最少的成本把$p(x)$转变为$q(y)$，而成本最低的运输方案所对应的成本则称为**Wasserstein距离**。
+对于两个概率分布$p(\bold{x})$和$q(\bold{x})$，**最优传输问题(optimal transport problem)**是指通过最少的成本把$p(\bold{x})$转变为$q(\bold{x})$，而最佳运输方案所对应的最低成本则称为**Wasserstein距离**。
 
-若假设概率分布$p(x)$和$q(y)$代表两堆石子，则问题等价于如何移动一堆石子，通过最小的累积移动距离把它堆成另外一堆石子。因此**Wasserstein**距离也被称作**推土机距离(Earth Mover's Distance)**。
+若假设概率分布$p(\bold{x})$和$q(\bold{x})$代表两堆石子，则问题等价于如何移动一堆石子，通过最小的累积移动距离把它堆成另外一堆石子。因此**Wasserstein**距离也被称作**推土机距离(Earth Mover's Distance)**。
 
 ![](https://pic.imgdb.cn/item/6281fd3e0947543129711307.jpg)
 
-记从$x$运输到$y$的成本为$d(x,y)$，$\Pi[p,q]$是$p(x)$和$q(y)$的联合分布，则**Wasserstein**距离定义如下：
+记从位置$x$运输到位置$y$的成本为$d(x,y)$，联合分布$\gamma(x,y)$描述了一种可行的运输方案，表示应该从位置$x$处运输多少货物到位置$y$处，才能使$p(\bold{x})$和$q(\bold{x})$具有相同的概率分布。在离散形势下，联合分布$\gamma(x,y)$表示为一个矩阵：
 
-$$ \mathcal{W}[p,q] = \mathop{\inf}_{\gamma \in \Pi[p,q]} \int \int \gamma(x,y) d(x,y) dxdy $$
+![](https://pic1.imgdb.cn/item/6331819916f2c2beb1ca5a64.jpg)
 
-其中下确界$\inf$表示寻找总运输成本最小的方案。不失一般性地假设$p(x)$是原始分布，$q(y)$是目标分布，则$p(x)$和$q(y)$是联合分布$\gamma(x,y)$的边缘分布：
+其中矩阵的每一行代表概率分布$p(\bold{x})$的某个位置$x_p$要分配到概率分布$q(\bold{x})$不同位置处的值；每一列代表概率分布$q(\bold{x})$的某个位置$x_q$接收到概率分布$p(\bold{x})$的不同位置分配的值。在该联合分布下，概率分布变换的总成本为：
 
-$$ \int \gamma(x,y) dy = p(x), \quad \int \gamma(x,y)dx = q(y) $$
+$$ \sum_{x_p,x_q} \gamma(x_p,x_q) d(x_p,x_q) = \Bbb{E}_{(x,y) \in \gamma(\bold{x},\bold{y})} [d(x,y)] $$
 
-事实上$\gamma(x,y)$描述了一种运输方案。$p(x)$和$q(x)$分别指代在位置$x$处存放的货物量的初始值和最终值。若$p(x)>q(x)$，则从位置$x$处拿走一些货物；反之$p(x)<q(x)$，则从其他位置取一些货物补充到位置$x$。上式分别表示从$y$处搬运$\gamma(x,y)dy$的物品到$x$处，从$x$处搬运$\gamma(x,y)dx$的物品到$y$处。
+一般地，**Wasserstein**距离定义如下：
 
-最优传输问题等价于如下最优化问题：
+$$ \begin{aligned} \mathcal{W}[p,q] &= \mathop{\inf}_{\gamma \in \Pi[p,q]} \Bbb{E}_{(x,y) \in \gamma(\bold{x},\bold{y})} [d(x,y)] \\ & = \mathop{\inf}_{\gamma \in \Pi[p,q]} \int \int \gamma(x,y) d(x,y) dxdy \end{aligned} $$
+
+其中$\Pi[p,q]$是$p$和$q$的所有可能联合分布的集合，下确界**infimum**表示寻找总运输成本最小的方案。不失一般性地假设$p(\bold{x})$是原始分布，$q(\bold{y})$是目标分布，则约束$p(\bold{x})$和$q(\bold{y})$是联合分布$\gamma(\bold{x},\bold{y})$的边缘分布：
+
+$$ \int \gamma(x,y) dy = p(\bold{x}), \quad \int \gamma(x,y)dx = q(\bold{y}) $$
+
+上式分别表示从$y$处搬运$\gamma(x,y)dy$的物品到$x$处，从而得到概率分布$p(\bold{x})$；以及从$x$处搬运$\gamma(x,y)dx$的物品到$y$处，从而得到概率分布$p(\bold{y})$。
+
+
+
+最优传输问题等价于如下约束优化问题：
 
 $$ \begin{aligned} \mathop{\inf}_{\gamma \in \Pi[p,q]} & \int \int \gamma(x,y) d(x,y) dxdy \\ \text{s.t. } & \int \gamma(x,y) dy = p(x) \\ & \int \gamma(x,y)dx = q(y) \\ & \gamma(x,y) \geq 0 \end{aligned} $$
 
@@ -81,6 +91,8 @@ $$ \forall x,y \quad f(x) + g(y) \leq d(x+y) $$
 因此，最优传输问题的对偶问题为：
 
 $$ \begin{aligned} \mathop{\sup}_{f,g}  & \int [p(x) f(x) +q(x)g(x)]dx \\ \text{s.t. } & f(x)+g(y) \leq  d(x,y) \end{aligned} $$
+
+其中上确界**supremum**表示寻找使得目标函数最大的$f$和$g$。
 
 # 3. Wasserstein距离及其对偶形式
 
