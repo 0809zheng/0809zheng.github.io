@@ -463,7 +463,7 @@ $$ Y(m,n,t)=\sum_{i=0}^{d} {\sum_{j=0}^{d} {\sum_{k=0}^{c_{in}} {S(X(m+i,n+j,k),
 
 $$ Y(m,n,t)=-\sum_{i=0}^{d} {\sum_{j=0}^{d} {\sum_{k=0}^{c_{in}} {| X(m+i,n+j,k)-F(i,j,k,t) | }}} $$
 
-### ⚪  [<font color=Blue>Mitchell’s approximate</font>](https://0809zheng.github.io/2020/09/26/addernet.html)：使用Mitchell近似代替卷积乘法
+### ⚪  [<font color=Blue>Mitchell’s approximate</font>](https://0809zheng.github.io/2021/08/08/mitchell.html)：使用Mitchell近似代替卷积乘法
 二进制下的乘法运算可以通过对数和指数转换转变成加法运算：
 
 $$ pq=2^s, \quad s=\log_2p+\log_2q $$
