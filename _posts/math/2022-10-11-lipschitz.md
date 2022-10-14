@@ -3,7 +3,7 @@ layout: post
 title: '利普希茨连续条件(Lipschitz Continuity Condition)'
 date: 2022-10-11
 author: 郑之杰
-cover: ''
+cover: 'https://pic1.imgdb.cn/item/63468bf216f2c2beb1846342.jpg'
 tags: 数学
 ---
 
@@ -11,7 +11,7 @@ tags: 数学
 
 1. Lipschitz连续条件的定义
 2. 神经网络中的Lipschitz约束
-3. 实现Lipschitz约束的方法：参数裁剪、梯度惩罚、谱归一化、
+3. 实现Lipschitz约束的方法：权重裁剪、梯度惩罚、谱归一化、梯度归一化
 
 # 1. 利普希茨连续条件的定义
 
@@ -41,19 +41,29 @@ $$ || \sigma(Wx_1)-\sigma(Wx_2) || \leq K(W) || x_1-x_2 || $$
 
 $$ ||  \frac{\partial \sigma}{\partial Wx} W(x_1-x_2) || \leq K(W) || x_1-x_2 || $$
 
-$\frac{\partial \sigma}{\partial Wx}$表示激活函数的导数。通常激活函数的导数是有界的，比如**ReLU**函数的导数范围是$[0,1]$；因此这一项可以被忽略。则全连接层的**Lipschitz**约束为：
+其中$\frac{\partial \sigma}{\partial Wx}$表示激活函数的导数。上式表明**Lipschitz**约束分别对激活函数的导数和网络权重进行了约束。
+
+通常激活函数的导数是有界的，比如**ReLU**函数的导数范围是$[0,1]$；因此这一项可以被忽略。则全连接层的**Lipschitz**约束进一步写作：
 
 $$ ||  W(x_1-x_2) || \leq K(W) || x_1-x_2 || $$
 
-上式对全连接层的参数$W$进行了约束。在实践中全连接网络是由全连接层组合而成，而卷积网络、循环网络等也可以表示为特殊的全连接网络，因此上述分析具有一般性。
+上式表示若对权重参数$W$进行约束后，全连接层将会满足**Lipschitz**约束。在实践中全连接网络是由全连接层组合而成，而卷积网络、循环网络等也可以表示为特殊的全连接网络，因此上述分析具有一般性。
+
+其中$K(W)$的最小值被称为**Lipschitz**常数，通常希望其取值尽可能小，在实践中常约束$K(W)=1$。
 
 # 3. 实现Lipschitz约束的方法
 
+为判别器引入**Lipschitz**约束的方法主要有两种。第一种是施加**硬约束**，即通过约束参数使得网络每一层的**Lipschitz**常数都是有界的，则总**Lipschitz**常数也是有界的，这类方法包括权重裁剪、谱归一化。
+
+这些方法强制网络的每一层都满足**Lipschiitz**约束，从而把网络限制为所有满足**Lipschiitz**约束的函数中的一小簇函数。事实上考虑到如果网络有些层不满足**Lipschiitz**约束，另一些层满足更强的**Lipschiitz**约束，则网络整体仍然满足**Lipschiitz**约束。这类方法无法顾及这种情况。
+
+第二种是施加**软约束**，即选择**Lipschitz**约束的一个充分条件(通常是网络对输入的梯度)，并在目标函数中添加相关的惩罚项。这类方法包括梯度惩罚、梯度归一化。
+
 ## （1）权重裁剪 weight clipping
 
-- paper: [Wasserstein GAN](https://0809zheng.github.io/2022/02/04/wgan.html)
+- paper: [<font color=Blue>Wasserstein GAN</font>](https://0809zheng.github.io/2022/02/04/wgan.html)
 
-既然**Lipschitz**约束对网络参数$W$进行了约束，在实践中可以通过**weight clipping**实现该约束：在每次梯度更新后，把网络参数$W$的取值限制在$[-c,c]$之间。
+既然**Lipschitz**约束对网络权重$W$进行了约束，在实践中可以通过**weight clipping**实现该约束：在每次梯度更新后，把网络权重$W$的取值限制在$[-c,c]$之间。
 
 $$ \begin{aligned}  W &\leftarrow\text{clip}(W,-c,c)  \end{aligned} $$
 
@@ -66,19 +76,19 @@ for p in model.parameters():
 
 ## （2）梯度惩罚 gradient penalty
 
-- paper: [Improved Training of Wasserstein GANs](https://0809zheng.github.io/2022/02/06/wgangp.html)
+- paper: [<font color=Blue>Improved Training of Wasserstein GANs</font>](https://0809zheng.github.io/2022/02/06/wgangp.html)
 
 注意到**Lipschitz**约束是一种差分约束：
 
 $$ \frac{|| f_W(x_1)-f_W(x_2) ||}{|| x_1-x_2 ||} \leq K(W)  $$
 
-将差分形式用梯度形式近似：
+上式的一个充分条件是：
 
-$$ \frac{|| f_W(x_1)-f_W(x_2) ||}{|| x_1-x_2 ||} ≈ ||\frac{\partial f_W(x)}{\partial x}|| $$
+$$ ||\frac{\partial f_W(x)}{\partial x}|| \leq K(W) $$
 
-在实践中可以向目标函数中引入**梯度惩罚**实现该约束，即约束$f_W(x)$在任意位置的梯度的模小于等于$K$：
+在实践中可以向目标函数中引入**梯度惩罚**实现该约束，即约束$f_W(x)$在任意位置的梯度的模小于等于$1$：
 
-$$ \begin{aligned} W \leftarrow \mathop{\arg \min}_{W}& \mathcal{L}(x;W)+ \lambda \max(||\frac{\partial f_W(x)}{\partial x}||,K) \end{aligned} $$
+$$ \begin{aligned} W \leftarrow \mathop{\arg \min}_{W}& \mathcal{L}(x;W)+ \lambda \max(||\frac{\partial f_W(x)}{\partial x}||,1) \end{aligned} $$
 
 或：
 
@@ -104,7 +114,7 @@ def compute_gradient_penalty(model, data):
 
 ## （3）谱归一化
 
-- paper: [Spectral Normalization for Generative Adversarial Networks](https://0809zheng.github.io/2022/02/08/sngan.html)
+- paper: [<font color=Blue>Spectral Normalization for Generative Adversarial Networks</font>](https://0809zheng.github.io/2022/02/08/sngan.html)
 
 定义参数矩阵的**谱范数(spectral norm)**：
 
@@ -138,4 +148,58 @@ def add_sn(m):
              return m
 
 model = add_sn(model)
+```
+
+## （4）梯度归一化
+
+- paper：[<font color=Blue>Gradient Normalization for Generative Adversarial Networks</font>](https://0809zheng.github.io/2022/02/10/gngan.html)、[<font color=Blue>GraN-GAN: Piecewise Gradient Normalization for Generative Adversarial Networks</font>](https://0809zheng.github.io/2022/02/11/grangan.html)
+
+**Lipschitz-1**约束的一个充分条件是：
+
+$$ ||\nabla_x f(x)|| \leq 1 $$
+
+如果将函数$f$变换为$\hat{f}$，使得其自动满足$$\|\nabla_x \hat{f}(x)\| \leq 1$$，则实现了**Lipschitz**约束的引入。不妨取：
+
+$$ \hat{f}(x) = \frac{f(x)}{||\nabla_x f(x)||} $$
+
+注意到网络通常用**ReLU**或**LeakyReLU**作为激活函数，此时$f(x)$实际上是一个“分段线性函数”，除边界之外$f(x)$在局部的连续区域内是一个线性函数，因此$\nabla_x f(x)$是一个常向量。此时有：
+
+$$ ||\nabla_x \hat{f}(x)|| = ||\nabla_x \frac{f(x)}{||\nabla_x f(x)||}|| = ||\frac{\nabla_x f(x)}{||\nabla_x f(x)||}|| = 1 $$
+
+上式可能会出现分母为零的情况，[<font color=Blue>GN-GAN</font>](https://0809zheng.github.io/2022/02/10/gngan.html)将$\|f(x)\|$引入分母，同时也保证了函数的有界性：
+
+$$ \hat{f}(x) = \frac{f(x)}{||\nabla_x f(x)||+|f(x)|} \in [-1,1] $$
+
+```python
+def grad_normalize(f, x):
+    """Calculates the gradient normalization"""
+    x.requires_grad_(True)
+    out = f(x)
+    grad_out=torch.ones_like(out).requires_grad_(False),
+    # Get gradient w.r.t. x
+    gradients = autograd.grad(
+        outputs=out, inputs=x, grad_outputs=grad_out,
+        create_graph=True, retain_graph=True, only_inputs=True,
+    )[0]
+    grad_norm = gradients.view(gradients.size(0), -1).pow(2).sum(1) ** (1/2)
+    return out / (grad_norm + torch.abs(out))
+```
+
+而[<font color=Blue>GraN-GAN</font>](https://0809zheng.github.io/2022/02/11/grangan.html)设计了如下变换：
+
+$$ \hat{f}(x) = \frac{f(x) \cdot ||\nabla_x f(x)||}{||\nabla_x f(x)||^2+\epsilon}  $$
+
+```python
+def grad_normalize(f, x):
+    """Calculates the gradient normalization"""
+    x.requires_grad_(True)
+    out = f(x)
+    grad_out=torch.ones_like(out).requires_grad_(False),
+    # Get gradient w.r.t. x
+    gradients = autograd.grad(
+        outputs=out, inputs=x, grad_outputs=grad_out,
+        create_graph=True, retain_graph=True, only_inputs=True,
+    )[0]
+    grad_norm = gradients.view(gradients.size(0), -1).pow(2).sum(1) ** (1/2)
+    return (out * grad_norm) / (grad_norm**2 + epsilon)
 ```
