@@ -20,7 +20,7 @@ tags: 机器学习
 - **林轩田**：通过经验数据提高表现。(**Improving some performance measure with experience computed from data.**)
 
 学习机器学习相关算法前，需要先了解机器学习的一些基本定理和概念：
-- [<font color=Blue>机器学习的一些定理</font>](https://0809zheng.github.io/2020/02/04/ML-theorem.html)：没有免费午餐定理, 归纳偏置, 奥卡姆剃刀, 抽样偏差, 数据窥探, 维度灾难
+- [<font color=Blue>机器学习的一些定理</font>](https://0809zheng.github.io/2020/02/04/ML-theorem.html)：没有免费午餐定理, 归纳偏置, 奥卡姆剃刀, 采样偏差, 数据窥探, 维度灾难
 - [<font color=Blue>计算学习理论</font>](https://0809zheng.github.io/2020/02/05/vcdimension.html)：**Hoeffding**不等式, **VC**维, 模型复杂度, 概率近似正确**PAC**, 结构风险最小化
 - [<font color=Blue>模型评估方法</font>](https://0809zheng.github.io/2020/02/06/validation.html)：留出法, 交叉验证法, 自助法
 - [特征选择方法]()：
@@ -80,9 +80,9 @@ tags: 机器学习
 
 常见的无监督学习方法：
 - 聚类
-- 降维
+- 降维：线性降维、非线性降维
 - 异常检测
-- 生成模型
+- 生成模型：隐变量模型、能量模型
 
 ## (1)聚类
 **聚类(Clustering)**是将一组样本根据一定的准则划分到不同的**簇（Cluster）**，如按照数据之间的相似性把相近的数据划分为一类。
@@ -105,10 +105,11 @@ tags: 机器学习
 1. [<font color=Blue>主成分分析 PCA</font>](https://0809zheng.github.io/2020/04/11/PCA.html):(线性降维) (几何,线性变换,最大投影方差,最小重构代价,奇异值分解)角度, 主坐标分析(**PCoA**), 概率**PCA**
 2. [<font color=Blue>核主成分分析 KPCA</font>](https://0809zheng.github.io/2021/07/27/kpca.html)：(非线性降维) 将核方法引入**PCA**
 3. [<font color=Blue>多维缩放 MDS</font>](https://0809zheng.github.io/2021/07/28/mds.html)：(线性降维) 维持近邻样本的距离
-4. [<font color=Blue>等度量映射 ISOMAP</font>](https://0809zheng.github.io/2021/07/30/isomap.html)：(非线性降维) 流形空间中的**MDS**
-4. [<font color=Blue>局部线性嵌入 LLE</font>](https://0809zheng.github.io/2021/07/31/lle.html)：(非线性降维) 维持邻域内样本的线性关系
-5. [<font color=Blue>t分布随机近邻嵌入 t-SNE</font>](https://0809zheng.github.io/2021/09/23/tsne.html)：(非线性降维) 维持样本间的概率分布
-5. [<font color=Blue>一致流形近似与投影 UMAP</font>](https://0809zheng.github.io/2021/09/24/umap.html)：(非线性降维) 维持样本间的概率分布
+4. [<font color=Blue>局部保留投影 LPP</font>](https://0809zheng.github.io/2021/09/30/lpp.html)：(线性降维) 考虑样本的相对位置关系
+5. [<font color=Blue>等度量映射 ISOMAP</font>](https://0809zheng.github.io/2021/07/30/isomap.html)：(非线性降维) 流形空间中的**MDS**
+6. [<font color=Blue>局部线性嵌入 LLE</font>](https://0809zheng.github.io/2021/07/31/lle.html)：(非线性降维) 维持邻域内样本的线性关系
+7. [<font color=Blue>t分布随机近邻嵌入 t-SNE</font>](https://0809zheng.github.io/2021/09/23/tsne.html)：(非线性降维) 维持样本间的概率分布
+8. [<font color=Blue>一致流形近似与投影 UMAP</font>](https://0809zheng.github.io/2021/09/24/umap.html)：(非线性降维) 维持样本间的概率分布
 
 
 - **非线性降维**：
@@ -145,7 +146,7 @@ $$ p_{\theta}(x,z) = p_{\theta}(x | z)p_{\theta}(z) $$
 - [期望最大算法](https://0809zheng.github.io/2020/03/26/expectation-maximization.html)：$p(z \| x)$可解
 - [变分推断](https://0809zheng.github.io/2020/03/25/variational-inference.html)：$p(z \| x)$不可解
 
-### b. [能量模型]()
+### b. [<font color=blue>能量模型</font>](https://0809zheng.github.io/2020/04/12/energy.html)
 
 **能量模型(energy-based model)**是指使用如下概率模型拟合一批真实数据$x_1,x_2,\cdots,x_n$~$p(x)$：
 
@@ -161,9 +162,9 @@ $$ q_{\theta}(x) = \frac{e^{-U_{\theta}(x)}}{Z_{\theta}}, Z_{\theta} = \int e^{-
 
 | 模型 | 网络结构 | 能量函数$U_{\theta}(x)$ |
 | :---: | :---:  | :---:  |
-| [<font color=blue>Hopfield神经网络</font>](https://0809zheng.github.io/2020/04/13/hopfield-network.html) | ![](https://pic1.imgdb.cn/item/634e95ac16f2c2beb101e45d.jpg) |$$ -\frac{1}{2}\sum_{i,j}^{} {w_{ij}x_ix_j} - \sum_{i}^{} {b_ix_i} $$ |
-| [<font color=blue>玻尔兹曼机 BM</font>](https://0809zheng.github.io/2020/04/14/boltzmann-machine.html) | ![](https://pic1.imgdb.cn/item/634e95ac16f2c2beb101e459.jpg) |$$ -(\sum_{i<j}^{} {w_{ij}x_ix_j} + \sum_{i}^{} {b_{i}x_i}) $$ |
-| [<font color=blue>受限玻尔兹曼机 RBM</font>](https://0809zheng.github.io/2020/04/15/restricted-boltzmann-machine.html) | ![](https://pic1.imgdb.cn/item/634e95ac16f2c2beb101e462.jpg) |$$ -(\sum_{i}^{} {a_ix_i} + \sum_{j}^{} {b_jz_j} + \sum_{i,j}^{} {w_{ij}x_iz_j}) $$ |
+| [<font color=blue>Hopfield神经网络</font>](https://0809zheng.github.io/2020/04/13/hopfield-network.html) | ![](https://pic1.imgdb.cn/item/634e998716f2c2beb10af2d5.jpg) |$$ -\frac{1}{2}\sum_{i,j}^{} {w_{ij}x_ix_j} - \sum_{i}^{} {b_ix_i} $$ |
+| [<font color=blue>玻尔兹曼机 BM</font>](https://0809zheng.github.io/2020/04/14/boltzmann-machine.html) | ![](https://pic1.imgdb.cn/item/634e998716f2c2beb10af2d1.jpg) |$$ -(\sum_{i<j}^{} {w_{ij}x_ix_j} + \sum_{i}^{} {b_{i}x_i}) $$ |
+| [<font color=blue>受限玻尔兹曼机 RBM</font>](https://0809zheng.github.io/2020/04/15/restricted-boltzmann-machine.html) | ![](https://pic1.imgdb.cn/item/634e998716f2c2beb10af2e0.jpg) |$$ -(\sum_{i}^{} {a_ix_i} + \sum_{j}^{} {b_jz_j} + \sum_{i,j}^{} {w_{ij}x_iz_j}) $$ |
 
 
 
@@ -193,12 +194,12 @@ $$ q_{\theta}(x) = \frac{e^{-U_{\theta}(x)}}{Z_{\theta}}, Z_{\theta} = \int e^{-
 
 
 # ⚪ 相关课程
-- [Machine Learning | Coursera （Andrew Ng）](https://www.coursera.org/learn/machine-learning)：监督学习（线性回归、逻辑回归、推荐系统），无监督学习（K-means聚类、PCA降维、异常检测），系统设计
-- [李宏毅机器学习](http://speech.ee.ntu.edu.tw/~tlkagk/courses_ML20.html)![](https://pic.downk.cc/item/5ee833e92cb53f50fe4ee499.jpg)
+- [Machine Learning - Coursera （Andrew Ng）](https://www.coursera.org/learn/machine-learning)：监督学习（线性回归、逻辑回归、推荐系统），无监督学习（K-means聚类、PCA降维、异常检测），系统设计
+- [李宏毅机器学习](http://speech.ee.ntu.edu.tw/~tlkagk/courses_ML20.html)![](https://pic1.imgdb.cn/item/634e994916f2c2beb10a65c6.jpg)
 - [林轩田机器学习基石](https://www.bilibili.com/video/BV1Cx411i7op?p=1)：机器学习可行性（**Hoeffding**不等式、**VC**维），三个模型（感知机算法、线性回归、逻辑回归），三个技巧（特征转换、正则化、验证集）
 - [林轩田机器学习技法](https://www.bilibili.com/video/BV1ix411i7yp?p=1)：核方法（支持向量机、支持向量回归），集成方法（集成，决策树、随机森林、**GBDT**），特征提取方法（神经网络、深度学习、径向基函数网络，推荐系统）
 - [【机器学习】白板推导系列](https://space.bilibili.com/97068901/video)：B站up主“shuhuai008”自制课程，包括若干机器学习的理论推导
-- [莫烦Python机器学习教程](https://space.bilibili.com/243821484?spm_id_from=333.788.b_765f7570696e666f.1)：B站up主“莫烦Python”自制课程，包含若干python库的入门（numpy、pandas、matplotlib、sklearn、Tensorflow、Keras、Pytorch）
+- [莫烦Python机器学习教程](https://mofanpy.com/)：B站up主“莫烦Python”自制课程，包含若干python库的入门（numpy、pandas、matplotlib、sklearn、Tensorflow、Keras、Pytorch）
 
 
 
