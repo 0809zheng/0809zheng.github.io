@@ -3,7 +3,7 @@ layout: post
 title: '图像到图像翻译(Image-to-Image Translation)'
 date: 2020-05-23
 author: 郑之杰
-cover: ''
+cover: 'https://pic.imgdb.cn/item/63970e69b1fccdcd367c01dd.jpg'
 tags: 深度学习
 ---
 
@@ -11,13 +11,11 @@ tags: 深度学习
 
 **图像到图像翻译(Image-to-Image Translation)**旨在学习一个映射使得图像可以从源图像域(**source domain**)变换到目标图像域(**target domain**)，同时保留图像内容(**context**)。
 
-计算机视觉领域的图像到图像翻译问题有许多表现形式，如白天到黑夜的图像转换、黑白照到彩色照的转换、低像素到高像素的转换、去除水印、图像分割、2D 到 3D、梵高风格化、木炭风格、缺失部分复原等；这些应用基本都是通过[生成对抗网络](https://0809zheng.github.io/2022/02/01/gan.html)实现的。
+计算机视觉领域的图像到图像翻译问题有许多表现形式，如白天到黑夜的图像转换、黑白照到彩色照的转换、梵高风格化等；这些应用基本都是通过[生成对抗网络](https://0809zheng.github.io/2022/02/01/gan.html)实现的。
 
 根据是否提供了一对一的学习样本对，将图像到图像翻译任务划分为**有配对数据(paired data)**和**无配对数据(unpaired data)**两种情况。
-
-有配对数据是指在训练数据集中具有一对一的数据对。代表方法有**Pix2Pix**, **BicycleGAN**。
-
-无配对数据是指模型在两个独立的数据集之间训练，能够从两个集合中自动地发现集合之间的关联，从而学习出映射函数。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **LPTN**。
+- 有配对数据是指在训练数据集中具有一对一的数据对。代表方法有**Pix2Pix**, **BicycleGAN**, **LPTN**。
+- 无配对数据是指模型在两个独立的数据集之间训练，能够从两个集合中自动地发现集合之间的关联，从而学习出映射函数。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**。
 
 
 
@@ -38,11 +36,15 @@ $$ \begin{aligned}  \mathop{\max}_{D} & \Bbb{E}_{(x,y) \text{~} (P_{data}(x),P_{
 
 **BicycleGAN**的训练过程采用双向的循环过程:
 - 一种过程采用变分自编码器的形式。将图像$B$通过一个编码器$E(\cdot)$编码为隐变量$z$，与图像$A$共同输入生成器重构图像$\hat{B}$。建立图像$B$和图像$\hat{B}$之间的重构损失和判别损失，并且构造隐变量$z$的**KL**散度。
-- 另一种过程采用[<font color=Blue>CGAN</font>](https://0809zheng.github.io/2022/03/02/cgan.html)的形式。将图像$A$和随机噪声$z$输入生成器构造图像$\hat{B}$，将其与图像$B$共同构造判别损失。并且使用编码器$E(\cdot)$将图像$\hat{B}$编码为隐变量$z$，构造其与输入隐变量之间的重构损失。
+- 另一种过程采用条件生成对抗网络的形式。将图像$A$和随机噪声$z$输入生成器构造图像$\hat{B}$，将其与图像$B$共同构造判别损失。并且使用编码器$E(\cdot)$将图像$\hat{B}$编码为隐变量$z$，构造其与输入隐变量之间的重构损失。
 
 ![](https://pic1.imgdb.cn/item/6353a01f16f2c2beb186f677.jpg)
 
+### ⚪ [<font color=Blue>LPTN</font>](https://0809zheng.github.io/2022/04/27/lptn.html)
 
+**LPTN**将图像用拉普拉斯金字塔表示，其中不同层次中的拉普拉斯图像存储了图像中的高频内容信息，因此通过轻量的卷积网络做简单处理；网络顶层的高斯图像存储图像中的低频风格信息，通过一个相对复杂的网络进行处理。整体网络仍然是轻量型的，可以实现实时图像翻译。
+
+![](https://pic.imgdb.cn/item/6398211fb1fccdcd36025ba9.jpg)
 
 
 
@@ -107,6 +109,25 @@ $$ \begin{aligned} \mathop{ \min}_{G_1,G_2,E_1,E_2} \mathop{\max}_{D_1,D_2} & \m
 
 ![](https://pic1.imgdb.cn/item/63563ebd16f2c2beb199c4fb.jpg)
 
+### ⚪ [<font color=Blue>MUNIT</font>](https://0809zheng.github.io/2022/04/26/munit.html)
+
+**MUNIT**假设每一张图像$x$都对应在所有领域共享的内容空间中的内容编码$c$和领域特有的风格空间中的风格编码$s$。
+
+**MUNIT**的学习过程包括图像重构和编码重构两部分。图像重构是指对图像$x_1,x_2$分别编码为$(c_1,s_1),(c_2,s_2)$，再解码为重构图像$\hat{x}_1,\hat{x}_2$，并最终构造两者的**L1**重构损失。编码重构是指对图像$x_1,x_2$分别编码为$(c_1,s_1),(c_2,s_2)$，然后重组编码$(c_1,s_2),(c_2,s_1)$，并解码为迁移风格的图像$x_{1 \to 2},x_{2 \to 1}$，然后再将其分别编码为$(\hat{c}_1,\hat{s}_2),(\hat{c}_2,\hat{s}_1)$，并最终构造编码的**L1**重构损失。此外，对图像$x_1,x_2$和迁移图像$x_{1 \to 2},x_{2 \to 1}$应用对抗损失。
+
+$$ \begin{aligned} \mathop{ \min}_{G_1,G_2,E_1,E_2} \mathop{\max}_{D_1,D_2} &\mathcal{L}_{\text{GAN}}^{x_1} + \mathcal{L}_{\text{GAN}}^{x_2} + \lambda_x(\mathcal{L}_{\text{recon}}^{x_1}+\mathcal{L}_{\text{recon}}^{x_2}) \\ & + \lambda_c(\mathcal{L}_{\text{recon}}^{c_1}+\mathcal{L}_{\text{recon}}^{c_2})+ \lambda_s(\mathcal{L}_{\text{recon}}^{s_1}+\mathcal{L}_{\text{recon}}^{s_2}) \end{aligned} $$
+
+![](https://pic.imgdb.cn/item/6396f1d2b1fccdcd364bf63d.jpg)
+
+### ⚪ [<font color=Blue>TUNIT</font>](https://0809zheng.github.io/2022/04/28/tunit.html)
+
+**TUNIT**实现了一个图像数据集中任意两张图像之间的翻译，该方法由编码器、生成器、判别器组成。编码器把输入图像编码为领域标签(通过**IIC**预训练)和风格编码(通过**MoCo**预训练)；生成器根据输入图像和风格编码生成图像，损失函数包括**L1**重构损失、对抗损失和风格对比损失；判别器接收输入图像和领域标签，判定该领域中图像的真实性，损失函数为对抗损失。
+
+$$ \begin{aligned} \mathop{ \min}_{G,E} \mathop{\max}_{D} &\mathcal{L}_{\text{adv}}(D,G) + \lambda_{\text{style}}^G\mathcal{L}_{\text{style}}^G(G,E) + \lambda_{\text{rec}}\mathcal{L}_{\text{rec}}(G,E) \\ & - \lambda_{MI}\mathcal{L}_{MI}(E)+ \lambda_{\text{style}}^E\mathcal{L}_{\text{style}}^E(E) \end{aligned} $$
+
+![](https://pic.imgdb.cn/item/63982573b1fccdcd360b128c.jpg)
+
+
 
 ### ⚪ [<font color=Blue>StarGAN</font>](https://0809zheng.github.io/2022/03/19/stargan.html)
 
@@ -120,14 +141,16 @@ $$ \begin{aligned}  \mathop{\max}_{D} & \Bbb{E}_{x \text{~} P_{data}(x)}[\log D(
 ![](https://pic1.imgdb.cn/item/6353b87d16f2c2beb1ab7c07.jpg)
 
 
+### ⚪ [<font color=Blue>StarGAN v2</font>](https://0809zheng.github.io/2022/03/20/starganv2.html)
 
 
+**StarGAN v2**由生成器、映射网络、风格编码器和判别器构成。生成器接收输入图像和风格编码，生成对应风格的图像；映射网络输入随机噪声，生成不同图像域的不同风格编码；风格编码器提取输入图像在不同图像域中的风格编码；判别器判断图像是否为某图像域中的真实图像。
 
+损失函数包括对抗损失、风格编码的**L1**重构损失、通过最大化两个风格编码对应的生成图像的差异构造多样性敏感损失、使用输入图像的风格编码将生成图像重新映射到原图像域构造的循环一致性损失。
 
+$$ \begin{aligned} \mathop{ \min}_{F,E,G} \mathop{\max}_{D} & \mathcal{L}_{\text{adv}}(F,G,D) + \lambda_{\text{sty}} \mathcal{L}_{\text{sty}}(F,E,G) \\ & -\lambda_{\text{ds}}\mathcal{L}_{\text{ds}}(F,G) +  \lambda_{\text{cyc}}\mathcal{L}_{\text{cyc}}(F,E,G) \end{aligned} $$
 
-
-
-
+![](https://pic1.imgdb.cn/item/6353d5c516f2c2beb1d54563.jpg)
 
 
 
@@ -144,6 +167,10 @@ $$ \begin{aligned}  \mathop{\max}_{D} & \Bbb{E}_{x \text{~} P_{data}(x)}[\log D(
 - [<font color=Blue>DualGAN: Unsupervised Dual Learning for Image-to-Image Translation</font>](https://0809zheng.github.io/2022/03/17/dualgan.html)：(arXiv1704)DualGAN：图像转换的无监督对偶学习。
 - [<font color=Blue>Toward Multimodal Image-to-Image Translation</font>](https://0809zheng.github.io/2022/03/18/bicyclegan.html)：(arXiv1711)BicycleGAN：多模态图像翻译。
 - [<font color=Blue>StarGAN: Unified Generative Adversarial Networks for Multi-Domain Image-to-Image Translation</font>](https://0809zheng.github.io/2022/03/19/stargan.html)：(arXiv1711)StarGAN：统一的多领域图像翻译框架。
+- [<font color=Blue>Multimodal Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/04/26/munit.html)：(arXiv1804)MUNIT：多模态无监督图像到图像翻译网络。
+- [<font color=Blue>StarGAN v2: Diverse Image Synthesis for Multiple Domains</font>](https://0809zheng.github.io/2022/03/20/starganv2.html)：(arXiv1912)StarGAN v2：多领域多样性图像合成。
+- [<font color=Blue>Rethinking the Truly Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/04/28/tunit.html)：(arXiv2006)TUNIT：完全无监督图像到图像翻译。
+- [<font color=Blue>High-Resolution Photorealistic Image Translation in Real-Time: A Laplacian Pyramid Translation Network</font>](https://0809zheng.github.io/2022/04/27/lptn.html)：(arXiv2105)LPTN：高分辨率真实感实时图像翻译。
 
 
 
