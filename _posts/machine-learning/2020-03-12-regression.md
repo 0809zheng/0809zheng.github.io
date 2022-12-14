@@ -1,13 +1,13 @@
 ---
 layout: post
-title: 'Regression：回归'
+title: 'Linear Regression：线性回归'
 date: 2020-03-12
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ed758f4c2a9a83be54c0e00.jpg'
 tags: 机器学习
 ---
 
-> Regression.
+> Linear Regression.
 
 本文目录：
 1. 线性回归 **Linear Regression**
@@ -39,22 +39,18 @@ $$ L(w) = \frac{1}{N} \sum_{i=1}^{N} {(\sum_{j=0}^{d} {w_jx_j^{(i)}}-y^{(i)})^2}
 
 ![](https://pic.downk.cc/item/5ed0baaec2a9a83be5867638.jpg)
 
-## (1). 最小二乘法 Least Square Method
+## (1) 最小二乘法 Least Square Method
 由于均方误差是凸函数(见本节讨论1.2)，因此$w$的最优解在均方误差关于$w$的导数为$0$时取得。为简化问题，假设样本只有一个特征(即单变量线性回归)，对应的均方误差损失如下：
 
 $$ L(w,b) = \frac{1}{N} \sum_{i=1}^{N} {(wx^{(i)}+b-y^{(i)})^2} $$
 
-另上式关于$w$和$b$的导数为$0$，计算如下：
+令上式关于$w$和$b$的导数为$0$，计算如下：
 
-$$ \frac{\partial L(w,b)}{\partial w} = \frac{\partial}{\partial w}[\frac{1}{N} \sum_{i=1}^{N} {(wx^{(i)}+b-y^{(i)})^2}] = \frac{1}{N} \sum_{i=1}^{N} {2(wx^{(i)}+b-y^{(i)})x^{(i)}} = 0 $$
-
-$$ \frac{\partial L(w,b)}{\partial b} = \frac{\partial}{\partial b}[\frac{1}{N} \sum_{i=1}^{N} {(wx^{(i)}+b-y^{(i)})^2}] = \frac{1}{N} \sum_{i=1}^{N} {2(wx^{(i)}+b-y^{(i)})} = 0 $$
+$$ \begin{aligned} \frac{\partial L(w,b)}{\partial w} &= \frac{\partial}{\partial w}[\frac{1}{N} \sum_{i=1}^{N} {(wx^{(i)}+b-y^{(i)})^2}] = \frac{1}{N} \sum_{i=1}^{N} {2(wx^{(i)}+b-y^{(i)})x^{(i)}} = 0 \\ \frac{\partial L(w,b)}{\partial b} &= \frac{\partial}{\partial b}[\frac{1}{N} \sum_{i=1}^{N} {(wx^{(i)}+b-y^{(i)})^2}] = \frac{1}{N} \sum_{i=1}^{N} {2(wx^{(i)}+b-y^{(i)})} = 0 \end{aligned} $$
 
 联立上述两式可得该问题的**闭式(closed-form)解**：
 
-$$ w = \frac{\sum_{i=1}^{N} y^{(i)}(x^{(i)}-\frac{1}{N} \sum_{i=1}^{N} x^{(i)})}{\sum_{i=1}^{N}(x^{(i)})^2-\frac{1}{N}(\sum_{i=1}^{N}(x^{(i)}))^2} = \frac{\sum_{i=1}^{N} y^{(i)}(x^{(i)}-\overline{x})}{\sum_{i=1}^{N}(x^{(i)})^2-\frac{1}{N}(\sum_{i=1}^{N}(x^{(i)}))^2} $$
-
-$$ b = \frac{1}{N} \sum_{i=1}^{N} (y^{(i)}-wx^{(i)}) $$
+$$ \begin{aligned} w &= \frac{\sum_{i=1}^{N} y^{(i)}(x^{(i)}-\frac{1}{N} \sum_{i=1}^{N} x^{(i)})}{\sum_{i=1}^{N}(x^{(i)})^2-\frac{1}{N}(\sum_{i=1}^{N}(x^{(i)}))^2} = \frac{\sum_{i=1}^{N} y^{(i)}(x^{(i)}-\overline{x})}{\sum_{i=1}^{N}(x^{(i)})^2-\frac{1}{N}(\sum_{i=1}^{N}(x^{(i)}))^2}  \\ b &= \frac{1}{N} \sum_{i=1}^{N} (y^{(i)}-wx^{(i)}) \end{aligned} $$
 
 上述利用均方误差最小化求解线性回归的方法被称为**最小二乘法(least square method)**。该方法的几何意义是在样本空间中寻找一个超平面，使得所有样本点到该超平面的距离平方最小：
 
@@ -62,13 +58,13 @@ $$ b = \frac{1}{N} \sum_{i=1}^{N} (y^{(i)}-wx^{(i)}) $$
 
 
 ### 讨论1.2：均方误差损失是凸函数
-定义在区间$\[a,b\]$上的**凸(convex)函数** $f$，是指对于区间中任意两点$x_1<x_2$均有：
+定义在区间$[a,b]$上的**凸(convex)函数** $f$，是指对于区间中任意两点$x_1<x_2$均有：
 
 $$ f(\frac{x_1+x_2}{2}) ≤ \frac{f(x_1)+f(x_2)}{2} $$
 
-$$f(x)=x^2$$就是一个典型的凸函数，该凸函数的全局最小值位于$\nabla f=0$处。对于实数集上的函数$f$，可由二阶导数$\nabla^2 f$判断其凸性。若二阶导数$\nabla^2 f$在区间上**非负**则为凸函数。验证均方误差的凸性：
+$f(x)=x^2$就是一个典型的凸函数，该凸函数的全局最小值位于$\nabla f=0$处。对于实数集上的函数$f$，可由二阶导数$\nabla^2 f$判断其凸性。若二阶导数$\nabla^2 f$在区间上**非负**则为凸函数。验证均方误差的凸性：
 
-$$\nabla^2 L(w) = \nabla^2 \frac{1}{N} \sum_{i=1}^{N} {(w^Tx^{(i)}-y^{(i)})^2} \\ = \nabla \frac{1}{N} \sum_{i=1}^{N} 2(w^Tx^{(i)}-y^{(i)})x^{(i)} = \frac{1}{N} \sum_{i=1}^{N} 2(x^{(i)})^2 ≥0 $$
+$$ \begin{aligned} \nabla^2 L(w) &= \nabla^2 \frac{1}{N} \sum_{i=1}^{N} {(w^Tx^{(i)}-y^{(i)})^2} \\ &= \nabla \frac{1}{N} \sum_{i=1}^{N} 2(w^Tx^{(i)}-y^{(i)})x^{(i)} = \frac{1}{N} \sum_{i=1}^{N} 2(x^{(i)})^2 ≥0 \end{aligned} $$
 
 
 ### 讨论1.3：最小二乘法等价于噪声服从高斯分布的极大似然估计
@@ -78,15 +74,15 @@ $$ y = w^Tx + ε $$
 
 其中$(x,y)$是样本数据，$w$是未知的常数，每个样本点受到了高斯噪声的干扰。则条件变量$y \| x;w$服从于$N(w^Tx,σ^2)$。列出条件概率：
 
-$$ P(y | x;w) = \frac{1}{\sqrt{2\pi}σ}exp(-\frac{(y-w^Tx)^2}{2σ^2}) $$
+$$ P(y | x;w) = \frac{1}{\sqrt{2\pi}σ}\exp(-\frac{(y-w^Tx)^2}{2σ^2}) $$
 
 采用极大似然估计的方法估计参数$w$，即：
 
-$$ \hat{w} = \mathop{\arg \max}_{w} log(\prod_{i=1}^{N} {\frac{1}{\sqrt{2\pi}σ}exp(-\frac{(y^{(i)}-w^Tx^{(i)})^2}{2σ^2})}) \\ = \mathop{\arg \max}_{w} \sum_{i=1}^{N} {log(\frac{1}{\sqrt{2\pi}σ}exp(-\frac{(y^{(i)}-w^Tx^{(i)})^2}{2σ^2}))} \\ = \mathop{\arg \max}_{w} \sum_{i=1}^{N} {(-\frac{(y^{(i)}-w^Tx^{(i)})^2}{2σ^2})} \\ = \mathop{\arg \max}_{w} \sum_{i=1}^{N} {-(y^{(i)}-w^Tx^{(i)})^2} \\ = \mathop{\arg \min}_{w} \sum_{i=1}^{N} {(y^{(i)}-w^Tx^{(i)})^2} $$
+$$ \begin{aligned} \hat{w} &= \mathop{\arg \max}_{w} \log(\prod_{i=1}^{N} {\frac{1}{\sqrt{2\pi}σ}\exp(-\frac{(y^{(i)}-w^Tx^{(i)})^2}{2σ^2})}) \\ &= \mathop{\arg \max}_{w} \sum_{i=1}^{N} {\log(\frac{1}{\sqrt{2\pi}σ}\exp(-\frac{(y^{(i)}-w^Tx^{(i)})^2}{2σ^2}))} \\ &= \mathop{\arg \max}_{w} \sum_{i=1}^{N} {(-\frac{(y^{(i)}-w^Tx^{(i)})^2}{2σ^2})} \\ &= \mathop{\arg \max}_{w} \sum_{i=1}^{N} {-(y^{(i)}-w^Tx^{(i)})^2} \\ &= \mathop{\arg \min}_{w} \sum_{i=1}^{N} {(y^{(i)}-w^Tx^{(i)})^2} \end{aligned} $$
 
 问题等价于最小二乘法。
 
-## (2). 正规方程法
+## (2) 正规方程法
 将线性回归表示为矩阵形式：记样本矩阵$$X=[x^{(1)};...;x^{(N)}]^T \in \Bbb{R}^{N×(d+1)}$$，标签向量$$y=[y^{(1)};...;y^{(N)}]^T \in \Bbb{R}^{N}$$，
 
 待求解权重参数$$w \in \Bbb{R}^{d+1}$$，预测结果$$\hat{y} \in \Bbb{R}^{N}$$，则：
@@ -112,6 +108,13 @@ $$ X^TXw = Xy $$
 $$ w = (X^TX)^{-1}Xy = X^+y $$
 
 其中$$X^+=(X^TX)^{-1}$$称为$X$的**伪逆（pseudo inverse）**，当$X^TX$不可逆时(如样本的特征维度大于样本总数)，也有其他方法可求。
+
+使用正规方程法求解线性回归问题的程序如下：
+
+```python
+def LinearRegression(X, Y):
+    return np.dot(np.linalg.inv(np.dot(X.T,X)), np.dot(X,Y))
+```
 
 ### 讨论1.4：从线性代数的角度理解线性回归
 对于线性回归问题：
@@ -158,7 +161,7 @@ $$ y=g^{-1}(w^Tx+b) $$
 
 线性回归模型建立的是输入空间到输出空间的线性函数映射；广义线性模型可以通过联系函数$g(\cdot)$建立从输入空间到输出空间的非线性函数映射。比如**对数线性回归(log-linear regression)**：
 
-$$ ln(y) = w^Tx+b $$
+$$ \ln(y) = w^Tx+b $$
 
 # 3. 非线性回归
 **非线性回归(non-linear regression)**是指先对样本的特征进行非线性变换，再通过线性回归方法进行建模。其中对样本进行非线性变换，通常是将样本从低维空间变换到高维空间中:
