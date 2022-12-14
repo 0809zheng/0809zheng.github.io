@@ -98,6 +98,13 @@ $$ \begin{aligned}  \mathop{\max}_{||D_X||_L\leq 1,||D_Y||_L\leq 1} & \Bbb{E}_{y
 
 ![](https://pic1.imgdb.cn/item/6353529516f2c2beb104842d.jpg)
 
+### ⚪ [<font color=Blue>GANILLA</font>](https://0809zheng.github.io/2022/04/29/ganilla.html)
+
+**GANNILLA**是一种从自然图像到儿童读物插画的图像翻译模型，其主体结构与**CycleGAN**, **DualGAN**, **DiscoGAN**等类似，作者重新设计了生成器的网络结构，能够在保留输入图像内容的同时迁移风格。**GANNILLA**的生成器采用非对称结构，使用带有拼接连接的残差层，并使用上采样算子代替转置卷积层。
+
+![](https://pic.imgdb.cn/item/63988cdab1fccdcd36c12d91.jpg)
+
+
 
 ### ⚪ [<font color=Blue>UNIT</font>](https://0809zheng.github.io/2022/03/21/unit.html)
 
@@ -113,7 +120,7 @@ $$ \begin{aligned} \mathop{ \min}_{G_1,G_2,E_1,E_2} \mathop{\max}_{D_1,D_2} & \m
 
 **MUNIT**假设每一张图像$x$都对应在所有领域共享的内容空间中的内容编码$c$和领域特有的风格空间中的风格编码$s$。
 
-**MUNIT**的学习过程包括图像重构和编码重构两部分。图像重构是指对图像$x_1,x_2$分别编码为$(c_1,s_1),(c_2,s_2)$，再解码为重构图像$\hat{x}_1,\hat{x}_2$，并最终构造两者的**L1**重构损失。编码重构是指对图像$x_1,x_2$分别编码为$(c_1,s_1),(c_2,s_2)$，然后重组编码$(c_1,s_2),(c_2,s_1)$，并解码为迁移风格的图像$x_{1 \to 2},x_{2 \to 1}$，然后再将其分别编码为$(\hat{c}_1,\hat{s}_2),(\hat{c}_2,\hat{s}_1)$，并最终构造编码的**L1**重构损失。此外，对图像$x_1,x_2$和迁移图像$x_{1 \to 2},x_{2 \to 1}$应用对抗损失。
+**MUNIT**的学习过程包括图像重构和编码重构两部分。图像重构是指对图像$x_1,x_2$分别编码为$(c_1,s_1),(c_2,s_2)$，再解码为重构图像$$\hat{x}_1,\hat{x}_2$$，并最终构造两者的**L1**重构损失。编码重构是指对图像$x_1,x_2$分别编码为$(c_1,s_1),(c_2,s_2)$，然后重组编码$(c_1,s_2),(c_2,s_1)$，并解码为迁移风格的图像$$x_{1 \to 2},x_{2 \to 1}$$，然后再将其分别编码为$$(\hat{c}_1,\hat{s}_2),(\hat{c}_2,\hat{s}_1)$$，并最终构造编码的**L1**重构损失。此外，对图像$x_1,x_2$和迁移图像$$x_{1 \to 2},x_{2 \to 1}$$应用对抗损失。
 
 $$ \begin{aligned} \mathop{ \min}_{G_1,G_2,E_1,E_2} \mathop{\max}_{D_1,D_2} &\mathcal{L}_{\text{GAN}}^{x_1} + \mathcal{L}_{\text{GAN}}^{x_2} + \lambda_x(\mathcal{L}_{\text{recon}}^{x_1}+\mathcal{L}_{\text{recon}}^{x_2}) \\ & + \lambda_c(\mathcal{L}_{\text{recon}}^{c_1}+\mathcal{L}_{\text{recon}}^{c_2})+ \lambda_s(\mathcal{L}_{\text{recon}}^{s_1}+\mathcal{L}_{\text{recon}}^{s_2}) \end{aligned} $$
 
@@ -156,6 +163,31 @@ $$ \begin{aligned} \mathop{ \min}_{F,E,G} \mathop{\max}_{D} & \mathcal{L}_{\text
 
 
 
+
+# 17. GauGAN
+**GauGAN**给定一张绘制图像和一张实际图像，希望能够生成具有真实图像风格的绘制图像：
+
+![](https://pic.downk.cc/item/5ed86e88c2a9a83be5c47fae.jpg)
+
+网络结构如下图所示，其主要步骤如下：
+1. 对输入的实际图像进行编码，产生均值和方差，用来构建噪声分别；
+2. 生成器接收输入的绘制图像和采样噪声，用来生成图像；
+3. 判别器判断实际图像与生成图像，以及生成图像是否与绘制图像相似。
+
+![](https://pic.downk.cc/item/5ed86cd4c2a9a83be5c1735e.jpg)
+
+网络还提出了一种新的Normalization方法：**SPADE**，在标准化过程中引入绘制图像：
+
+![](https://pic.downk.cc/item/5ed86c8fc2a9a83be5c0f2eb.jpg)
+
+
+
+# 19. NICE-GAN
+**NICE-GAN**提出了一种不显式的使用生成器的方法，而是使用判别器的前半部分作为生成器：
+
+![](https://pic.downk.cc/item/5ed8710fc2a9a83be5c85b3e.jpg)
+
+
 # ⚪ 参考文献
 
 - [<font color=Blue>Coupled Generative Adversarial Networks</font>](https://0809zheng.github.io/2022/03/08/cogan.html)：(arXiv1606)CoGAN：耦合生成对抗网络。
@@ -169,6 +201,7 @@ $$ \begin{aligned} \mathop{ \min}_{F,E,G} \mathop{\max}_{D} & \mathcal{L}_{\text
 - [<font color=Blue>StarGAN: Unified Generative Adversarial Networks for Multi-Domain Image-to-Image Translation</font>](https://0809zheng.github.io/2022/03/19/stargan.html)：(arXiv1711)StarGAN：统一的多领域图像翻译框架。
 - [<font color=Blue>Multimodal Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/04/26/munit.html)：(arXiv1804)MUNIT：多模态无监督图像到图像翻译网络。
 - [<font color=Blue>StarGAN v2: Diverse Image Synthesis for Multiple Domains</font>](https://0809zheng.github.io/2022/03/20/starganv2.html)：(arXiv1912)StarGAN v2：多领域多样性图像合成。
+- [<font color=Blue>GANILLA: Generative Adversarial Networks for Image to Illustration Translation</font>](https://0809zheng.github.io/2022/04/29/ganilla.html)：(arXiv2002)GANILLA：把图像转换为儿童绘本风格。
 - [<font color=Blue>Rethinking the Truly Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/04/28/tunit.html)：(arXiv2006)TUNIT：完全无监督图像到图像翻译。
 - [<font color=Blue>High-Resolution Photorealistic Image Translation in Real-Time: A Laplacian Pyramid Translation Network</font>](https://0809zheng.github.io/2022/04/27/lptn.html)：(arXiv2105)LPTN：高分辨率真实感实时图像翻译。
 
