@@ -14,8 +14,8 @@ tags: 深度学习
 计算机视觉领域的图像到图像翻译问题有许多表现形式，如白天到黑夜的图像转换、黑白照到彩色照的转换、梵高风格化等；这些应用基本都是通过[生成对抗网络](https://0809zheng.github.io/2022/02/01/gan.html)实现的。
 
 根据是否提供了一对一的学习样本对，将图像到图像翻译任务划分为**有配对数据(paired data)**和**无配对数据(unpaired data)**两种情况。
-- 有配对数据是指在训练数据集中具有一对一的数据对。代表方法有**Pix2Pix**, **BicycleGAN**, **LPTN**。
-- 无配对数据是指模型在两个独立的数据集之间训练，能够从两个集合中自动地发现集合之间的关联，从而学习出映射函数。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**。
+- 有配对数据(监督图像翻译)是指在训练数据集中具有一对一的数据对；即给定联合分布$p(X,Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**Pix2Pix**, **BicycleGAN**, **LPTN**。
+- 无配对数据(无监督图像翻译)是指模型在多个独立的数据集之间训练，能够从多个数据集合中自动地发现集合之间的关联，从而学习出映射函数；即给定边缘分布$p(X)$和$p(Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**。
 
 
 
@@ -98,13 +98,6 @@ $$ \begin{aligned}  \mathop{\max}_{||D_X||_L\leq 1,||D_Y||_L\leq 1} & \Bbb{E}_{y
 
 ![](https://pic1.imgdb.cn/item/6353529516f2c2beb104842d.jpg)
 
-### ⚪ [<font color=Blue>GANILLA</font>](https://0809zheng.github.io/2022/04/29/ganilla.html)
-
-**GANNILLA**是一种从自然图像到儿童读物插画的图像翻译模型，其主体结构与**CycleGAN**, **DualGAN**, **DiscoGAN**等类似，作者重新设计了生成器的网络结构，能够在保留输入图像内容的同时迁移风格。**GANNILLA**的生成器采用非对称结构，使用带有拼接连接的残差层，并使用上采样算子代替转置卷积层。
-
-![](https://pic.imgdb.cn/item/63988cdab1fccdcd36c12d91.jpg)
-
-
 
 ### ⚪ [<font color=Blue>UNIT</font>](https://0809zheng.github.io/2022/03/21/unit.html)
 
@@ -160,32 +153,19 @@ $$ \begin{aligned} \mathop{ \min}_{F,E,G} \mathop{\max}_{D} & \mathcal{L}_{\text
 ![](https://pic1.imgdb.cn/item/6353d5c516f2c2beb1d54563.jpg)
 
 
+### ⚪ [<font color=Blue>GANILLA</font>](https://0809zheng.github.io/2022/04/29/ganilla.html)
 
+**GANNILLA**是一种从自然图像到儿童读物插画的图像翻译模型，其主体结构与**CycleGAN**, **DualGAN**, **DiscoGAN**等类似，作者重新设计了生成器的网络结构，能够在保留输入图像内容的同时迁移风格。**GANNILLA**的生成器采用非对称结构，使用带有拼接连接的残差层，并使用上采样算子代替转置卷积层。
 
+![](https://pic.imgdb.cn/item/63988cdab1fccdcd36c12d91.jpg)
 
+### ⚪ [<font color=Blue>NICE-GAN</font>](https://0809zheng.github.io/2022/05/17/nicegan.html)
 
-# 17. GauGAN
-**GauGAN**给定一张绘制图像和一张实际图像，希望能够生成具有真实图像风格的绘制图像：
+**NICE-GAN**通过把判别器的一部分重用为编码器，实现紧凑的网络结构设计。具体地，把判别器$D$拆分成编码器$E^D$和分类器$C^D$；训练流程与**CycleGAN**类似，训练两个生成器和两个判别器；生成器损失函数包括对抗损失(**LSGAN**)、**L1**循环一致性损失和**L1**重构损失；判别器的损失函数为对抗损失(**LSGAN**)。
 
-![](https://pic.downk.cc/item/5ed86e88c2a9a83be5c47fae.jpg)
+$$ \begin{aligned}  \mathop{\min}_{D_X=E_X\circ C_X,D_Y=E_Y\circ C_Y} & \Bbb{E}_{y \text{~} P_{data}(y)}[(D_Y(y)-1)^2] + \Bbb{E}_{x \text{~} P_{data}(x)}[(D_Y(G_{X \to Y}(E_X(x))))^2] \\ &+  \Bbb{E}_{x \text{~} P_{data}(x)}[(D_X(x)-1)^2] + \Bbb{E}_{y \text{~} P_{data}(y)}[(D_X(G_{Y \to X}(E_Y(y))))^2] \\ \mathop{ \min}_{G_{X \to Y},G_{Y \to X}} & \Bbb{E}_{x \text{~} P_{data}(x)}[(D_Y(G_{X \to Y}(E_X(x)))-1)^2]+\Bbb{E}_{y \text{~} P_{data}(y)}[(D_X(G_{Y \to X}(E_Y(y)))-1)^2] \\ &+ \Bbb{E}_{x \text{~} P_{data}(x)}[||G_{Y \to X}(E_Y(G_{X \to Y}(E_X(x))))-x||_1] \\ &+ \Bbb{E}_{y \text{~} P_{data}(y)}[||G_{X \to Y}(E_X(G_{Y \to X}(E_Y(y))))-y||_1] \\ &+ \Bbb{E}_{x \text{~} P_{data}(x)}[||G_{Y \to X}(E_X(x))-x||_1] \\ &+ \Bbb{E}_{y \text{~} P_{data}(y)}[||G_{X \to Y}(E_Y(y))-y||_1] \end{aligned} $$
 
-网络结构如下图所示，其主要步骤如下：
-1. 对输入的实际图像进行编码，产生均值和方差，用来构建噪声分别；
-2. 生成器接收输入的绘制图像和采样噪声，用来生成图像；
-3. 判别器判断实际图像与生成图像，以及生成图像是否与绘制图像相似。
-
-![](https://pic.downk.cc/item/5ed86cd4c2a9a83be5c1735e.jpg)
-
-网络还提出了一种新的Normalization方法：**SPADE**，在标准化过程中引入绘制图像：
-
-![](https://pic.downk.cc/item/5ed86c8fc2a9a83be5c0f2eb.jpg)
-
-
-
-# 19. NICE-GAN
-**NICE-GAN**提出了一种不显式的使用生成器的方法，而是使用判别器的前半部分作为生成器：
-
-![](https://pic.downk.cc/item/5ed8710fc2a9a83be5c85b3e.jpg)
+![](https://pic.imgdb.cn/item/63998f25b1fccdcd364ecf5b.jpg)
 
 
 # ⚪ 参考文献
@@ -202,6 +182,7 @@ $$ \begin{aligned} \mathop{ \min}_{F,E,G} \mathop{\max}_{D} & \mathcal{L}_{\text
 - [<font color=Blue>Multimodal Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/04/26/munit.html)：(arXiv1804)MUNIT：多模态无监督图像到图像翻译网络。
 - [<font color=Blue>StarGAN v2: Diverse Image Synthesis for Multiple Domains</font>](https://0809zheng.github.io/2022/03/20/starganv2.html)：(arXiv1912)StarGAN v2：多领域多样性图像合成。
 - [<font color=Blue>GANILLA: Generative Adversarial Networks for Image to Illustration Translation</font>](https://0809zheng.github.io/2022/04/29/ganilla.html)：(arXiv2002)GANILLA：把图像转换为儿童绘本风格。
+- [<font color=Blue>Reusing Discriminators for Encoding: Towards Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/05/17/nicegan.html)：(arXiv2003)NICE-GAN: 把判别器重用为编码器的图像翻译模型。
 - [<font color=Blue>Rethinking the Truly Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/04/28/tunit.html)：(arXiv2006)TUNIT：完全无监督图像到图像翻译。
 - [<font color=Blue>High-Resolution Photorealistic Image Translation in Real-Time: A Laplacian Pyramid Translation Network</font>](https://0809zheng.github.io/2022/04/27/lptn.html)：(arXiv2105)LPTN：高分辨率真实感实时图像翻译。
 
