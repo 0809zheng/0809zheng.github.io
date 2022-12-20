@@ -47,8 +47,12 @@ tags: 机器学习
 **回归(Regression)**的输出是连续值，范围为整个实数空间或其中一部分空间。
 - [<font color=Blue>线性回归 LR</font>](https://0809zheng.github.io/2020/03/12/regression.html)：线性回归, 广义线性模型, 非线性回归
 - [<font color=Blue>正则化的线性回归</font>](https://0809zheng.github.io/2020/03/30/ridge.html)：岭回归, 核岭回归, **LASSO**回归
+- [<font color=Blue>前向逐步回归 SR</font>](https://0809zheng.github.io/2020/04/04/stagewise.html)：贪心地逐步试探每个回归参数
+- [<font color=Blue>局部加权线性回归 LWLR</font>](https://0809zheng.github.io/2020/03/31/lwlr.html)：为每个训练样本赋予不同权重
+- [<font color=Blue>偏最小二乘回归 PLS</font>](https://0809zheng.github.io/2020/04/05/pls.html)：构造互不相关且与标签相关的特征
 - [<font color=Blue>Tube回归</font>](https://0809zheng.github.io/2020/03/29/tube.html)：引入中立区的线性回归
 - [<font color=Blue>支持向量回归 SVR</font>](https://0809zheng.github.io/2020/03/15/support-vector-regression.html)：引入支持向量的**Tube**回归
+
 
 ## (2)分类
 **分类(Classification)**的输出是离散值，把输入样本划分为有限个类别。
