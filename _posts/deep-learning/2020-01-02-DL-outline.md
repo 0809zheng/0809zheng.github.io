@@ -23,7 +23,7 @@ tags: 深度学习
 5. 其他类型的网络：
 - 深度学习的基本组件和方法技巧
 1. 深度学习的基本组件：激活函数、优化方法
-2. 深度学习的方法技巧：长尾分布、多任务学习
+2. 深度学习的方法技巧：长尾分布、多任务学习、主动学习
 - 深度学习的应用
 1. 计算机视觉：图像超分辨率、时空动作检测
 2. 自然语言处理：
@@ -115,9 +115,17 @@ $$ p_{\theta}(x) = \int p_{\theta}(x,z) dz = \int p_{\theta}(x|z)p(z) dz  $$
 
 的本质，就是希望用一个我们知道的概率模型来拟合所给的数据样本，也就是说，我们得写出一个带参数θ的分布qθ(x)。然而，我们的神经网络只是“万能函数拟合器”，却不是“万能分布拟合器”，也就是它原则上能拟合任意函数，但不能随意拟合一个概率分布，因为概率分布有“非负”和“归一化”的要求。这样一来，我们能直接写出来的只有离散型的分布，或者是连续型的高斯分布。
 
-### ⚪ [生成对抗网络](https://0809zheng.github.io/2020/05/18/generative-adversarial-network.html)
+### ⚪ [<font color=Blue>生成对抗网络 (Generative Adversarial Network)</font>](https://0809zheng.github.io/2022/02/01/gan.html)
 
-GAN则是通过一个交替训练的方法绕开了这个困难，确实保留了模型的精确性，所以它才能有如此好的生成效果。但不管怎么样，GAN也不能说处处让人满意了，所以探索别的解决方法是有意义的。
+**生成对抗网络**通过交替优化的对抗训练绕开了似然的直接求解，使用生成器$G$构造真实分布的近似分布$$P_G(x)$$，并使用判别器衡量生成分布和真实分布之间的差异。
+
+$$ \begin{aligned} \mathop{ \min}_{G} \mathop{\max}_{D}  \Bbb{E}_{x \text{~} P_{data}(x)}[\log D(x)] + \Bbb{E}_{x \text{~} P_{G}(x)}[\log(1-D(x))] \end{aligned} $$
+
+生成对抗网络的设计是集目标函数、网络结构、优化过程于一体的，**GAN**的各种变体也是基于对这些方面的改进：
+- 改进目标函数：基于分布散度(如**f-GAN**, **BGAN**, **Softmax GAN**, **RGAN**, **LSGAN**, **WGAN-div**, **GAN-QP**, **Designing GAN**)、基于积分概率度量(如**WGAN**, **WGAN-GP**, **DRAGAN**, **SN-GAN**, **GN-GAN**, **GraN-GAN**, **c-transform**, **McGAN**, **MMD GAN**, **Fisher GAN**)
+- 改进网络结构：调整神经网络(如**DCGAN**, **SAGAN**, **BigGAN**, **Self-Modulation**, **StyleGAN1,2,3**, **TransGAN**)、引入编码器(如**VAE-GAN**, **BiGAN**, **VQGAN**)、使用能量模型(如**EBGAN**, **LSGAN**, **BEGAN**, **MAGAN**, **MEG**)、由粗到细的生成(如**LAPGAN**, **StackGAN**, **PGGAN**, **SinGAN**)
+- 改进优化过程：**TTUR**, **Dirac-GAN**, **Cascading Rejection**, **ADA**, **Hubness Prior**
+- 其他应用：条件生成(如**CGAN**, **InfoGAN**, **ACGAN**, **Projection Discriminator**)、[<font color=Blue>图像到图像翻译</font>](https://0809zheng.github.io/2020/05/23/image_translation.html)(有配对数据, 如**Pix2Pix**, **BicycleGAN**, **LPTN**; 无配对数据, 如**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**)、超分辨率(如**SRGAN**, **ESRGAN**)、图像修补(如**Context Encoder**, **CCGAN**, **SPADE**)、机器学习应用(如**Semi-Supervised GAN**, **AnoGAN**, **ClusterGAN**)
 
 ### ⚪ [<font color=Blue>变分自编码器 (Variational Autoencoder)</font>](https://0809zheng.github.io/2022/04/01/vae.html)
 
@@ -131,7 +139,7 @@ $$  \log p_{\theta}(x)  \geq \mathbb{E}_{z \text{~} q_{\phi}(z|x)} [\log p_{\the
 - 先验分布$p(z)$：先验分布描绘了隐变量分布的隐空间；一种改进思路是通过引入标签实现半监督学习(如**CVAE**, **CMMA**)；一种改进思路是通过对隐变量离散化实现聚类或分层特征表示(如**Categorical VAE**, **Joint VAE**, **VQ-VAE**, **VQ-VAE-2**)；一种改进思路是更换隐变量的概率分布形式(如**Hyperspherical VAE**, **TD-VAE**, **f-VAE**, **NVAE**)。
 - 生成分布$p(x\|z)$：生成分布代表模型的数据重构能力；一种改进思路是将均方误差损失替换为其他损失(如**EL-VAE**, **DFCVAE**, **LogCosh VAE**)。
 - 改进整体损失函数：也有方法通过调整整体损失改进模型，如紧凑变分下界(如**IWAE**, **MIWAE**)或引入**Wasserstein**距离(如**WAE**, **SWAE**)。
-- 改进模型结构：如**BN-VAE**通过引入**BatchNorm**缓解**KL**散度消失问题。
+- 改进模型结构：如**BN-VAE**通过引入**BatchNorm**缓解**KL**散度消失问题；引入对抗训练(如**AAE**, **VAE-GAN**)。
 
 ### ⚪ [<font color=Blue>流模型 (Flow-based Model)</font>](https://0809zheng.github.io/2022/05/01/flow.html)
 
@@ -150,8 +158,9 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 
 ### ⚪ [扩散模型]()
 
+### ⚪ 其他生成网络
 
-
+[Generative Moment Matching Network](https://0809zheng.github.io/2022/03/27/gmmn.html)
 
   
 ## (4) 其他类型的神经网络
@@ -166,7 +175,7 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 ### ⚪ [<font color=Blue>激活函数 (Activation Function)</font>](https://0809zheng.github.io/2020/03/01/activation.html)
 **激活函数**能为神经网络引入非线性，常见的激活函数根据设计思路分类如下：
 - **S**型激活函数：形如**S**型曲线的激活函数。包括**Step**，**Sigmoid**，**HardSigmoid**，**Tanh**，**HardTanh**
-- **ReLU**族激活函数：形如**ReLU**的激活函数。包括**ReLU**，**Softplus**，**ReLU6**，**LeakyReLU**，**PReLU**，**RReLU**，**ELU**，**GELU**，**CELU**，**SELU**
+- **ReLU**族激活函数：形如**ReLU**的激活函数。包括**ReLU**，**Softplus**, **Squareplus**，**ReLU6**，**LeakyReLU**，**PReLU**，**RReLU**，**ELU**，**GELU**，**CELU**，**SELU**
 - 自动搜索激活函数：通过自动搜索解空间得到的激活函数。包括**Swish**，**HardSwish**，**Elish**，**HardElish**，**Mish**
 - 基于梯度的激活函数：通过梯度下降为每个神经元学习独立函数。包括**APL**，**PAU**，**ACON**，**PWLU**，**OPAU**，**SAU**，**SMU**
 - 基于上下文的激活函数：多输入单输出函数，输入上下文信息。包括**maxout**，**Dynamic ReLU**，**Dynamic Shift-Max**，**FReLU**
@@ -211,9 +220,18 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - **硬参数共享 (Hard Parameter Sharing)**：模型的主体部分共享参数，输出结构任务独立。如**Multilinear Relationship Network**, **Fully-adaptive Feature Sharing**。
 - **软参数共享 (Soft Parameter Sharing)**：不同任务采用独立模型，模型参数彼此约束。如**Cross-Stitch Network**, **Sluice Network**, **Multi-Task Attention Network**。
 
-多任务学习将多个相关的任务共同训练，其总损失函数是每个任务的损失函数的加权求和式：$$\mathcal{L}_{total} = \sum_{k}^{} w_k\mathcal{L}_k$$。多任务学习的目的是寻找模型参数$\theta$的**帕累托最优解**，因此需要设置合适的任务权重。一些权重自动设置方法包括**Uncertainty**, **Gradient Normalization**, **Dynamic Weight Average**, **Multi-Objective Optimization**, **Dynamic Task Prioritization**, **Loss-Balanced Task Weighting**
+多任务学习将多个相关的任务共同训练，其总损失函数是每个任务的损失函数的加权求和式：$$\mathcal{L}_{total} = \sum_{k}^{} w_k\mathcal{L}_k$$。多任务学习的目的是寻找模型参数的**帕累托最优解**，因此需要设置合适的任务权重。一些权重自动设置方法包括**Uncertainty**, **Gradient Normalization**, **Dynamic Weight Average**, **Multi-Objective Optimization**, **Dynamic Task Prioritization**, **Loss-Balanced Task Weighting**
 
-### ⚪ 
+### ⚪ [<font color=Blue>主动学习 (Active Learning)</font>](https://0809zheng.github.io/2022/08/01/activelearning.html)
+
+**主动学习**是指从未标注数据中只选择一小部分样本进行标注和训练来降低标注成本。深度主动学习最常见的场景是基于**池**(**pool-based**)的主动学习，即从大量未标注的数据样本中迭代地选择最“有价值”的数据，直到性能达到指定要求或标注预算耗尽；选择最“有价值”的数据的过程被称为**采样策略**。
+
+深度主动学习方法可以根据不同的**采样策略**进行分类：
+- **不确定性采样 (uncertainty sampling)**：选择使得模型预测的不确定性最大的样本。不确定性的衡量可以通过机器学习方法(如**entropy**)、**QBC**方法(如**voter entropy**, **consensus entropy**)、贝叶斯神经网络(如**BALD**, **bayes-by-backprop**)、对抗生成(如**GAAL**, **BGADL**)、对抗攻击(如**DFAL**)、损失预测(如**LPL**)、标签预测(如**forgetable event**, **CEAL**)
+- **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**, **Cluster-Margin**)、判别学习(如**VAAL**, **CAL**, **DAL**)
+- **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BatchBALD**, **BADGS**, **Active DPP**, **VAAL**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
+
+### 
 
 - [深度学习的可解释性](https://0809zheng.github.io/2020/04/28/explainable-DL.html)
 - [对抗攻击](https://0809zheng.github.io/2020/04/30/adversarial-attack.html)：[图像分类中的对抗攻击](https://0809zheng.github.io/2020/07/26/adversirial_attack_in_classification.html)、[目标检测中的对抗攻击](https://0809zheng.github.io/2020/07/25/adversirial_attack_in_object_detection.html)
@@ -253,7 +271,7 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - **单次上采样(Single upsampling)**：先通过卷积网络提取丰富的特征，再通过预定义或可学习的单次上采样增加分辨率，如**FSRCNN**, **ESPCN**, **EDSR**, **RCAN**, **SAN**。
 - **渐进上采样(Progressive upsampling)**：通过多次上采样逐渐增加分辨率，如**LapSRN**。
 - **循环采样(Iterative up and downsampling)**：循环地进行上采样和下采样，增加丰富的特征信息，如**DBPN**, **DRN**。
-- 其他结构：如**SRGAN**引入生成对抗网络；**LIIF**学习二维图像的连续表达形式。
+- 其他结构：如**SRGAN**, **ESRGAN**引入生成对抗网络；**LIIF**学习二维图像的连续表达形式。
 
 图像超分辨率的评估指标主要包括峰值信噪比**PSNR**和结构相似度**SSIM**。
 
