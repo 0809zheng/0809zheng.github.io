@@ -17,15 +17,15 @@ tags: 深度学习
 
 **本文目录**：
 1. 图像识别模型
-2. 图像识别数据集
+2. 图像识别基准
 
 # 1. 图像识别模型
 
 本节主要介绍应用于图像识别任务的**卷积神经网络**，按照其结构发展概述如下：
-1. 早期探索：奠定“卷积层-下采样层-全连接层”的拓扑结构。如
-2. 深度化：增加堆叠卷积层的数量。如
-3. 模块化：设计用于堆叠的网络模块。如
-4. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级(LightWeight)卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
+1. 早期探索：奠定“卷积层-下采样层-全连接层”的拓扑结构。如**LeNet5**, **AlexNet**, **ZFNet**, **NIN**, **VGGNet**
+2. 深度化：增加堆叠卷积层的数量。如**Highway Network**, **ResNet**, **Stochastic Depth**, **DenseNet**, **Pyramidal ResNet**
+3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**
+4. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
 
 ## (1) 早期探索
 
@@ -180,9 +180,9 @@ $$ y=H(x) \cdot T(x) + x \cdot(1-T(x)) $$
 
 
 
-# 2. 图像识别模型
+# 2. 图像识别基准
 
-常见的图像识别模型有**MNIST**, **CIFAR**, **Places2**, **Cats vs Dogs**, **ImageNet**, **PASCAL VOC**.
+常见的图像识别基准有**MNIST**, **CIFAR**, **Places2**, **Cats vs Dogs**, **ImageNet**, **PASCAL VOC**.
 
 ### (1) MNIST（Mixed National Institute of Standards and Technology）
 [MNIST](http://yann.lecun.com/exdb/mnist/)是由纽约大学的**Yann LeCun**整理的手写数字识别数据集。其训练集包含$60000$张图像，测试集包含$10000$张图像，每张图像都进行了尺度归一化和数字居中处理，固定尺寸大小为$28×28$。
@@ -207,6 +207,8 @@ $$ y=H(x) \cdot T(x) + x \cdot(1-T(x)) $$
 [ImageNet](http://www.image-net.org/)是斯坦福大学的计算机科学家李飞飞建立的目前世界上最大的图像识别数据库之一，目前已经包含**14197122**张图像，**21841**个类别。
 
 基于**ImageNet**举办的**ILSVRC（ImageNet Large-Scale Visual Recognition Challenge）**比赛是图像识别领域最重要的赛事，催生出一系列著名的卷积神经网络。该比赛使用的数据集是**ImageNet**的一个子集，总共有$1000$类，每类大约有$1000$张图像。具体地，有大约$120$万张训练图像，$5$万张验证图像，$15$万张测试图像。
+
+![](https://pic.downk.cc/item/5eba62edc2a9a83be59d07b6.jpg)
 
 ### (6) PASCAL VOC
 [PASCAL VOC](http://pjreddie.com/projects/pascal-voc-dataset-mirror/)数据集是一个视觉对象的分类识别和检测的基准测试集，提供了检测算法和学习性能的标准图像注释数据集和标准的评估系统。该数据集包含**VOC2007**（$430M$）、**VOC2012**（$1.9G$）两个下载版本。
