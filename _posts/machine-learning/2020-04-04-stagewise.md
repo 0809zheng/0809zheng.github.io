@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Stagewise Regression：前向逐步回归'
+title: '前向逐步回归(Stagewise Regression)'
 date: 2020-04-04
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/639efdc4b1fccdcd36af0918.jpg'
