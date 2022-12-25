@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Naive Bayes：朴素贝叶斯'
+title: '朴素贝叶斯(Naive Bayes)'
 date: 2020-03-28
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/63a1c411b1fccdcd362183e2.jpg'
