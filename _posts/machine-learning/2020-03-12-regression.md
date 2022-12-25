@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Linear Regression：线性回归'
+title: '线性回归(Linear Regression)'
 date: 2020-03-12
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ed758f4c2a9a83be54c0e00.jpg'
