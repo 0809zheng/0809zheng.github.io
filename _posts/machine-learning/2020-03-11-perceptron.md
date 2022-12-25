@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Perceptron：感知机'
+title: '感知机(Perceptron)'
 date: 2020-03-11
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5eca7715c2a9a83be521b412.jpg'
@@ -51,15 +51,11 @@ $$ \mathop{\min}_{w,b} \quad \sum_{y_i ≠ \text{sign}(w^Tx_i+b)}^{} {-y_i(w^Tx_
 
 对目标函数求梯度，得：
 
-$$ \frac{\partial L(w,b)}{\partial w} = \sum_{y_i ≠ \text{sign}(w^Tx_i+b)}^{} {-y_ix_i} $$
-
-$$ \frac{\partial L(w,b)}{\partial b} = \sum_{y_i ≠ \text{sign}(w^Tx_i+b)}^{} {-y_i} $$
+$$ \begin{aligned} \frac{\partial L(w,b)}{\partial w} &= \sum_{y_i ≠ \text{sign}(w^Tx_i+b)}^{} {-y_ix_i} \\ \frac{\partial L(w,b)}{\partial b} &= \sum_{y_i ≠ \text{sign}(w^Tx_i+b)}^{} {-y_i} \end{aligned} $$
 
 使用随机梯度下降的方法（设学习率为$1$），每次选择一个被错误分类的点$(x_i,y_i)$，可得参数更新公式：
 
-$$ w^{(t+1)} = w^{(t)} + y_ix_i $$
-
-$$ b^{(t+1)} = b^{(t)} + y_i $$
+$$ \begin{aligned} w^{(t+1)} &= w^{(t)} + y_ix_i \\ b^{(t+1)} &= b^{(t)} + y_i \end{aligned} $$
 
 参数更新的**几何解释**：对于被错误分类的点，
 - 若为正样本，则参数$w$和数据$x$夹角大于90°（内积为负），此时对$w$加上$x$来更新参数；
@@ -72,28 +68,26 @@ $$ b^{(t+1)} = b^{(t)} + y_i $$
 # 3. 算法的对偶形式
 若假设PLA算法的初值选择$w^{(0)}=0$，$b^{(0)}=0$，经过循环后参数更新为：
 
-$$ w = \sum_{i=1}^{N} {α_iy_ix_i} $$
-
-$$ b = \sum_{i=1}^{N} {α_iy_i} $$
+$$ \begin{aligned} w &= \sum_{i=1}^{N} {α_iy_ix_i} \\ b &= \sum_{i=1}^{N} {α_iy_i} \end{aligned} $$
 
 其中$α_i$表示第$i$个样本点在更新中被错误分类的次数。
 
 由于在训练中，对于样本点$(x_j,y_j)$，需要判断其是否被分类错误，即计算：
 
-$$ \text{sign}(w^Tx_j+b) = \text{sign}(\sum_{i=1}^{N} {α_iy_ix_i^Tx_j}) + \sum_{i=1}^{N} {α_iy_i} $$
+$$ \text{sign}(w^Tx_j+b) = \text{sign}(\sum_{i=1}^{N} {α_iy_ix_i^Tx_j} + \sum_{i=1}^{N} {α_iy_i}) $$
 
 在训练前可以预先存储数据集的**Gram矩阵**$$G=[x_i^Tx_j]_{N×N}$$，从而减少不必要的重复计算。
 
 # 4. 算法的收敛性
 当样本集**线性可分（linear separable）**时，感知机学习算法收敛。但解不唯一，取决于初值的选择和错误分类点的选择顺序。
 
-**Novikoff定理**：若训练集线性可分，则：
+⚪ **Novikoff定理**：若训练集线性可分，则：
 1. 存在一个超平面${\hat{w}}^Tx=0$能将正负样本完全分开；
 2. 若记$R=\max \|\| x_i \|\|$,$ρ=\min y_i{\hat{w}}^Tx_i$,则算法的迭代次数$T$满足：
 
 $$ T ≤ \frac{R^2}{ρ^2} $$
 
-证明：
+**证明：**
 
 记第$t$次更新时参数为$w^{(t)}$，选择被错误分类的点$(x_i,y_i)$更新参数：
 
@@ -107,11 +101,11 @@ $$ w^{(t+1)} = w^{(t)} + y_ix_i $$
 
 计算更新后参数$w^{(t+1)}$与最优值$\hat{w}$的内积：
 
-$$ \hat{w}^Tw^{(t+1)} = \hat{w}^T(w^{(t)} + y_ix_i) \\ = \hat{w}^Tw^{(t)} + y_i\hat{w}^Tx_i \\ ≥ \hat{w}^Tw^{(t)} + \min y_i{\hat{w}}^Tx_i \\ = \hat{w}^Tw^{(t)} + ρ $$
+$$ \begin{aligned} \hat{w}^Tw^{(t+1)} &= \hat{w}^T(w^{(t)} + y_ix_i) \\ &= \hat{w}^Tw^{(t)} + y_i\hat{w}^Tx_i \\ &≥ \hat{w}^Tw^{(t)} + \min y_i{\hat{w}}^Tx_i \\ &= \hat{w}^Tw^{(t)} + ρ \end{aligned} $$
 
 计算$w^{(t+1)}$的长度：
 
-$$ || w^{(t+1)} ||^2 = || w^{(t)} + y_ix_i ||^2 \\ = || w^{(t)} ||^2 + 2y_iw^{(t)}x_i + || y_ix_i ||^2 \\ ≤ || w^{(t)} ||^2 + || x_i ||^2 \\ ≤ || w^{(t)} ||^2 + \max || x_i ||^2 \\ = || w^{(t)} ||^2 + R^2 $$
+$$ \begin{aligned} || w^{(t+1)} ||^2 &= || w^{(t)} + y_ix_i ||^2 \\ &= || w^{(t)} ||^2 + 2y_iw^{(t)}x_i + || y_ix_i ||^2 \\ &≤ || w^{(t)} ||^2 + || x_i ||^2 \\ &≤ || w^{(t)} ||^2 + \max || x_i ||^2 \\& = || w^{(t)} ||^2 + R^2 \end{aligned} $$
 
 若经过$T$次迭代，由上面两式可以得到：
 
