@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '机器学习 概述'
+title: '机器学习(Machine Learning)概述'
 date: 2020-01-01
 author: 郑之杰
 cover: ''
@@ -42,8 +42,8 @@ tags: 机器学习
 
 ## (1) 回归
 **回归(Regression)**的输出是连续值，范围为整个实数空间或其中一部分空间。
-- [<font color=Blue>线性回归(Linear Regression)</font>](https://0809zheng.github.io/2020/03/12/regression.html)：输入特征的加权线性组合，包括求解的**最小二乘法**和**正规方程法**, 以及**广义线性模型**和**非线性回归模型**。
-- [<font color=Blue>正则化的线性回归(Ridge/LASSO Regression)</font>](https://0809zheng.github.io/2020/03/30/ridge.html)：包括引入**L2**正则化的**岭回归**/**核岭回归**, 以及引入**L1**正则化的**LASSO回归**。
+- [<font color=Blue>线性回归(Linear Regression)</font>](https://0809zheng.github.io/2020/03/12/regression.html)：输入特征的加权线性组合，包括求解的最小二乘法和正规方程法, 以及广义线性模型和非线性回归模型。
+- [<font color=Blue>正则化的线性回归(Ridge/LASSO Regression)</font>](https://0809zheng.github.io/2020/03/30/ridge.html)：包括引入**L2**正则化的岭回归/核岭回归, 以及引入**L1**正则化的**LASSO**回归。
 - [<font color=Blue>前向逐步回归(Stagewise Regression)</font>](https://0809zheng.github.io/2020/04/04/stagewise.html)：贪心地对权重的每个维度逐步试探(增大或减小一个步长)。
 - [<font color=Blue>局部加权线性回归(Local Weighted Linear Regression)</font>](https://0809zheng.github.io/2020/03/31/lwlr.html)：根据实际提供的测试样本为每个训练样本赋予不同权重后再进行回归。
 - [<font color=Blue>偏最小二乘回归(Partial Least Squares)</font>](https://0809zheng.github.io/2020/04/05/pls.html)：把训练样本的特征线性组合为互不相关且与标签相关的新特征再进行回归。
@@ -52,14 +52,12 @@ tags: 机器学习
 
 
 ## (2) 分类
-**分类(Classification)**的输出是离散值，把输入样本划分为有限个类别。
-
-- [分类任务的常用性能指标](https://0809zheng.github.io/2020/02/07/classperform.html)：准确率指标,**P-R**曲线与**F1-score**,**ROC**曲线与**AUC**,代价曲线
+**分类(Classification)**的输出是离散值，把输入样本划分为有限个类别。分类任务的[常用性能指标](https://0809zheng.github.io/2020/02/07/classperform.html)包括准确率指标,**P-R**曲线与**F1-score**,**ROC**曲线与**AUC**,代价曲线
 
 根据输出范围的取值不同，分类可以划分为**硬分类(hard classify)**和**软分类(soft classify)**：
 - **硬分类**：寻找数据空间中的一个或多个分类超平面，并把输入数据划分到某个具体的类别，输出范围是$\{0,1\}$。包括：
-1. [<font color=Blue>感知机(Perceptron)</font>](https://0809zheng.github.io/2020/03/11/perceptron.html)：根据错误分类的样本更新参数，包括线性可分数据集的**感知机学习算法(PLA)**和线性不可分数据集的**口袋(pocket)算法**。
-2. [<font color=Blue>线性判别分析(Linear Discriminant Analysis, LDA)</font>](https://0809zheng.github.io/2020/03/24/lda.html)：把样本投影到类间距离大、类内方差小的超平面上，包括**二分类LDA**, **多分类LDA**, **核LDA**。
+1. [<font color=Blue>感知机(Perceptron)</font>](https://0809zheng.github.io/2020/03/11/perceptron.html)：根据错误分类的样本更新参数，包括线性可分数据集的感知机学习算法(**PLA**)和线性不可分数据集的口袋(**pocket**)算法。
+2. [<font color=Blue>线性判别分析(Linear Discriminant Analysis, LDA)</font>](https://0809zheng.github.io/2020/03/24/lda.html)：把样本投影到类间距离大、类内方差小的超平面上，包括二分类**LDA**, 多分类**LDA**, 核**LDA**。
 3. [<font color=Blue>支持向量机(Support Vector Machine, SVM)</font>](https://0809zheng.github.io/2020/03/14/SVM.html)：寻找最大间隔分离超平面，包括线性**SVM**, 对偶**SVM**, 核**SVM**, 软间隔**SVM**, 序列最小最优化算法**SMO**, 概率**SVM**, 最小二乘**SVM**
 4. [<font color=Blue>k近邻算法(k-Nearest Neighbor, kNN)</font>](https://0809zheng.github.io/2020/03/23/knn.html)：在训练集中搜索与测试样本最邻近的$k$个样本进行多数表决。
 5. [<font color=Blue>决策树(Disicion Tree)</font>]()：对数据集进行划分的树形结构算法，递归地根据分支条件进行特征选择，包括**ID3**, **C4.5**, **CART**, 决策树的剪枝。
@@ -71,8 +69,11 @@ tags: 机器学习
 
 
 ## (3) 神经网络
-**神经网络**(**Neural Network, NN**)是一类特殊的机器学习方法，通常是由多层感知机构成的。根据其输出层激活函数的选择不同，既可以用于回归又可以用于分类。神经网络又衍生出[深度学习](https://0809zheng.github.io/2020/01/02/DL-outline.html)这一领域。一些特殊的神经网络模型如下：
-1. [前馈神经网络(多层感知机)](https://0809zheng.github.io/2020/04/17/feedforward-neural-network.html)
+**神经网络**(**Neural Network, NN**)是一类通过人工神经元的建模和连接构造的多层学习结构，又逐渐衍生出[<font color=blue>深度学习</font>](https://0809zheng.github.io/2020/01/02/DL-outline.html)这一领域。
+
+是一类特殊的机器学习方法，通常是的。根据其输出层激活函数的选择不同，既可以用于回归又可以用于分类。神经网络又一些特殊的神经网络模型如下：
+
+1. [前馈神经网络(多层感知机)](https://0809zheng.github.io/2020/04/17/feedforward-neural-network.html)由多层感知机构成
 3. [径向基函数网络](https://0809zheng.github.io/2020/04/18/rbf-network.html)
 4. [深度信念网络](https://0809zheng.github.io/2020/04/16/deep-belief-network.html)
 5. [<font color=Blue>自组织映射网络 SOM</font>](https://0809zheng.github.io/2022/01/06/SOM.html)：竞争学习型的无监督神经网络
@@ -82,9 +83,7 @@ tags: 机器学习
 
 
 # ⚪ 无监督学习
-**无监督学习(Unsupervised Learning)**是指提供给计算机的数据不再带有标签，希望从无标签的数据中学习出有效的**特征**或**表示**。
-
-常见的无监督学习方法包括**聚类**、**降维**、**异常检测**、**生成模型**。
+**无监督学习(Unsupervised Learning)**是指提供给计算机的数据不再带有标签，希望从无标签的数据中学习出有效的**特征**或**表示**。常见的无监督学习方法包括**聚类**、**降维**、**异常检测**、**生成模型**。
 
 ## (1)聚类
 **聚类(Clustering)**是将一组样本根据一定的准则划分到不同的**簇（Cluster）**，如按照数据之间的相似性把相近的数据划分为一类。
@@ -101,9 +100,10 @@ tags: 机器学习
 
 根据降维的运算是线性的还是非线性的，可分为线性降维和非线性降维。
 - **线性降维**是在高维空间中寻找一个子空间，把高维空间的数据线性映射到子空间中。线性降维可通过线性变换进行，表示为$Z=WX$，不同的线性降维无非是为线性变换矩阵$W$施加了不同的约束。
-1. [<font color=Blue>主成分分析(Principal Component Analysis, PCA)</font>](https://0809zheng.github.io/2020/04/11/PCA.html)：对归一化数据的协方差矩阵进行特征值分解，可以从(几何,线性变换,最大投影方差,最小重构代价,奇异值分解)角度理解, 还包括**主坐标分析(PCoA)**, **概率PCA**。
+1. [<font color=Blue>主成分分析(Principal Component Analysis, PCA)</font>](https://0809zheng.github.io/2020/04/11/PCA.html)：对归一化数据的协方差矩阵进行特征值分解，可以从(几何,线性变换,最大投影方差,最小重构代价,奇异值分解)角度理解, 还包括主坐标分析**(PCoA)**, 概率**PCA**。
 2. [<font color=Blue>多维缩放(Multiple Dimensional Scaling, MDS)</font>](https://0809zheng.github.io/2021/07/28/mds.html)：原始空间中样本之间的相对位置关系(距离)在低维空间得以保持。
 3. [<font color=Blue>局部保留投影(Locality Preserving Projection, LPP)</font>](https://0809zheng.github.io/2021/09/30/lpp.html)：原始空间中样本之间的局部相对位置关系(考虑$k$近邻点)在低维空间得以保持。
+4. [<font color=Blue>稀疏编码(Sparse Coding)</font>](https://0809zheng.github.io/2020/04/08/sparse-coding.html)：把输入样本表示为基向量(字典)的线性组合，通过正交匹配追逐**OMP**算法求解。
 - **非线性降维**则假设高维空间到低维空间的函数映射是非线性的。一种非线性降维方法是引入**核方法**，即先构造非线性的高维特征空间，再应用线性降维；另一种方法是**流形(manifold)学习**，即将高维空间中的流形张成一个低维空间，并保留数据的相互关系。
 1. [<font color=Blue>核主成分分析(Kernelized Principal Component Analysis, KPCA)</font>](https://0809zheng.github.io/2021/07/27/kpca.html)：先通过核方法把数据映射到高维特征空间，再通过**PCA**投影到低维空间。
 2. [<font color=Blue>等度量映射(Isometric Mapping, ISOMAP)</font>](https://0809zheng.github.io/2021/07/30/isomap.html)：原始空间中样本之间的相对位置关系(距离)在低维空间得以保持。
@@ -114,8 +114,7 @@ tags: 机器学习
 
 - **非线性降维**：
 1. [流形学习](https://0809zheng.github.io/2020/04/07/manifold.html)(LLE、LE、[t-SNE](https://0809zheng.github.io/2020/04/10/t-SNE.html))
-2. [稀疏编码](https://0809zheng.github.io/2020/04/08/sparse-coding.html)
-3. [自编码器](https://0809zheng.github.io/2020/04/09/autoencoder.html)
+2. [自编码器](https://0809zheng.github.io/2020/04/09/autoencoder.html)
 
 
 ## (3)异常检测
@@ -172,13 +171,9 @@ $$ q_{\theta}(x) = \frac{e^{-U_{\theta}(x)}}{Z_{\theta}}, Z_{\theta} = \int e^{-
 # ⚪ 集成学习
 **集成学习(Ensemble Learning)**是指构建多个子模型，并通过某种策略将它们结合起来，从而通过群体决策来提高决策准确率。
 
-若构建的子模型是同种类型的模型(如都是决策树)，则集成是**同质(homogeneous)**的，每个子模型被称为**基学习器(base learner)**，相应的学习算法称为**基学习算法(base learning algorithm)**。
+若构建的子模型是同种类型的模型(如都是决策树)，则集成是**同质(homogeneous)**的，每个子模型被称为**基学习器(base learner)**，相应的学习算法称为**基学习算法(base learning algorithm)**。若构建的子模型是不同类型的模型，则集成是**异质(heterogenous)**的，每个子模型被称为**组件学习器(component learner)**。
 
-若构建的子模型是不同类型的模型，则集成是**异质(heterogenous)**的，每个子模型被称为**组件学习器(component learner)**。
-
-通常希望构建的子模型具有一定的**准确率**(至少不差于**弱学习器**,即泛化性能略优于随机猜测的学习器)，又具有一定的**多样性**(即不同子模型之间具有一定的差异)。[<font color=Blue>多样性(Diversity)</font>](https://0809zheng.github.io/2021/07/21/diversity.html)衡量子模型之间的两两不相似性，可通过在学习过程中引入随机性以增强多样性。
-
-[<font color=Blue>误差-分歧分解(Error-Ambiguity Decomposition)</font>](https://0809zheng.github.io/2020/03/16/blending.html)指出，集成学习中集成模型的泛化误差$E$是由子模型的平均泛化误差$\overline{E}$和子模型的分歧$\overline{A}$共同决定的：
+通常希望构建的子模型具有一定的**准确率**(至少不差于**弱学习器**,即泛化性能略优于随机猜测的学习器)，又具有一定的**多样性**(即不同子模型之间具有一定的差异)。[<font color=Blue>多样性(Diversity)</font>](https://0809zheng.github.io/2021/07/21/diversity.html)衡量子模型之间的两两不相似性，可通过在学习过程中引入随机性以增强多样性。[<font color=Blue>误差-分歧分解(Error-Ambiguity Decomposition)</font>](https://0809zheng.github.io/2020/03/16/blending.html)指出，集成学习中集成模型的泛化误差$E$是由子模型的平均泛化误差$\overline{E}$和子模型的分歧$\overline{A}$共同决定的：
 
 $$ E= \overline{E}-\overline{A} $$
 
@@ -188,8 +183,8 @@ $$ E= \overline{E}-\overline{A} $$
 2. [<font color=Blue>Bagging</font>](https://0809zheng.github.io/2020/03/17/bagging.html)：通过**bootstrapping**方法从训练集中采样若干子集，在每个子集上训练子模型。
 3. [<font color=Blue>随机森林(Random Forest)</font>](https://0809zheng.github.io/2020/03/20/random-forest.html)：以决策树为基学习器构造**Bagging**模型，训练过程中引入随机子空间算法。
 - **序列化**集成方法：子模型之间存在强依赖关系，必须串行生成，主要关注降低**偏差**。如：
-1. [<font color=Blue>Boosting</font>](https://0809zheng.github.io/2020/03/18/boosting.html)：**自适应提升(AdaBoost)**通过为样本权重重新赋值训练子模型；**梯度提升(Gradient Boosting)**使用损失函数的负梯度拟合子模型。
-2. [<font color=Blue>提升树(Boosting Tree)</font>](https://0809zheng.github.io/2020/03/22/boosttree.html)：以决策树为基学习器构造**Boosting**模型。**自适应提升决策树(Adaptive Boosted Decision Tree, ABDT)**适用于指数损失的二分类任务；回归提升树适用于平方误差损失的回归任务；[<font color=Blue>梯度提升决策树(Gradient Boosted Decision Tree, GBDT)</font>](https://0809zheng.github.io/2020/03/21/GBDT.html)适用于一般损失函数的一般决策问题。
+1. [<font color=Blue>Boosting</font>](https://0809zheng.github.io/2020/03/18/boosting.html)：自适应提升**(AdaBoost)**通过为样本权重重新赋值训练子模型；梯度提升**(Gradient Boosting)**使用损失函数的负梯度拟合子模型。
+2. [<font color=Blue>提升树(Boosting Tree)</font>](https://0809zheng.github.io/2020/03/22/boosttree.html)：以决策树为基学习器构造**Boosting**模型。自适应提升决策树**(Adaptive Boosted Decision Tree, ABDT)**适用于指数损失的二分类任务；回归提升树适用于平方误差损失的回归任务；[<font color=Blue>梯度提升决策树(Gradient Boosted Decision Tree, GBDT)</font>](https://0809zheng.github.io/2020/03/21/GBDT.html)适用于一般损失函数的一般决策问题。
 
 
 
