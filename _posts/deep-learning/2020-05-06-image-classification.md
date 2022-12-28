@@ -182,7 +182,7 @@ $$ y=H(x) \cdot T(x) + x \cdot(1-T(x)) $$
 
 ### ⚪ ConvNeXt
 
-- paper：[<font color=blue>A ConvNet for the 2020s</font>](https://0809zheng.github.io/2020/09/09/resnest.html)
+- paper：[<font color=blue>A ConvNet for the 2020s</font>](https://0809zheng.github.io/2022/12/25/convnext.html)
 
 **ConvNeXt**通过把标准**ResNet**逐步修改为**Swin Transformer**，在此过程中发现了导致卷积神经网络和视觉**Transformer**存在性能差异的几个关键组件，在此基础上设计的卷积模块结合训练技巧与微观设计，实现了性能最佳的卷积网络。
 
