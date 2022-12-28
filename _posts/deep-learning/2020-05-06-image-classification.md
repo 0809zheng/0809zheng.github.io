@@ -22,10 +22,11 @@ tags: 深度学习
 # 1. 图像识别模型
 
 本节主要介绍应用于图像识别任务的**卷积神经网络**，按照其结构发展概述如下：
-1. 早期探索：奠定“卷积层-下采样层-全连接层”的拓扑结构。如**LeNet5**, **AlexNet**, **ZFNet**, **NIN**, **VGGNet**
+1. 早期探索：奠定“卷积层-下采样层-全连接层”的拓扑结构。如**LeNet5**, **AlexNet**, **ZFNet**, **NIN**, **SPP-net**, **VGGNet**
 2. 深度化：增加堆叠卷积层的数量。如**Highway Network**, **ResNet**, **Stochastic Depth**, **DenseNet**, **Pyramidal ResNet**
-3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**
+3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**, **ConvNeXt**
 4. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
+5. 其他结构：**Noisy Student**, **SCAN**, **NFNet**, **ResNet-RS**
 
 ## (1) 早期探索
 
@@ -56,9 +57,16 @@ tags: 深度学习
 ### ⚪ NIN
 - paper：[Network In Network](https://arxiv.org/abs/1312.4400)
 
-**NIN**提出用非线性函数(选择多层感知机，在卷积网络中通过$1\times 1$卷积实现)增强卷积层提取的局部特征，同时使用全局平均池化层替代全连接层作为网络尾部的分类部分。
+**NIN**提出用非线性函数($1\times 1$卷积)增强卷积层提取的局部特征，同时使用全局平均池化层替代全连接层作为网络尾部的分类部分。
 
 ![](https://pic.imgdb.cn/item/63a6b87c08b68301633819d3.jpg)
+
+### ⚪ SPP-net
+- paper：[Spatial Pyramid Pooling in Deep Convolutional Networks for Visual Recognition](https://arxiv.org/abs/1406.4729)
+
+通常的卷积神经网络包含卷积层和全连接层，后者要求输入固定数量的特征数，因此在网络输入时会把图像通过裁剪和拉伸调整为固定的大小，然而这样会改变图像的尺寸和纵横比，并扭曲原始信息。**SPP-net**通过在卷积层和全连接层中间引入空间金字塔池化结构，能够把任意不同尺寸和不同纵横比的图像特征转换为固定尺寸大小的输出特征向量。
+
+![](https://pic.imgdb.cn/item/63abf68f08b6830163947507.jpg)
 
 ### ⚪ VGGNet
 - paper：[Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
@@ -166,17 +174,55 @@ $$ y=H(x) \cdot T(x) + x \cdot(1-T(x)) $$
 
 ### ⚪ ResNeSt
 
-- paper：[ResNeSt: Split-Attention Networks](https://0809zheng.github.io/2020/09/09/resnest.html)
+- paper：[<font color=blue>ResNeSt: Split-Attention Networks</font>](https://0809zheng.github.io/2020/09/09/resnest.html)
 
 **ResNeSt**结合了多路径设计和通道注意力机制。多路径(**multi-path**)设计参考了**ResNeXt**，引入超参数**cardinality**控制分组卷积的分支数$k$；通道注意力机制参考了**SKNet**，引入超参数**radix**控制注意力计算的分支数$r$。
 
 ![](https://pic.downk.cc/item/5fec3e5a3ffa7d37b366a46a.jpg)
+
+### ⚪ ConvNeXt
+
+- paper：[<font color=blue>A ConvNet for the 2020s</font>](https://0809zheng.github.io/2020/09/09/resnest.html)
+
+**ConvNeXt**通过把标准**ResNet**逐步修改为**Swin Transformer**，在此过程中发现了导致卷积神经网络和视觉**Transformer**存在性能差异的几个关键组件，在此基础上设计的卷积模块结合训练技巧与微观设计，实现了性能最佳的卷积网络。
+
+![](https://pic.imgdb.cn/item/63ac435f08b68301632949ce.jpg)
 
 ## (4) 轻量化设计
 
 **轻量级**网络设计旨在设计计算复杂度更低的卷积网络结构，更多细节可参考[<font color=Blue>轻量级(LightWeight)卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
 - 从**结构**的角度考虑，卷积层提取的特征存在冗余，可以设计特殊的卷积操作，减少卷积操作的冗余，从而减少计算量。如**SqueezeNet**, **SqueezeNext**, **MobileNet V1,2,3**, **ShuffleNet V1,2**, **IGCNet V1,2**, **ChannelNet**, **EfficientNet V1,2**, **GhostNet**, **MicroNet**, **CompConv**。
 - 从**计算**的角度，模型推理过程中存在大量乘法运算，而乘法操作(相比于加法)对于目前的硬件设备不友好，可以对乘法运算进行优化，也可以减少计算量。如**AdderNet**使用**L1**距离代替卷积乘法；使用**Mitchell**近似代替卷积乘法。
+
+## (5) 其他结构
+
+### ⚪ Noisy Student
+- paper：[<font color=blue>Self-training with Noisy Student improves ImageNet classification</font>](https://0809zheng.github.io/2020/08/07/noisy-student-training.html)
+
+**Noisy Student**是一种半监督的图像分类方法。首先使用标记数据集训练一个教师网络；其次使用训练好的教师网络对大量无标签数据进行分类，构造伪标签；然后训练一个模型容量相等或更大的学生网络同时学习原标记数据和伪标签数据，在学习过程中引入数据增强、**Dropout**和随机深度等噪声干扰；最后将训练好的学生网络作为新的教师网络，并重复上述过程。
+
+![](https://pic.imgdb.cn/item/63ac21ab08b6830163f13903.jpg)
+
+### ⚪ Semantic Clustering by Adopting Nearest neighbors (SCAN)
+- paper：[<font color=blue>SCAN: Learning to Classify Images without Labels</font>](https://0809zheng.github.io/2020/07/15/scan.html)
+
+**SCAN**是一种无监督的图像分类方法，包括特征学习和聚类两个步骤。首先通过特征学习从图像中提取特征，学习过程采用自监督表示学习方法；然后对每一张图像的特征，在特征空间中寻找最近邻的$k$个特征，通过调整网络使得图像特征与这最近邻的$k$个特征内积最大（即相似度最高）。同时通过聚类给图像分配一个伪标签，通过调整网络最大化图像特征属于该类别的概率。
+
+### ⚪ Normalizer-Free ResNet (NFNet)
+- paper：[<font color=blue>High-Performance Large-Scale Image Recognition Without Normalization</font>](https://0809zheng.github.io/2021/04/21/nfnet.html)
+
+**NFNet**是一个不使用**BatchNorm**的大批量图像分类网络，通过引入自适应梯度裁剪来保证较大**batch size**下训练的稳定性：
+
+$$ \begin{aligned} G \leftarrow \begin{cases} \lambda\frac{||W||}{||G||}G, & ||G|| \geq \lambda \\ G, & \text{otherwise} \end{cases} \end{aligned} $$
+
+### ⚪ Revisiting ResNet (ResNet-RS)
+- paper：[<font color=blue>Revisiting ResNets: Improved Training and Scaling Strategies</font>](https://0809zheng.github.io/2021/03/18/resnetrs.html)
+
+**ResNet-RS**通过改进**ResNet**的网络结构，引入新的训练和正则化方法，并调整缩放策略，使得经典**ResNet**重新成为分类**SOTA**模型。作者提出的推荐缩放策略为在可能出现过拟合问题的大训练轮数下首选扩大深度，否则扩大宽度；并且应缓慢扩大分辨率。
+
+
+
+
 
 
 
