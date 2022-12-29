@@ -78,6 +78,8 @@ tags: 机器学习
 4. [深度信念网络](https://0809zheng.github.io/2020/04/16/deep-belief-network.html)
 5. [<font color=Blue>自组织映射网络 SOM</font>](https://0809zheng.github.io/2022/01/06/SOM.html)：竞争学习型的无监督神经网络
 
+- [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://0809zheng.github.io/2021/10/08/sgmoe.html)：(arXiv1701)使用稀疏门控的混合专家系统构建超大规模神经网络。
+
 ## (4) [<font color=Blue>推荐系统</font>](https://0809zheng.github.io/2020/05/08/recommender-system.html)
 
 
@@ -185,8 +187,9 @@ $$ E= \overline{E}-\overline{A} $$
 - **序列化**集成方法：子模型之间存在强依赖关系，必须串行生成，主要关注降低**偏差**。如：
 1. [<font color=Blue>Boosting</font>](https://0809zheng.github.io/2020/03/18/boosting.html)：自适应提升**(AdaBoost)**通过为样本权重重新赋值训练子模型；梯度提升**(Gradient Boosting)**使用损失函数的负梯度拟合子模型。
 2. [<font color=Blue>提升树(Boosting Tree)</font>](https://0809zheng.github.io/2020/03/22/boosttree.html)：以决策树为基学习器构造**Boosting**模型。自适应提升决策树**(Adaptive Boosted Decision Tree, ABDT)**适用于指数损失的二分类任务；回归提升树适用于平方误差损失的回归任务；[<font color=Blue>梯度提升决策树(Gradient Boosted Decision Tree, GBDT)</font>](https://0809zheng.github.io/2020/03/21/GBDT.html)适用于一般损失函数的一般决策问题。
-
-
+3. [<font color=Blue>极限梯度提升(eXtreme Gradient Boosting, XGBoost)</font>](https://0809zheng.github.io/2022/12/27/xgboost.html)：支持多种类型的基学习器，学习过程为最小化目标函数的二阶泰勒近似，通过稀疏感知算法处理缺失特征值，通过特征预排序支持特征并行。
+4. [<font color=Blue>轻量级梯度提升机(Light Gradient Boosting Machine, LightGBM)</font>](https://0809zheng.github.io/2022/12/28/lightgbm.html)：把按叶生长的决策树作为基学习器，把数据存储为直方图，采用单边梯度算法过滤梯度小的样本，采用互斥特征捆绑算法减少特征数量，支持特征并行、数据并行和投票并行。
+5. [<font color=Blue>类别型特征提升(Categorical Boosting, CatBoost)</font>](https://0809zheng.github.io/2022/12/29/catboost.html)：把对称决策树作为基学习器，能够自动把类别型特征处理为数值型特征以及组合类别型特征，采用排序提升方法避免梯度估计的偏差并解决预测偏移问题。
 
 
 # ⚪ 强化学习
