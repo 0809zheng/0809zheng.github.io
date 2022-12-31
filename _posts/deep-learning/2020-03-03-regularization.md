@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '深度学习中的Regularization'
+title: '深度学习中的正则化方法(Regularization)'
 date: 2020-03-03
 author: 郑之杰
 cover: 'http://p0.ifengimg.com/pmop/2018/0117/FF63C065C57341C7727412791090885E7EB230BD_size23_w900_h375.jpeg'
@@ -9,139 +9,189 @@ tags: 深度学习
 
 > Regularization in Deep Learning.
 
-1. Background
-2. L2 Regularization
-3. L1 Regularization
-4. Elastic Net Regularization
-5. Weight Decay
-6. Early Stopping
-7. Dropout
-8. DropConnect
-9. Data Augmentation
-10. Label Smoothing
+深度学习所处理的问题包括优化问题和泛化问题。**优化(optimization)**问题是指在已有的数据集上实现最小的训练误差；而**泛化(generalization)**问题是指在未经过训练的数据集(通常假设与训练集同分布)上实现最小的**泛化误差(generalize error)**。通常深度神经网络具有很强的拟合能力，因此训练误差较低，但是容易**过拟合(overfitting)**，导致泛化误差较大。
+
+**正则化(Regularization)**指的是通过限制模型的**复杂度**，从而降低对输入或者参数的敏感性，避免过拟合，提高模型的泛化能力。对模型复杂度的限制包括约束模型参数(或者约束目标函数)、约束网络结构、约束优化过程。
+
+- 约束**模型参数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化
+- 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**
+- 约束**优化过程**：在优化过程中施加额外步骤，包括**Early Stop**, 
+
+# 1. 约束模型参数
+
+## ⚪ L2正则化 L2 Regularization
+
+**L2**正则化通过约束参数的**L2**范数（**L2-norm**）减小过拟合。带有**L2**正则化的优化问题可写作：
+
+$$ w^*= \mathop{\arg\min}_w \frac{1}{N} \sum_{n=1}^{N} {L(y_n,f(x_n);w)}+λ ||w||_2^2$$
+
+### (1) 讨论：L2正则化等价于约束参数矩阵的Frobenius范数
+
+若将模型参数表示为矩阵$W$，则**L2**正则化等价于约束矩阵$W$的**Frobenius**范数：
+
+$$ \sum_{i,j} w_{ij}^2 = ||W||_F^2 $$
+
+矩阵$W$的**Frobenius**范数 $\|\|W\|\|_F$是矩阵的[谱范数](https://0809zheng.github.io/2020/09/19/snr.html) $\|\|W\|\|_2$的一个上界。约束**Frobenius**范数能够使网络更好地满足[Lipschitz连续性](https://0809zheng.github.io/2022/10/11/lipschitz.html)，从而降低模型对输入扰动的敏感性，增强模型的泛化能力。
+
+下面证明**Frobenius**范数是谱范数的上界。对于矩阵$W$和向量$x$，根据柯西不等式：
+
+$$ ||Wx|| \leq ||W||_F \cdot ||x|| $$
+
+而谱范数的定义：
+
+$$ ||W||_2 = \mathop{\max}_{x \neq 0} \frac{||Wx||}{||x||} $$
+
+因此有：
+
+$$ ||W||_2 \leq  ||W||_F $$
+
+### (2) 讨论：L2正则化等价于参数服从正态分布的最大后验估计
+
+从贝叶斯角度出发，把参数$w$看作随机变量，假设其先验概率$p(w)$服从正态分布$N(0,σ_0^2)$。
+
+由贝叶斯定理可得参数$w$的后验概率$p(w\|x,y)$：
+
+$$ p(w |x, y) = \frac{p(x,y | w)p(w)}{p(y)} \propto p(x,y | w)p(w) $$
+
+参数$w$的最大后验估计为：
+
+$$ \begin{aligned} \hat{w} &= \mathop{\arg \max}_{w}\log p(w |x, y) = \mathop{\arg \max}_{w}\log p(x,y | w)p(w) \\ &= \mathop{\arg \max}_{w} \log p(x,y | w) +\log\frac{1}{\sqrt{2\pi}σ_0} \exp(-\frac{w^Tw}{2σ_0^2})  \\ &\propto \mathop{\arg \max}_{w} \log p(x,y | w)-\frac{w^Tw}{2σ_0^2} \\ &= \mathop{\arg \min}_{w} -\log p(x,y | w)+\frac{1}{2σ_0^2}||w||_2^2 \end{aligned} $$
+
+因此参数服从正态分布的最大后验估计等价于引入**L2**正则化。
+
+### (3) 讨论：L2正则化与权重衰减
+
+在标准的梯度下降算法中，应用**L2**正则化后参数的更新过程为：
+
+$$ \begin{aligned} w^{(t+1)} &\leftarrow w^{(t)} - \alpha \nabla_w[L(w)+λ ||w||_2^2] \\ &\leftarrow (1-2\alpha \lambda)w^{(t)} - \alpha \nabla_w L(w) \end{aligned} $$
+
+上式相当于在参数更新时首先对参数引入一个衰减系数$\alpha \lambda$，因此也称为**权重衰减(Weight Decay)**正则化。
+
+值得一提的是，在**Adam**等自适应梯度更新算法中，使用梯度的二阶矩进行梯度缩放。因此对于具有较大梯度的权重，其**L2**正则化项会被缩小，从而与权重衰减正则化不等价。[AdamW算法](https://0809zheng.github.io/2020/11/28/adamw.html)则将权重衰减从梯度更新过程中解耦，使得所有权重以相同的正则化程度进行衰减：
+
+$$ \begin{aligned} w^{(t+1)} &\leftarrow w^{(t)} - \alpha (\frac{\hat{m}^{(t)}(w)}{\sqrt{\hat{v}^{(t)}(w)}+\epsilon}+λ w^{(t)}) \end{aligned} $$
 
 
 
-# 1. Background
-机器学习（尤其是监督学习）的问题包括优化和泛化问题。
+## ⚪ L1正则化 L1 Regularization
+**L1**正则化通过约束参数的**L1**范数（**L1-norm**）减小过拟合。带有**L1**正则化的优化问题可写作：
 
-优化是指在已有的数据集上实现最小的训练误差（training error），泛化是指在未训练的数据集（通常假设与训练集同分布）上实现最小的泛化误差（generalize error）。深度神经网络具有很强的拟合能力，在训练数据集上错误率通常较低，但是容易过拟合（overfitting）。
+$$ w^*= \mathop{\arg\min}_w \frac{1}{N} \sum_{n=1}^{N} {L(y_n,f(x_n);w)}+λ ||w||_1$$
 
-正则化（Regularization）是指通过限制模型的复杂度，从而避免过拟合，提高模型的泛化能力的方法。
+如下图所示，蓝圈为优化函数的等高线，棕色区域为满足**L2/L1**正则化约束的可行域。当等高线与可行域相交时，L1正则化会优先相交于坐标轴上。故L1正则化会使参数具有稀疏性（**sparse**）。
 
-# 2. L2 Regularization
-L2 Regularization通过约束参数的L2范数（L2-norm）减小过拟合。
+![](https://pic.imgdb.cn/item/639b1a2cb1fccdcd36c53a4e.jpg)
 
-L2正则化的优化问题可写作：
+### (1) 讨论：L1正则化等价于参数服从拉普拉斯分布的最大后验估计
 
-$$ θ^*=argmin_θ \frac{1}{N} \sum_{n=1}^{N} {L(y^n,f(x^n))}+λ \mid\mid θ \mid\mid _2^2$$
+从贝叶斯角度出发，把参数$w$看作随机变量，假设其先验概率$p(w)$服从拉普拉斯分布：
 
-使用$L2$正则化有一个缺点，就是它使每个权重进行等比例缩小（shrink）。也就是说大的权重缩小程度较大，小的权重缩小程度较小。等比例缩小很难得到值为零的权重。而有时希望权重的解是稀疏（sparse）的，因为这样能有效减少$VC维$，从而减小模型复杂度，防止过拟合发生。
+$$ w \text{~} L(0,σ_0^2) = \frac{1}{2σ_0^2} \exp(-\frac{|w|}{σ_0^2}) $$
 
-为了得到sparse解，可采取的方法有：
-- **weight-elimination正则化**
-- $L1$正则化
+由贝叶斯定理可得参数$w$的后验概率$p(w\|x,y)$：
 
-**weight-elimination正则化**在$L2$正则化上做了尺度的缩小，这样能使不同尺度的权重都能得到同等程度的缩小，从而让更多权重最终为零。**weight-elimination正则化**的表达式如下：
+$$ p(w |x, y) = \frac{p(x,y | w)p(w)}{p(y)} \propto p(x,y | w)p(w) $$
 
-$$ \sum_{}^{} {\frac{\mid\mid θ \mid\mid^2}{1+\mid\mid θ \mid\mid^2}} $$
+参数$w$的最大后验估计为：
 
-# 3. L1 Regularization
-L1 Regularization通过约束参数的L1范数（L1-norm）减小过拟合。
+$$ \begin{aligned} \hat{w} &= \mathop{\arg \max}_{w}\log p(w |x, y) = \mathop{\arg \max}_{w}\log p(x,y | w)p(w) \\ &= \mathop{\arg \max}_{w} \log p(x,y | w) +\log \frac{1}{2σ_0^2} \exp(-\frac{|w|}{σ_0^2})  \\ &\propto \mathop{\arg \max}_{w} \log p(x,y | w)-\frac{|w|}{σ_0^2} \\ &= \mathop{\arg \min}_{w} \log p(x,y | w)+\frac{1}{σ_0^2}||w||_1 \end{aligned} $$
 
-L1正则化的优化问题可写作：
+因此参数服从拉普拉斯分布的最大后验估计等价于引入**L1**正则化。
 
-$$ θ^*=argmin_θ \frac{1}{N} \sum_{n=1}^{N} {L(y^n,f(x^n))}+λ \mid\mid θ \mid\mid _1$$
+## ⚪ 弹性网络正则化 Elastic Net Regularization
 
-如下图所示，蓝圈为优化函数的等高线，棕色区域为满足L2/L1正则化约束的可行域。当等高线与可行域相交时，L1正则化会优先相交于坐标轴上。故L1正则化会使参数具有稀疏性（sparse）。
-![](https://charlesliuyx.github.io/2017/10/03/%E3%80%90%E7%9B%B4%E8%A7%82%E8%AF%A6%E8%A7%A3%E3%80%91%E4%BB%80%E4%B9%88%E6%98%AF%E6%AD%A3%E5%88%99%E5%8C%96/Dq2.png)
+- paper：[Regularization and Variable Selection via the Elastic Net](https://www.jstor.org/stable/3647580)
 
-# 4. Elastic Net Regularization
-- paper:[Regularization and Variable Selection via the Elastic Net](https://www.jstor.org/stable/3647580)
+**弹性网络正则化 (Elastic Net Regularization)**是指同时约束参数的**L2**范数和**L1**范数：
 
-弹性网络正则化（Elastic Net Regularization）是指同时加入L2和L1正则化：
+$$ w^*= \mathop{\arg\min}_w \frac{1}{N} \sum_{n=1}^{N} {L(y_n,f(x_n);w)}+λ_2 ||w||_2^2+λ_1 ||w||_1$$
 
-$$ θ^*=argmin_θ \frac{1}{N} \sum_{n=1}^{N} {L(y^n,f(x^n))}+λ_2 \mid\mid θ \mid\mid _2^2+λ_1 \mid\mid θ \mid\mid_1$$
+## ⚪ 谱正则化 Spectral Norm Regularization
 
-# 5. Weight Decay
-权重衰减（Weight Decay）是指在参数更新时引入一个衰减系数β：
+- paper：[<font color=blue>Spectral Norm Regularization for Improving the Generalizability of Deep Learning</font>](https://0809zheng.github.io/2020/09/19/snr.html)
 
-$$ θ^t=(1-β)θ^{t-1}-αg^t $$
+**谱正则化 (Spectral Norm Regularization)**是指把**谱范数(spectral norm)**的平方作为正则项，从而增强网络的泛化性：
 
-在随机梯度下降中，Weight Decay与L2 Regularization等价；但在较为复杂的优化方法（如Adam）中，[两者并不等价](https://arxiv.org/abs/1711.05101v1)。
+$$ \mathcal{L}(x,y;W) + \lambda ||W||_2^2 $$
 
-# 6. Early Stopping
-**Early Stop**是指训练时，当观察到验证集上的错误不再下降，就停止迭代。
+谱正则化使网络更好地满足[Lipschitz连续性](https://0809zheng.github.io/2022/10/11/lipschitz.html)。**Lipschitz**连续性保证了函数对于**输入扰动的稳定性**，即函数的输出变化相对输入变化是缓慢的。
 
-具体停止迭代的时机，可参考[Early stopping-but when?](https://link.springer.com/chapter/10.1007/978-3-642-35289-8_5)。
+谱范数是一种由向量范数诱导出来的矩阵范数，作用相当于向量的模长：
 
-使用Early Stop需要使用到验证集（Validation Set），这也就意味着在训练过程中会有一部分数据无法进行训练。在完成Early Stop后将验证集中的数据加入到训练集中，进行额外的训练。
+$$ ||W||_2 = \mathop{\max}_{x \neq 0} \frac{||Wx||}{||x||} $$
 
-**①策略一**：使用验证集确定训练步数$t$，再次训练$t$次：
+谱范数$\|\|W\|\|_2$的平方的取值为$W^TW$的最大特征值。
 
-![](https://pic.downk.cc/item/5ea569a8c2a9a83be5f2d016.jpg)
+# 2. 约束网络结构
 
-**缺点**：不能确定按照Early Stop确定的训练最佳步数再次训练时仍能得到一个最佳的训练。
+## ⚪ 随机深度 Stochastic Depth
+- paper：[Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382)
 
-**②策略二**：使用验证集确定损失值$ε$，再次训练使损失值$<ε$：
+**随机深度**是指在训练时以一定概率丢弃网络中的模块（令其等价于恒等变换）；测试时使用完整的网络，并且按照丢弃概率对各个模块的输出进行加权。
 
-![](https://pic.downk.cc/item/5ea569bbc2a9a83be5f2f081.jpg)
+![](https://pic.imgdb.cn/item/63a6bfa508b683016343b891.jpg)
 
-**缺点**：无法保证继续训练是否能达到之前的目标值。
+## ⚪ Dropout
+- paper：[Dropout: A simple way to prevent neural networks from overfitting](http://jmlr.org/papers/v15/srivastava14a.html)
 
-# 7. Dropout
-- paper：[ Dropout: A simple way to prevent neural networks from overfitting](http://jmlr.org/papers/v15/srivastava14a.html)
-
-**Dropout**是指在训练深度神经网络时，随机丢弃一部分神经元。即对某一层设置概率p，对该层的每个神经元以概率p判断是否要丢弃。
+**Dropout**是指在训练深度神经网络时，随机丢弃一部分**神经元**。即对某一层设置概率$p$，对该层的每个神经元以概率$p$判断是否要丢弃。此时每个神经元的丢弃概率遵循概率$p$的伯努利(**Bernoulli**)分布。
 ![](https://pic.downk.cc/item/5e7de4c1504f4bcb04745d05.png)
 
-训练时，激活神经元的平均数量是原来的p倍；而在测试时所有神经元都被激活，故测试时需将该层神经元的输出乘以p。
+训练时激活神经元的平均数量是原来的$p$倍；而在测试时所有神经元都被激活，故测试时需将该层神经元的输出乘以$1-p$(被保留的概率)。或者采用**Inverted Dropout**，即在训练时对某一层按概率$p$随机丢弃神经元之后将该层的输出除以$1-p$；测试时不需再做处理。
 
-**Inverted Dropout**是指在训练时对某一层按概率p随机丢弃神经元之后将该层的输出除以p；测试时不需再做处理。
+从不同角度理解**Dropout**：
+1. **正则化Regularization**角度：每一次**Dropout**相当于为原网络引入噪声，测试时通过平均抵消掉噪声；每次训练不会过度依赖于个别的神经元的输出，增强网络的泛化能力；
+2. **集成Ensemble**角度：每一次**Dropout**相当于从原网络中生成一个子网络，每次迭代相当于训练一个不同的子网络；最终的网络可以看作这些子网络的集成；
+3. **贝叶斯Bayesian**角度：贝叶斯学习假设参数$w$为随机变量，先验分布为$q(w)$，贝叶斯方法的预测结果如下。其中不等号由**Monte Carlo**方法得到，$w_m$是第$m$次**Dropout**的网络参数，看作对全部参数$w$的一次采样。
 
-理解Dropout：
-
-（1）Ensemble角度
-
-每一次Dropout相当于从原网络中生成一个子网络，每次迭代相当于训练一个不同的子网络；最终的网络可以看作这些子网络的集成；
-
-（2）Regularization角度
-
-每一次Dropout相当于为原网络引入噪声，测试时通过平均抵消掉噪声，每次训练不过分依赖于某一个神经元，增强网络的泛化能力；
-
-（3）Bayesian角度
-
-Bayesian学习假设参数θ为随机变量，先验分布为q(θ)，Bayesian方法的预测为：
-
-$$ E_{q(θ)}(y)=\int_q^{} {f(x;θ)q(θ)dθ}
-              ≈\frac{1}{M}\sum_{m=1}^{M} {f(x;θ_m)}$$
+$$ E_{q(w)}(y)=\int_{q(w)}^{} {f(x;w)q(w)dw} ≈\frac{1}{M}\sum_{m=1}^{M} {f(x;w_m)}$$
 			  
-不等号由Monte Carlo方法得到。$θ_m$是第m次Dropout的网络参数，看作对全部参数θ的一次采样。
+与**Dropout**相关的工作包括：
 
-在循环神经网络中，使用[Variational Dropout](https://arxiv.org/abs/1512.05287)。
+- Reference：[Survey of Dropout Methods for Deep Neural Networks](https://arxiv.org/abs/1904.13310)
 
-# 8. DropConnect
-**DropConnect**丢弃神经元之间的连接，与Dropout类似：
+| **Dropout**方法 | 说明 | 示意图 |
+| :---: | :---:  | :---:  |
+| **Gaussian Dropout** | 每个神经元的丢弃概率遵循概率$p$的高斯分布$N(1,p(1-p))$ | ![](https://pic.imgdb.cn/item/63b042eb2bbf0e79944c33a1.jpg) |
+| [**Standout**](https://proceedings.neurips.cc/paper/2013/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf) <br> (**NeurIPS2013**) | 神经元的丢弃概率$p$通过信念网络建模 | ![](https://pic.imgdb.cn/item/63b034cd2bbf0e79940d3def.jpg) |
+| [**Spatial Dropout**](https://arxiv.org/abs/1411.4280) <br> (**arXiv1411**) | 对卷积特征图的通道维度应用**Dropout** | ![](https://pic.imgdb.cn/item/63b037962bbf0e7994190d1b.jpg) |
+| [**Max-Pooling Dropout**](https://arxiv.org/abs/1512.00242v1) <br> (**arXiv1512**) | 把**Dropout**应用到最大池化层 | ![](https://pic.imgdb.cn/item/63b0369c2bbf0e799414a262.jpg) |
+| [**Max-Drop**](http://mipal.snu.ac.kr/images/1/16/Dropout_ACCV2016.pdf) <br> (**ACCV2016**) | 把**Gaussian Dropout**应用到最大池化层 | ![](https://pic.imgdb.cn/item/63b045b12bbf0e7994590826.jpg) |
+| [**MaxDropout**](https://arxiv.org/abs/2007.13723) <br> (**arXiv2007**) | 对输入特征进行归一化，然后把大于给定阈值$p$的特征位置设置为$0$ | ![](https://pic.imgdb.cn/item/63b022162bbf0e7994bdaa88.jpg) |
 
-![](https://pic.downk.cc/item/5ea56859c2a9a83be5f1ad39.jpg)
 
-# 9. Data Augmentation
-**数据增强（Data Augmentation）**通过对样本集的操作增加数据量（相当于对样本集加入随机噪声），提高模型鲁棒性，避免过拟合。
+
+# 3. 约束优化过程
+
+## ⚪ Early Stopping
+**Early Stop**是指训练时当观察到验证集上的错误不再下降，就停止迭代。具体停止迭代的时机，可参考[Early stopping-but when?](https://link.springer.com/chapter/10.1007/978-3-642-35289-8_5)。
+
+![](https://pic.imgdb.cn/item/63b0150c2bbf0e799482b565.jpg)
+
+1. Early Stopping
+2. Dropout
+3. Data Augmentation
+4. Label Smoothing
+
+
+
+
+
+
+
+
+# 8. Data Augmentation
+数据增强（Data Augmentation）通过对样本集的操作增加数据量（相当于对样本集加入随机噪声），提高模型鲁棒性，避免过拟合。
 
 图像数据的增强方法主要有：
-1. **空间变换**：
-- 旋转 Rotation
-- 翻转 Flip
-- 缩放 Zoom
-- 平移 Shift
-2. **像素变换**：
-- 对比度扰动
-- 饱和度扰动
-- 颜色变换
-- 加噪声 Noise
+1. 旋转 Rotation
+2. 翻转 Flip
+3. 缩放 Zoom
+4. 平移 Shift
+5. 加噪声 Noise
 
-# 10. Label Smoothing
-标签平滑（Label Smoothing）首先在[Inceptionv3](https://arxiv.org/abs/1512.00567)中被提出。
+# 9. 标签平滑 Label Smoothing
+标签平滑（Label Smoothing）首先在[Rethinking the Inception Architecture for Computer Vision](https://arxiv.org/abs/1512.00567)中被提出。
 
 标签平滑是对样本的标签引入一定的噪声。
 
@@ -155,4 +205,3 @@ $$ y'=(\frac{ε}{K-1},...,\frac{ε}{K-1},1-ε,\frac{ε}{K-1},...,\frac{ε}{K-1})
 
 上述标签是一种Soft Target，但没有考虑标签的相关性。一种更好的做法是按照类别相关性赋予其他标签不同的概率。
 
-有关标签平滑更详细的内容见论文：[Rethinking the Inception Architecture for Computer Vision](https://0809zheng.github.io/2021/03/11/labelsmoothing.html)
