@@ -154,7 +154,8 @@ $$ E_{q(w)}(y)=\int_{q(w)}^{} {f(x;w)q(w)dw} ≈\frac{1}{M}\sum_{m=1}^{M} {f(x;w
 | :---: | :---:  | :---:  |
 | **Gaussian Dropout** | 每个神经元的丢弃概率遵循概率$p$的高斯分布$N(1,p(1-p))$ | ![](https://pic.imgdb.cn/item/63b042eb2bbf0e79944c33a1.jpg) |
 | [**Standout**](https://proceedings.neurips.cc/paper/2013/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf) <br> (**NeurIPS2013**) | 神经元的丢弃概率$p$通过信念网络建模 | ![](https://pic.imgdb.cn/item/63b034cd2bbf0e79940d3def.jpg) |
-| [**Spatial Dropout**](https://arxiv.org/abs/1411.4280) <br> (**arXiv1411**) | 对卷积特征图的通道维度应用**Dropout** | ![](https://pic.imgdb.cn/item/63b037962bbf0e7994190d1b.jpg) |
+| [**Spatial Dropout**](https://arxiv.org/abs/1411.4280) <br> (**arXiv1411**) | 对卷积特征图的通道维度应用**Dropout** | ![](https://pic.imgdb.cn/item/63b049a12bbf0e799460fd2a.jpg) |
+| [<font color=blue>Weighted Channel Dropout</font>](https://0809zheng.github.io/2020/10/19/wcd.html) <br> (**AAAI2019**) | 根据激活的相对幅度来选择通道 | ![](https://pic.imgdb.cn/item/63b2a4f15d94efb26f1548af.jpg) |
 | [**Max-Pooling Dropout**](https://arxiv.org/abs/1512.00242v1) <br> (**arXiv1512**) | 把**Dropout**应用到最大池化层 | ![](https://pic.imgdb.cn/item/63b0369c2bbf0e799414a262.jpg) |
 | [**Max-Drop**](http://mipal.snu.ac.kr/images/1/16/Dropout_ACCV2016.pdf) <br> (**ACCV2016**) | 把**Gaussian Dropout**应用到最大池化层 | ![](https://pic.imgdb.cn/item/63b045b12bbf0e7994590826.jpg) |
 | [**MaxDropout**](https://arxiv.org/abs/2007.13723) <br> (**arXiv2007**) | 对输入特征进行归一化，然后把大于给定阈值$p$的特征位置设置为$0$ | ![](https://pic.imgdb.cn/item/63b022162bbf0e7994bdaa88.jpg) |
