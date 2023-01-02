@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '记忆增强神经网络'
+title: '记忆增强神经网络(Memory Augmented Neural Network)'
 date: 2020-04-23
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ea17d6bc2a9a83be50883e2.jpg'
