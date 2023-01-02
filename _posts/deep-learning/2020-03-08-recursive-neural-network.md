@@ -1,9 +1,9 @@
 ---
 layout: post
-title: '递归神经网络'
+title: '递归神经网络(Recursive Neural Network)'
 date: 2020-03-08
 author: 郑之杰
-cover: ''
+cover: 'https://pic.downk.cc/item/5ea14499c2a9a83be5c09f98.jpg'
 tags: 深度学习
 ---
 
