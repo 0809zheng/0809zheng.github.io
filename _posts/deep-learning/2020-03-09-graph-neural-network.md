@@ -1,23 +1,31 @@
 ---
 layout: post
-title: '图神经网络'
+title: '图神经网络(Graph Neural Network)'
 date: 2020-03-09
 author: 郑之杰
-cover: ''
+cover: 'https://pic.downk.cc/item/5ea59bbdc2a9a83be5281d20.jpg'
 tags: 深度学习
 ---
 
 > Graph Neural Networks.
 
+**图神经网络 (Graph Neural Network, GNN)**是用于处理图结构的神经网络，其核心思想是学习一个函数映射$f(\cdot)$，图中的节点$v_i$通过该映射可以聚合它自己的特征$x_i$与它的邻居特征$x_{j \in N(v_i)}$来生成节点$v_i$的新表示。
+
+**GNN**可以分为两大类，基于空间（**spatial-based**）和基于谱（**spectral-based**）。
+- 基于空间的**GNN**直接根据邻域聚合特征信息，把图粗化为高级子结构，可用于提取图的各级表示和执行下游任务。如**NN4G**, **DCNN**, **DGC**, **MoNET**, **GraphSAGE**, **GAT**, **GIN**。
+- 基于谱的**GNN**把图网络通过傅里叶变换转换到谱域，引入滤波器处理图谱后通过逆变换还原到顶点域。如**ChebNet**, **GCN**, **DropEdge**。
+
+
 **本文目录：**
-1. Spatial-based GNN
-2. Spectral-based GNN
-3. Benchmarks
+1. **Spatial-based GNN**
+2. **Spectral-based GNN**
+3. **Benchmarks**
 
 # 1. Spatial-based GNN
+
 **术语**Terminology：
-- **Aggregate**:用$neighbor$的$feature$更新$node$的$hidden$ $state$
-- **Readout**:把所有$node$的$feature$集合起来代表整个$graph$
+- **Aggregate**: 用邻域的特征更新节点的隐状态
+- **Readout**: 把所有节点的特征集合起来代表整个图
 
 ![](https://pic.downk.cc/item/5ea590d8c2a9a83be519e2c6.jpg)
 
@@ -30,10 +38,9 @@ tags: 深度学习
 6. GAT (Graph Attention Networks)
 7. GIN (Graph Isomorphism Network)
 
-### (1)NN4G (Neural Networks for Graph)
-- [paper](https://ieeexplore.ieee.org/document/4773279)
+### (1) [NN4G (Neural Networks for Graph)](https://ieeexplore.ieee.org/document/4773279)
 
-先对输入图的每个节点进行**Embedding**，得到$hidden$ $layer$ $0$：
+先对输入图的每个节点进行嵌入，得到初始隐状态：
 
 （以节点$v3$为例）：$$h_3^0 = \overline{w}_0x_3$$
 
@@ -48,12 +55,11 @@ $Readout$时对每一层的隐状态的均值进行加权求和，得到输出�
 ![](https://pic.downk.cc/item/5ea59cbcc2a9a83be529a8a7.jpg)
 
 
-### (2)DCNN (Diffusion-Convolution Neural Network )
-- [paper](https://arxiv.org/abs/1511.02136)
+### (2) [DCNN (Diffusion-Convolution Neural Network)](https://arxiv.org/abs/1511.02136)
 
-**DCNN**在第$l$个隐藏层，使用距离节点的距离为$l$的节点状态进行更新。
+**DCNN**对第$l$个隐藏层的节点$v_l$，使用自身以及距离为$l+1$的节点状态进行更新。
 
-如下图，在更新$h_3^1$时，使用距离为2的$h_1^0$和$h_3^0$进行更新：
+如下图，在更新$h_3^1$时，使用$h_3^0$和距离为2的$h_1^0$进行更新：
 
 ![](https://pic.downk.cc/item/5ea59dc1c2a9a83be52b2e2f.jpg)
 
@@ -62,15 +68,13 @@ $Readout$时把所有层的状态连接起来进行线性变换：
 ![](https://pic.downk.cc/item/5ea59e9dc2a9a83be52c63d5.jpg)
 
 
-### (3)DGC (Diffusion Graph Convolution)
-- [paper](https://arxiv.org/pdf/1707.01926.pdf)
+### (3) [DGC (Diffusion Graph Convolution)](https://arxiv.org/pdf/1707.01926.pdf)
 
 **DGC**与**DCNN**的不同在于$Readout$时把所有层的状态相加：
 
 ![](https://pic.downk.cc/item/5ea59ed8c2a9a83be52cba90.jpg)
 
-### (4)MoNET (Mixture Model Networks)
-- [paper](https://arxiv.org/pdf/1611.08402.pdf)
+### (4) [MoNET (Mixture Model Networks)](https://arxiv.org/pdf/1611.08402.pdf)
 
 定义两节点$x$、$y$之间的“距离”$u$：
 
@@ -78,7 +82,7 @@ $$ u(x,y) = (\frac{1}{\sqrt{deg(x)}},\frac{1}{\sqrt{deg(y)}})^T $$
 
 其中$deg(x)$表示$x$的维度。
 
-节点更新时采用加权求和的方法：
+节点更新时采用对邻域节点加权求和的方法：
 
 $$ h_3^1 = w(\hat{u}_{3,0})×h_0^0 + w(\hat{u}_{3,2})×h_2^0 + w(\hat{u}_{3,4})×h_4^0 $$
 
@@ -86,22 +90,19 @@ $$ h_3^1 = w(\hat{u}_{3,0})×h_0^0 + w(\hat{u}_{3,2})×h_2^0 + w(\hat{u}_{3,4})�
 
 ![](https://pic.downk.cc/item/5ea5a04bc2a9a83be52eba44.jpg)
 
-### (5)GraphSAGE
-- [paper](https://arxiv.org/pdf/1706.02216.pdf)
+### (5) [GraphSAGE](https://arxiv.org/pdf/1706.02216.pdf)
 
-两个操作：**Sample** and **aggregate**
+**GraphSAGE**采用两个操作：**Sample**和**aggregate**。对于某节点，从其$k$邻域中采样节点，并根据采样的节点更新图信息。
 
 ![](https://pic.downk.cc/item/5ea5a0cbc2a9a83be52f6eea.jpg)
 
-### (6)GAT (Graph Attention Networks)
-- [paper](https://arxiv.org/pdf/1710.10903.pdf)
+### (6) [GAT (Graph Attention Networks)](https://arxiv.org/pdf/1710.10903.pdf)
 
-用一个函数$f$实现$attention$机制，用$attention$更新参数：
+用一个函数$f$实现注意力机制，用邻域节点的注意力分布加权更新参数：
 
 ![](https://pic.downk.cc/item/5ea5a135c2a9a83be53009c2.jpg)
 
-### (7)GIN (Graph Isomorphism Network)
-- [paper](https://openreview.net/forum?id=ryGs6iA5Km)
+### (7) [GIN (Graph Isomorphism Network)](https://openreview.net/forum?id=ryGs6iA5Km)
 
 节点的状态更新：
 
@@ -109,24 +110,17 @@ $$ h_v^{(k)} = MLP^{(k)}((1+ε^{(k)})·h_v^{(k-1)} + \sum_{u \in \Bbb{N}(v)}^{} 
 
 使用$MLP$代替了单层网络，$ε$是可学习参数，$\Bbb{N}$是邻节点集合。
 
-该论文证明了节点的状态更新应该用**求和sum**而不是**均值mean**或**最大值max**，因为均值或最大值可能会失效：
+该论文指出节点的状态更新应该用**求和sum**而不是**均值mean**或**最大值max**，因为均值或最大值可能会失效：
 
 ![](https://pic.downk.cc/item/5ea5a1acc2a9a83be530b5a3.jpg)
 
 
 # 2. Spectral-based GNN
-**Spectral-based**的思想是将图网络和卷积核通过**Fourier变换**到**spectral domain**，相乘后把结果通过**Inverse Fourier变换**到**vertex domain**。
+**Spectral-based**的思想是将图网络和卷积核通过傅里叶变换到谱域(**spectral domain**)，相乘后把结果通过傅里叶逆变换到顶点域(**vertex domain**)。
 
 ![](https://pic.downk.cc/item/5ea6c0d3c2a9a83be5a1ce61.jpg)
 
-### Fourier Transform
-**信号signal**既可以在**时域Time domain**中表示，又可以在**频域Frequency domain**中表示：
-
-![](https://pic.downk.cc/item/5ea6c285c2a9a83be5a44b65.jpg)
-
-![](https://pic.downk.cc/item/5ea6c2e9c2a9a83be5a4c43f.jpg)
-
-### Spectral Graph Theory
+## ⚪ 谱图理论 Spectral Graph Theory
 **术语**Terminology：
 - **Graph**:$$G=(V,E)$$,$N= \mid V \mid$，本文讨论**无向图undirected graph**。
 - **Adjacency matrix(weight matrix)**:$$A \in \Bbb{R}^{N×N}$$表示节点间是否有连接，是**对称矩阵**。
@@ -148,19 +142,19 @@ $u_i$表示各节点中频率$λ_i$所占的权重；频率越大，相邻两节
 
 ![](https://pic.downk.cc/item/5ea6ce22c2a9a83be5ae6f12.jpg)
 
-信号$x$的**Graph Fourier Transform**：$$\hat{x} = U^Tx$$
+信号$x$的**Graph Fourier Transform (GFT)**：$$\hat{x} = U^Tx$$
 
 ![](https://pic.downk.cc/item/5ea6cf12c2a9a83be5af2e47.jpg)
 
-信号$\hat{x}$的**Inverse Graph Fourier Transform**：$$x = U\hat{x}$$
+信号$\hat{x}$的**Inverse Graph Fourier Transform (IGFT)**：$$x = U\hat{x}$$
 
 ![](https://pic.downk.cc/item/5ea6cfafc2a9a83be5afb05d.jpg)
 
-### Spectral-based Method
-1. 将信号$x$通过$FT$转换到$spectral$ $domain$：$$\hat{x} = U^Tx$$;
+## ⚪ 基于谱的GNN
+1. 将信号$x$通过$GFT$转换到$spectral$ $domain$：$$\hat{x} = U^Tx$$;
 2. 在$spectral$ $domain$设计滤波器$$g_θ(\Lambda)$$;
 3. $vertex$ $domain$的卷积相当于$spectral$ $domain$的乘积：$$\hat{y}=g_θ(\Lambda)\hat{x}$$;
-4. 将信号$\hat{y}$通过$IFT$转换到$vertex$ $domain$：$$y = U\hat{y}$$
+4. 将信号$\hat{y}$通过$IGFT$转换到$vertex$ $domain$：$$y = U\hat{y}$$
 
 计算：
 
@@ -181,8 +175,7 @@ $$g_θ(L)$$可以是任何函数：
 2. GCN(Graph Convolution Network)
 3. DropEdge
 
-### (1)ChebNet
-- [paper](https://arxiv.org/pdf/1606.09375.pdf)
+### (1) [ChebNet](https://arxiv.org/pdf/1606.09375.pdf)
 
 $$g_θ(L)$$使用$k$阶多项式函数函数：$$g_θ(L) = \sum_{k=0}^{K} {θ_kL^k}$$
 
@@ -210,44 +203,33 @@ $$ y = \sum_{k=0}^{K} {θ'_k\hat{x}_k} = [\hat{x}_0;...;\hat{x}_K][θ'_0;...;θ'
 
 ![](https://pic.downk.cc/item/5ea6da28c2a9a83be5baef92.jpg)
 
-### (2)GCN(Graph Convolution Network)
-- [paper](https://openreview.net/pdf?id=SJU4ayYgl)
+### (2) [GCN(Graph Convolution Network)](https://openreview.net/pdf?id=SJU4ayYgl)
 ![](https://pic.downk.cc/item/5ea6daefc2a9a83be5bb9f38.jpg)
 
 $GCN$的计算公式也写作：
 
 $$ h_v = f(\frac{1}{\mid N(v) \mid}\sum_{u \in N(v)}^{} {Wx_u}+b, \quad \forall v \in V) $$
 
-### (3)DropEdge
-- [paper](https://openreview.net/pdf?id=Hkx1qkrKPr)
+### (3) [DropEdge](https://openreview.net/pdf?id=Hkx1qkrKPr)
 
-随即丢弃**Adjacency Matrix**的一些元素，防止**over-smoothing**。
+随机丢弃**Adjacency Matrix**的一些元素，防止**over-smoothing**。
 
 # 3. Benchmarks
 
 ### (1)Graph Classification
-- **Dataset**:SuperPixel MNIST and CIFAR10
+- **Dataset**:** SuperPixel MNIST and CIFAR10**
 ![](https://pic.downk.cc/item/5ea6bd91c2a9a83be59cf7f5.jpg)
-- **Result**:
-![](https://pic.downk.cc/item/5ea6bdb4c2a9a83be59d26ab.jpg)
 
 ### (2)Regression
-- **Dataset**:ZINC molecule graphs dataset
+- **Dataset**: **ZINC molecule graphs dataset**
 ![](https://pic.downk.cc/item/5ea6bdf2c2a9a83be59d74e4.jpg)
-- **Result**:
-![](https://pic.downk.cc/item/5ea6be15c2a9a83be59d9c05.jpg)
 
 ### (3)Node classification
-- **Dataset**:Stochastic Block Model dataset
+- **Dataset**: **Stochastic Block Model dataset**
 
 graph pattern recognition and semi-supervised graph clustering
 ![](https://pic.downk.cc/item/5ea6be68c2a9a83be59dfd51.jpg)
-- **Result**:
-![](https://pic.downk.cc/item/5ea6be85c2a9a83be59e1f33.jpg)
 
 ### (4)Edge classification
-- **Dataset**:Traveling Salesman Problem
+- **Dataset**: **Traveling Salesman Problem**
 ![](https://pic.downk.cc/item/5ea6beaac2a9a83be59e5364.jpg)
-- **Result**:
-![](https://pic.downk.cc/item/5ea6becbc2a9a83be59ea853.jpg)
-![](https://pic.downk.cc/item/5ea6bee2c2a9a83be59ef91e.jpg)
