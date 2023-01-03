@@ -62,7 +62,7 @@ tags: 机器学习
 4. [<font color=Blue>k近邻算法(k-Nearest Neighbor, kNN)</font>](https://0809zheng.github.io/2020/03/23/knn.html)：在训练集中搜索与测试样本最邻近的$k$个样本进行多数表决。
 5. [<font color=Blue>决策树(Disicion Tree)</font>]()：对数据集进行划分的树形结构算法，递归地根据分支条件进行特征选择，包括**ID3**, **C4.5**, **CART**, 决策树的剪枝。
 - **软分类**：预测输入数据可能属于每一个类别的概率，输出范围是$[0,1]$，包括：
-1. [<font color=Blue>逻辑回归 Logistic</font>](https://0809zheng.github.io/2020/03/13/logistic-regression.html): **Logistic**回归, 交叉熵损失, 核**Logistic**回归
+1. [<font color=Blue>逻辑回归(Logistic Regression)</font>](https://0809zheng.github.io/2020/03/13/logistic-regression.html): 通过引入**Sigmoid**函数把线性回归的输出限制在$[0,1]$之间。
 2. [<font color=Blue>朴素贝叶斯(Naive Bayes)</font>](https://0809zheng.github.io/2020/03/28/naivebayes.html)：在贝叶斯公式中引入条件独立性假设，并进行后验概率最大化。
 3. [<font color=Blue>最大熵模型</font>](https://0809zheng.github.io/2021/07/20/me.html)
 4. [高斯判别分析]()
@@ -125,7 +125,9 @@ tags: 机器学习
 ## (4)生成模型
 **生成模型（generative model）**通过学习数据的内在结构或数据中不同元素之间的依赖性，对高维数据（如图像、音频、视频、文本）的概率分布进行估计；通过这种数据表示可以进一步生成新的数据。
 
-如果数据的概率分布形式是已知的，则可以通过**极大似然估计**等方法求得数据分布的解析解。
+如果数据的概率分布形式$P(x ; \theta)$是已知的，则可以通过**极大似然估计**等方法求得数据分布的解析解：
+
+$$ \theta_{\text{MLE}} = \mathop{\arg \max}_{\theta} \log P(x ; \theta) $$
 
 ### a. 隐变量模型
 
@@ -135,7 +137,7 @@ tags: 机器学习
 
 隐变量模型的概率分布表示如下：
 
-$$ p_{\theta}(x,z) = p_{\theta}(x | z)p_{\theta}(z) $$
+$$ p(x,z; \theta) = p_{\theta}(x | z; \theta)p_{\theta}(z; \theta) $$
 
 隐变量的引入为模型引入了一些先验知识，增强了模型的可解释性。一些常见的隐变量模型及其隐变量的含义如下：
 
@@ -143,13 +145,23 @@ $$ p_{\theta}(x,z) = p_{\theta}(x | z)p_{\theta}(z) $$
 - []()：In latent Dirichlet allocation (LDA) the latent variables are the topic assignments
 - [<font color=blue>变分自编码器</font>](https://0809zheng.github.io/2022/04/01/vae.html)：隐变量是数据的压缩表示(**the compressed representations of that data**)
 
-求解隐变量模型的方法包括：
-- [期望最大算法](https://0809zheng.github.io/2020/03/26/expectation-maximization.html)：$p(z \| x)$可解
-- [变分推断](https://0809zheng.github.io/2020/03/25/variational-inference.html)：$p(z \| x)$不可解
+隐变量模型的极大似然估计为：
 
-### b. [<font color=blue>能量模型</font>](https://0809zheng.github.io/2020/04/12/energy.html)
+$$ \begin{aligned} \theta_{\text{MLE}} &= \mathop{\arg \max}_{\theta} \log P(x ; \theta)\\&= \mathop{\arg \max}_{\theta} \log \int_{z}^{} P(x,z ; \theta) dz \end{aligned} $$
 
-**能量模型(energy-based model)**是指使用如下概率模型拟合一批真实数据$x_1,x_2,\cdots,x_n$~$p(x)$：
+由于隐变量的不可观测性，上式是不可解的，需要采用近似算法处理。根据后验概率$p(z \| x)$是否可解，求解隐变量模型的方法包括：
+
+- [<font color=blue>期望最大算法 (Expectation Maximization, EM)</font>](https://0809zheng.github.io/2020/03/26/expectation-maximization.html)：若$p(z \| x)$可解，则可采用**EM**算法进行极大似然估计的迭代计算。**EM**算法在迭代时分成两步。第一步(**E-step**)：计算联合分布的对数似然函数$\log P(x,z ; \theta)$关于给定参数$\theta^{(t)}$下的条件分布$P(z\|x ; \theta^{(t)})$的期望；第二步(**M-step**)：计算期望的最大值。
+
+$$ \begin{aligned} \theta^{(t+1)}= \mathop{\arg \max}_{\theta} \Bbb{E}_{z \text{~}P(z|x ; \theta^{(t)})}[\log P(x,z ; \theta)] \end{aligned} $$
+
+- [<font color=blue>变分推断(Variational Inference)</font>](https://0809zheng.github.io/2020/03/25/variational-inference.html)：若$p(z \| x)$不可解，则可采用变分推断进行近似计算。变分推断是指通过引入一个新的分布$Q(z;\phi)$构造对数似然的变分下界**ELBO**，从而用最大化**ELBO**代替最大化对数似然。
+
+$$ \begin{aligned} \log P(x ; \theta) ≥ \mathbb{E}_{z \text{~} Q(z;\phi)} [\log \frac{P(x,z ; \theta)}{Q(z;\phi)}]  \end{aligned} $$
+
+### b. [<font color=blue>能量模型 (Energy-Based Model)</font>](https://0809zheng.github.io/2020/04/12/energy.html)
+
+**能量模型**是指使用如下概率模型拟合一批真实数据$x_1,x_2,\cdots,x_n$~$p(x)$：
 
 $$ q_{\theta}(x) = \frac{e^{-U_{\theta}(x)}}{Z_{\theta}}, Z_{\theta} = \int e^{-U_{\theta}(x)}dx $$
 
