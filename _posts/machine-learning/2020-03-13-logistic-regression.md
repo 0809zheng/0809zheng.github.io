@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Logistic Regression：逻辑回归'
+title: '逻辑回归(Logistic Regression)'
 date: 2020-03-13
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ed75927c2a9a83be54c53ef.jpg'
