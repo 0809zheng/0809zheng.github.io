@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '深度学习 概述'
+title: '深度学习(Deep Learning)概述'
 date: 2020-01-02
 author: 郑之杰
 cover: ''
@@ -15,36 +15,48 @@ tags: 深度学习
 本文首先介绍深度神经网络的**类型**，其次介绍深度学习的**基本组件**和**方法技巧**，最后介绍深度学习在计算机视觉和自然语言处理等领域的**应用**。
 
 本文目录：
-- 深度神经网络的类型
-1. 卷积神经网络：轻量级卷积神经网络
-2. 循环神经网络：
-3. 自注意力网络：预训练语言模型、Transformer中的位置编码、降低Transformer的计算复杂度
-4. 生成模型：变分自编码器、流模型
-5. 其他类型的网络：
-- 深度学习的基本组件和方法技巧
-1. 深度学习的基本组件：激活函数、优化方法
-2. 深度学习的方法技巧：长尾分布、多任务学习、主动学习
-- 深度学习的应用
-1. 计算机视觉：图像超分辨率、时空动作检测
-2. 自然语言处理：
+- **深度神经网络的类型**
+1. **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、轻量级卷积神经网络
+2. **循环神经网络**：循环神经网络的基本概念、序列到序列模型、
+3. **自注意力网络**：**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、预训练语言模型
+4. **生成模型**：生成对抗网络、变分自编码器、流模型
+5. **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络
+- **深度学习的基本组件和方法技巧**
+1. **深度学习的基本组件**：激活函数、优化方法
+2. **深度学习的方法技巧**：长尾分布、多任务学习、主动学习
+- **深度学习的应用**
+1. **计算机视觉**：图像识别、图像超分辨率、时空动作检测
+2. **自然语言处理**：
 3. 
 
 # 1. 深度神经网络的类型
 
 ## (1) 卷积神经网络
 
+### ⚪ [<font color=Blue>卷积神经网络(Convolutional Neural Network)的基本概念</font>](https://0809zheng.github.io/2020/03/06/CNN.html)
+
+**卷积神经网络**是由卷积层、激活函数和池化层堆叠构成的深度神经网络，可以从图像数据中自适应的提取特征。
+
+![](https://pic.downk.cc/item/5ea54956c2a9a83be5d81c10.jpg)
+
+卷积层是一种局部的互相关操作，使用卷积核在输入图像或特征上按照光栅扫描顺序滑动，并通过局部仿射变换构造输出特征；具有局部连接、参数共享和平移等变性等特点。
+
+卷积神经网络中的卷积层包括标准卷积, 转置卷积, 扩张卷积, 可分离卷积(空间可分离卷积, 深度可分离卷积, 平展卷积), 组卷积, 可变形卷积, 差分卷积(中心差分卷积, 交叉中心差分卷积, 像素差分卷积), 动态卷积(**CondConv**, **DynamicConv**, **DyNet**, **ODConv**), **Involution**, 圆形卷积, 八度卷积。
 
 
-  
+### ⚪ [<font color=Blue>卷积神经网络中的池化(Pooling)层</font>](https://0809zheng.github.io/2021/07/02/pool.html)
 
-- [卷积神经网络](https://0809zheng.github.io/2020/03/06/CNN.html)
-- [卷积神经网络中的池化方法](https://0809zheng.github.io/2021/07/02/pool.html)
-- [卷积神经网络的结构发展](https://0809zheng.github.io/2020/06/03/CNN-architecture.html)
-- [卷积神经网络中的注意力机制](https://0809zheng.github.io/2020/11/18/AinCNN.html)
+
+**池化层**可以对特征图进行降采样，从而减小网络的计算成本，降低过拟合的风险。卷积神经网络中的池化方法包括：
+- 通用的池化方法：最大池化, 平均池化, 混合池化, 分数最大池化, 幂平均池化, 随机池化, 随机空间采样池化(**S3Pool**), 细节保留池化(**DPP**), 局部重要性池化(**LIP**), 软池化, 动态优化池化(**DynOPool**)
+- 为下游任务设计的池化方法：全局平均池化(**GAP**), 协方差池化, 空间金字塔池化(**SPP**), 感兴趣区域池化(**RoI Pooling**)
+
+### ⚪ [卷积神经网络中的注意力机制](https://0809zheng.github.io/2020/11/18/AinCNN.html)
+
 
 ### ⚪ [卷积神经网络的可视化](https://0809zheng.github.io/2020/12/16/custom.html)
 
-### ⚪ [<font color=Blue>轻量级(LightWeight)卷积神经网络</font>](https://0809zheng.github.io/2020/12/16/custom.html)
+### ⚪ [<font color=Blue>轻量级(LightWeight)卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)
 
 **轻量级**网络设计旨在设计计算复杂度更低的卷积网络结构。
 - 从**结构**的角度考虑，卷积层提取的特征存在冗余，可以设计特殊的卷积操作，减少卷积操作的冗余，从而减少计算量。如**SqueezeNet**, **SqueezeNext**, **MobileNet V1,2,3**, **ShuffleNet V1,2**, **IGCNet V1,2**, **ChannelNet**, **EfficientNet V1,2**, **GhostNet**, **MicroNet**, **CompConv**。
@@ -55,25 +67,40 @@ tags: 深度学习
 
 
 ## (2) 循环神经网络
-- [循环神经网络](https://0809zheng.github.io/2020/03/07/RNN.html)
-- [递归神经网络](https://0809zheng.github.io/2020/03/08/recursive-neural-network.html)
-- [记忆增强神经网络](https://0809zheng.github.io/2020/04/23/memory-network.html)
+
+
+### ⚪ [<font color=Blue>循环神经网络(Recurrent Neural Network)的基本概念</font>](https://0809zheng.github.io/2020/03/07/RNN.html)
+
+**循环神经网络(RNN)**可以处理输入长度不固定的文本等时间序列数据。**RNN**每一时刻的隐状态$h_t$不仅和当前时刻的输入$x_t$相关，也和上一时刻的隐状态$h_{t-1}$相关。**RNN**具有通用近似性、图灵完备性等特点。
+
+![](https://pic.downk.cc/item/5e9fdc29c2a9a83be5533395.jpg)
+
+**RNN**存在长程依赖问题：理论上可以建立长时间间隔的状态之间的依赖关系，但是由于梯度消失现象，实际上只能学习到短期的依赖关系。解决措施是引入门控机制，如**LSTM**, **GRU**, **QRNN**, **SRU**, **ON-LSTM**。
+
+也可以通过增加循环层的深度增强**RNN**的特征提取能力，包括**Stacked RNN**, **Bidirectional RNN**。
+
+
+
+### ⚪ [<font color=Blue>序列到序列模型 (Sequence to Sequence)</font>](https://0809zheng.github.io/2020/04/21/sequence-2-sequence.html)
+
+**序列到序列(Seq2Seq)模型**是一种序列生成模型，能够根据一个随机长度的输入序列生成另一个随机长度的序列。**Seq2Seq**模型通常采用编码器-解码器结构：
+
+![](https://pic.imgdb.cn/item/63b431e6be43e0d30e71b68d.jpg)
+
+**Seq2Seq**模型在生成序列时可以通过贪婪搜索或束搜索实现。序列生成时存在曝光偏差问题，可以通过计划采样缓解。
+
+典型的**Seq2Seq**模型包括条件**Seq2Seq**模型、指针网络。
+
+### ⚪ [<font color=Blue>序列到序列模型中的注意力机制 (Attention Mechanism)</font>](https://0809zheng.github.io/2020/04/22/attention.html)
+
+在**Seq2Seq**模型中，将输入序列通过编码器转换为一个上下文向量$c$，再喂入解码器。注意力机制是指在解码器的每一步中，通过输入序列的所有隐状态$h_{1:T}$构造注意力分布$(α_1,...,α_t,...,α_T)$，然后构造当前步的上下文向量$c= \sum_{t=1}^{T} {α_tx_t}$。
+
+### ⚪ [自注意力模型](https://0809zheng.github.io/2020/04/24/self-attention.html)
+
 
 ## (3) 自注意力网络
 
-
-### ⚪ [<font color=Blue>预训练语言模型 (Pretrained Language Model)</font>](https://0809zheng.github.io/2020/04/27/elmo-bert-gpt.html)
-
-预训练语言模型是一种从大量无标签的语料库中学习通用的自然语言特征表示的方法。使用预训练语言模型的步骤如下：1. 在大量无标签的语料库上进行特定任务的**预训练**；2. 在下游任务的语料库上进行**微调**。
-
-根据预训练的任务不同，预训练语言模型可以划分为以下几类：
-- **词嵌入(word embedding)**：上下文无关的嵌入
-- **概率语言建模 Language Modeling(LM)**：自回归或单向语言建模，即给定前面所有词预测下一个词。如**ELMo**, **GPT 1,2,3**。
-- **掩码语言建模 Masked Language Modeling(MLM)**：从输入序列中遮盖一些**token**，然后训练模型通过其余的**token**预测**masked token**。如**BERT**, **ALBERT**, **ELECTRA**, **REALM**。
-- **序列到序列的掩码语言建模 Seq2Seq Masked Language Modeling(Seq2Seq MLM)**：采用编码器-解码器结构，将**masked**序列输入编码器，解码器以自回归的方式顺序生成**masked token**。如**MASS**, **UniLM**, **T5**, **T5.1.1**, **mT5**。
-- **增强掩码语言建模 Enhanced Masked Language Modeling(E-MLM)**：在掩码语言建模的过程中使用了一些增强方法。如**RoBERTa**, **DeBERTa**。
-- **排列语言建模 Permuted Language Modeling(PLM)**：在输入序列的随机排列上进行语言建模。如**XLNet**。
-
+- [Transformer](https://0809zheng.github.io/2020/04/25/transformer.html)
 
 
 ### ⚪ [<font color=Blue>Transformer中的位置编码 (Position Encoding)</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)
@@ -89,15 +116,19 @@ tags: 深度学习
 - 改进注意力矩阵的计算: 这类方法的改进思路是使得注意力矩阵的计算**稀疏化**，即对输入序列中的每一个位置只计算其与一部分位置(而不是全部位置)之间的相关性，表现为注意力矩阵是稀疏的。如**Sparse Transformer**, **Reformer**, **Longformer**, **Big Bird** 。
 - 改进输出的加权求和: 这类方法的改进思路是使得自注意力的计算**线性化**。如**Efficient Attention**, **Synthesizer**, **Linformer**, **Linear Transformer**, **Performer**, **Nyströmformer**, **External Attention**, **FLASH**。
 
+### ⚪ [<font color=Blue>预训练语言模型 (Pretrained Language Model)</font>](https://0809zheng.github.io/2020/04/27/elmo-bert-gpt.html)
 
-### ⚪ 
+预训练语言模型是一种从大量无标签的语料库中学习通用的自然语言特征表示的方法。使用预训练语言模型的步骤如下：1. 在大量无标签的语料库上进行特定任务的**预训练**；2. 在下游任务的语料库上进行**微调**。
+
+根据预训练的任务不同，预训练语言模型可以划分为以下几类：
+- **词嵌入(word embedding)**：上下文无关的嵌入
+- **概率语言建模 Language Modeling(LM)**：自回归或单向语言建模，即给定前面所有词预测下一个词。如**ELMo**, **GPT 1,2,3**。
+- **掩码语言建模 Masked Language Modeling(MLM)**：从输入序列中遮盖一些**token**，然后训练模型通过其余的**token**预测**masked token**。如**BERT**, **ALBERT**, **ELECTRA**, **REALM**。
+- **序列到序列的掩码语言建模 Seq2Seq Masked Language Modeling(Seq2Seq MLM)**：采用编码器-解码器结构，将**masked**序列输入编码器，解码器以自回归的方式顺序生成**masked token**。如**MASS**, **UniLM**, **T5**, **T5.1.1**, **mT5**。
+- **增强掩码语言建模 Enhanced Masked Language Modeling(E-MLM)**：在掩码语言建模的过程中使用了一些增强方法。如**RoBERTa**, **DeBERTa**。
+- **排列语言建模 Permuted Language Modeling(PLM)**：在输入序列的随机排列上进行语言建模。如**XLNet**。
 
 
-- [词嵌入](https://0809zheng.github.io/2020/04/29/word-embedding.html)
-- [注意力机制](https://0809zheng.github.io/2020/04/22/attention.html)
-- [自注意力模型](https://0809zheng.github.io/2020/04/24/self-attention.html)
-- [Transformer](https://0809zheng.github.io/2020/04/25/transformer.html)
-- 语言模型：[Seq2Seq语言模型,指针网络](https://0809zheng.github.io/2020/04/21/sequence-2-sequence.html)
 
 
 ## (4) 生成模型
@@ -119,7 +150,7 @@ $$ p_{\theta}(x) = \int p_{\theta}(x,z) dz = \int p_{\theta}(x|z)p(z) dz  $$
 
 **生成对抗网络**通过交替优化的对抗训练绕开了似然的直接求解，使用生成器$G$构造真实分布的近似分布$$P_G(x)$$，并使用判别器衡量生成分布和真实分布之间的差异。
 
-$$ \begin{aligned} \mathop{ \min}_{G} \mathop{\max}_{D}  \Bbb{E}_{x \text{~} P_{data}(x)}[\log D(x)] + \Bbb{E}_{x \text{~} P_{G}(x)}[\log(1-D(x))] \end{aligned} $$
+$$ \begin{aligned} \mathop{ \min}_{G} \mathop{\max}_{D}  \Bbb{E}_{x \text{~} P_{data}(x)}[\log D(x)] + \Bbb{E}_{z \text{~} P(z)}[\log(1-D(G(z)))] \end{aligned} $$
 
 生成对抗网络的设计是集目标函数、网络结构、优化过程于一体的，**GAN**的各种变体也是基于对这些方面的改进：
 - 改进目标函数：基于分布散度(如**f-GAN**, **BGAN**, **Softmax GAN**, **RGAN**, **LSGAN**, **WGAN-div**, **GAN-QP**, **Designing GAN**)、基于积分概率度量(如**WGAN**, **WGAN-GP**, **DRAGAN**, **SN-GAN**, **GN-GAN**, **GraN-GAN**, **c-transform**, **McGAN**, **MMD GAN**, **Fisher GAN**)
@@ -164,8 +195,35 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 
   
 ## (4) 其他类型的神经网络
-- [图神经网络](https://0809zheng.github.io/2020/03/09/graph-neural-network.html)
-- [胶囊网络](https://0809zheng.github.io/2020/04/20/Capsule-Network.html)
+
+### ⚪ [<font color=Blue>递归神经网络 (Recursive Neural Network)</font>](https://0809zheng.github.io/2020/03/08/recursive-neural-network.html)
+
+**递归神经网络**是循环神经网络在有向无环图上的扩展，主要用来建模自然语言句子的语义。给定一个句子的语法结构（一般为树状结构），可以使用递归神经网络来按照句法的组合关系来合成一个句子的语义。句子中每个短语成分又可以分成一些子成分，即每个短语的语义都可以由它的子成分语义组合而来，并进而合成整句的语义。
+
+![](https://pic.downk.cc/item/5ea14499c2a9a83be5c09f98.jpg)
+
+典型的递归神经网络包括递归神经张量网络、矩阵-向量递归网络、**Tree LSTM**。
+
+### ⚪ [<font color=Blue>记忆增强神经网络 (Memory Augmented Neural Network)</font>](https://0809zheng.github.io/2020/04/23/memory-network.html)
+
+**记忆增强神经网络**在神经网络中引入外部记忆单元来提高网络容量。记忆网络的模块包括：主网络$C$负责信息处理以及与外界的交互；外部记忆单元$M$用来存储信息；读取模块$R$根据主网络生成的查询向量从外部记忆单元读取信息；写入模块$W$根据主网络生成的查询向量和要写入的信息更新外部记忆单元。读取或写入操作通常使用注意力机制实现。
+
+![](https://pic.downk.cc/item/5ea1641fc2a9a83be5e6cfc3.jpg)
+
+典型的记忆增强神经网络包括端到端记忆网络、神经图灵机。
+
+### ⚪ [<font color=Blue>图神经网络 (Graph Neural Network)</font>](https://0809zheng.github.io/2020/03/09/graph-neural-network.html)
+
+
+**图神经网络**是用于处理图结构的神经网络，其核心思想是学习一个函数映射$f(\cdot)$，图中的节点$v_i$通过该映射可以聚合它自己的特征$x_i$与它的邻居特征$x_{j \in N(v_i)}$来生成节点$v_i$的新表示。
+
+![](https://pic.downk.cc/item/5ea59bbdc2a9a83be5281d20.jpg)
+
+**GNN**可以分为两大类，基于空间（**spatial-based**）和基于谱（**spectral-based**）。
+- 基于空间的**GNN**直接根据邻域聚合特征信息，把图粗化为高级子结构，可用于提取图的各级表示和执行下游任务。如**NN4G**, **DCNN**, **DGC**, **MoNET**, **GraphSAGE**, **GAT**, **GIN**。
+- 基于谱的**GNN**把图网络通过傅里叶变换转换到谱域，引入滤波器处理图谱后通过逆变换还原到顶点域。如**ChebNet**, **GCN**, **DropEdge**。
+
+### ⚪ [胶囊网络](https://0809zheng.github.io/2020/04/20/Capsule-Network.html)
 
 
 
@@ -247,7 +305,16 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 
 ## (1) 计算机视觉
 
-### ⚪ [图像分类](https://0809zheng.github.io/2020/05/06/image-classification.html)
+### ⚪ [<font color=Blue>图像识别 (Image Recognition)</font>](https://0809zheng.github.io/2020/05/06/image-classification.html)
+
+**图像识别**是计算机视觉的基本任务，旨在对每张图像内出现的物体进行类别区分。基于深度学习的图像识别方法不需要手工提取特征，而是使用卷积神经网络自动提取特征并进行分类。应用于图像识别任务的卷积神经网络的结构发展包括：
+1. 早期探索：奠定“卷积层-下采样层-全连接层”的拓扑结构。如**LeNet5**, **AlexNet**, **ZFNet**, **NIN**, **SPP-net**, **VGGNet**
+2. 深度化：增加堆叠卷积层的数量。如**Highway Network**, **ResNet**, **Stochastic Depth**, **DenseNet**, **Pyramidal ResNet**
+3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**, **ConvNeXt**
+4. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
+5. 其他结构：**Noisy Student**, **SCAN**, **NFNet**, **ResNet-RS**
+
+
 
 ### ⚪ [目标检测](https://0809zheng.github.io/2020/05/31/object-detection.html)
 
@@ -283,8 +350,6 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - **管级的检测器(tubelet-level detector)**：每次检测时输入多帧连续视频帧，对每帧上预定义的检测框进行修正，并对不同输入的结果在时序上进行连接。如**ACT-detector**, **MOC-detector**。
 
 
-
-
 ### ⚪ [1](https://0809zheng.github.io/2020/08/27/SR.html)
 
 - [人脸检测](https://0809zheng.github.io/2020/05/09/face-detection.html)
@@ -298,6 +363,7 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 
 ### ⚪ [1](https://0809zheng.github.io/2020/08/27/SR.html)
 
+- [词嵌入](https://0809zheng.github.io/2020/04/29/word-embedding.html)
 - [文本摘要](https://0809zheng.github.io/2020/05/13/text-summary.html)
 - [图像描述](https://0809zheng.github.io/2020/05/14/image-caption.html)
 - [连接时序分类](https://0809zheng.github.io/2020/06/11/ctc.html)

@@ -1,72 +1,67 @@
 ---
 layout: post
-title: '注意力机制'
+title: '序列到序列模型中的注意力机制(Attention Mechanism)'
 date: 2020-04-22
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e9fbd69c2a9a83be53b80dd.jpg'
 tags: 深度学习
 ---
 
-> Attention  Mechanism.
+> Attention Mechanism in Seq2Seq Models.
 
-在条件Seq2Seq模型中，将输入文本通过编码器Encoder转换为一个**上下文向量**$c$，喂入解码器Decoder。
+**注意力机制（Attention Mechanism）**最初用于[神经机器翻译](https://arxiv.org/abs/1409.0473)任务中记忆比较长的输入序列。
+
+在[**Seq2Seq**模型](https://0809zheng.github.io/2020/04/21/sequence-2-sequence.html)中，将输入文本序列通过编码器转换为一个**上下文向量**$c$，再喂入解码器:
 
 ![](https://pic.downk.cc/item/5e9ed899c2a9a83be5966fe5.jpg)
 
-在比较简单的任务（比如文本分类）中，只需要编码一些对分类有用的信息，因此用一个向量来表示文本语义是可行的。
+在比较简单的任务中，比如文本分类，只需要编码一些对分类有用的信息，因此用一个上下文向量$c$来表示文本语义是可行的。
 
-但是在复杂的任务（比如阅读理解）中，给定的背景文章（Background Document）一般比较长，如果用循环神经网络来将其转换为向量表示，那么这个编码向量很难反映出背景文章的所有语义。
+但是在复杂的任务中，比如阅读理解，给定的背景文档一般比较长，如果用循环神经网络来将其转换为上下文向量$c$，则该编码向量很难反映出输入文本的所有语义。
 
-引入**注意力机制（Attention Mechanism）**，选择一些关键的信息输入进行处理，来提高模型的效率。
+注意力机制并不是用编码器的最后一个隐状态$h_T$作为固定的上下文向量$c$；而是在解码器的每一步中，通过输入序列的所有隐状态$h_{1:T}$构造当前步的上下文向量$c$。
+
+![](https://pic.imgdb.cn/item/63b5886fbe43e0d30e75c044.jpg)
 
 注意力机制的实现过程：
 
-1. 在所有输入信息上计算**注意力分布**；
-2. 根据注意力分布来计算输入信息的**加权平均**。
+**1**. 把解码器上一步的隐状态$s_{t-1}$作为查询向量，在输入序列的所有编码器隐状态$h_{1:T}$上计算注意力分布 $(α_1,...,α_t,...,α_T)$：
 
-### ①注意力分布
-给定输入向量$$[x_1,...,x_N]$$;
+$$ α_t = \text{softmax}(\text{score}(s_{t-1},h_t)) = \frac{\exp(\text{score}(s_{t-1},h_t))}{\sum_{t=1}^{T} {\exp(\text{score}(s_{t-1},h_t))}} $$
 
-对于文本输入，输入向量可以是RNN的隐状态向量：
+**2**. 根据注意力分布对输入序列的编码器隐状态$h_{1:T}$进行加权平均，作为当前步的上下文向量：
 
-![](https://pic.downk.cc/item/5e9fabb5c2a9a83be52dfb27.jpg)
+$$ c = \sum_{t=1}^{T} {α_tx_t} $$
 
-对于图像输入，输入向量可以是不同区域的特征向量：
+其中$\text{score}(s,h)$是**注意力得分函数**，也称为**相似得分函数（alignment score function）**，常用的计算方式包括：
 
-![](https://pic.downk.cc/item/5e9fab83c2a9a83be52de2b4.jpg)
 
-给定**查询向量(query vertor)**$q$，可以是动态生成的，也可以是可学习的参数。
+| 相似得分函数 | 表达式 |  说明 |
+| :---: | :---:  | :---:  |
+| [加性 Additive](https://arxiv.org/abs/1409.0473)  | $v^T \tanh(Ws+Uh)$ | $v$、$W$、$U$是可学习参数 |
+| [点积 Dot-Product](https://arxiv.org/abs/1508.04025)  | $s^Th$ | 使用矩阵乘法提高计算效率 |
+| [缩放点积 Scaled Dot-Product](https://proceedings.neurips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf)  | $\frac{s^Th}{\sqrt{n}}$ | $n$是隐状态维度，通过缩放防止输入过大导致**softmax**函数具有极小的梯度 |
+| [双线性 General](https://arxiv.org/abs/1508.04025)  | $s^TWh$ | $W$是可学习参数，引入了非对称性 |
+| [基于位置 Location-based](https://arxiv.org/abs/1508.04025)  | $Ws$ | 简化了**softmax**对准，使其仅取决于目标位置 |
+| [基于上下文 Context-based](https://arxiv.org/abs/1410.5401)  | $\cos (s,h)$ | 使用余弦相似度函数 |
 
-则**注意力分布（Attention Distribution）**$α_n$定义为：
+### ⚪ 软性/全局注意力和硬性/局部注意力
 
-$$ α_n = softmax(s(x_n,q)) = \frac{exp(s(x_n,q))}{\sum_{n=1}^{N} {exp(s(x_n,q))}} $$
+上述这种同时考虑输入序列的所有隐状态的注意力机制被称为**软性注意力机制（Soft Attention Mechanism）**,也叫**全局(global)**注意力。这种注意力的优点是平滑且可微；缺点是当输入序列长度很大时计算成本较高。
 
-其中$s(x,q)$是**注意力得分函数**(**相似函数（alignment model）**)，常用的计算方式：
+与之对应的，考虑输入序列的一部分隐状态的注意力机制被称为**局部(local)**注意力，这种注意力在推断时需要更少的计算量。
 
-1. **加性模型**：$$s(x,q) = v^Ttanh(Wx+Uq)$$,其中$v$、$W$、$U$是可学习参数；
-2. **点积模型**：$$s(x,q) = x^Tq$$,相比加性模型使用矩阵乘积，提高计算效率;
-3. **缩放点积模型**：$$s(x,q) = \frac{x^Tq}{\sqrt{D}}$$,其中$D$是输入向量的维度，相比点积模型方差小;
-4. **双线性模型**：$$s(x,q) = x^TWq$$,其中$W$是可学习参数，相比点积模型引入了非对称性。
+![](https://pic.imgdb.cn/item/63b6b536be43e0d30e311774.jpg)
 
-### ②加权平均
-采用**加权平均(weighted sum)**对输入信息进行汇总：
+特别地，只考虑输入序列的某一个隐状态的注意力机制被称为**硬性注意力（Hard Attention）**：
+$$ c = x_{\hat{n}}, \quad \hat{n} = \mathop{\arg\max}_{n}α_n $$
 
-$$ c = \sum_{n=1}^{N} {α_nx_n} $$
+硬性注意力的缺点是最大采样不能使用反向传播，需要用方差缩减(**variance reduction**)或强化学习进行训练。
 
-将$c$作为Decoder的输入，并反复使用注意力机制。
+### ⚪ 注意力机制的正则化
 
-上述方法是一种**软性注意力机制（Soft Attention Mechanism）**,也叫**全局(global)注意力**。
+当同时使用多个输入文本时，每一个文本样本的注意力得分总和应该相近，因此引入正则化：
 
-注意力机制还存在一些变化的模型：
-1. **硬性注意力（Hard Attention）**,也叫**局部(local)注意力**：$$ c = x_{\hat{n}}, \quad \hat{n} = argmax_{(n)}α_n $$，硬性注意力的缺点是最大采样不能使用反向传播，需要用强化学习进行训练;
-2. **键值对注意力（key-value pair Attention）**：输入信息用键值对$$x_n = (k_n,v_n)$$表示，则用键计算注意力分布$$α_n = softmax(s(k_n,q))$$，用值计算加权平均$$c = \sum_{n=1}^{N} {α_nv_n}$$；
-![](https://pic.downk.cc/item/5e9fbfa1c2a9a83be53d2b6a.jpg)
-3. **多头注意力（Multi-Head Attention）**:使用多个查询向量$q_1,...,q_M$并行地从输入信息中选取多组信息$$c_1,...,c_M$$,并进行向量拼接。
-![](https://pic.downk.cc/item/5e9fc024c2a9a83be53d7ad2.jpg)
-
-### 正则化
-当同时使用多个输入文本或图像时，每一个样本的注意力得分总和应该相近，引入正则化：
-
-$$ \sum_{i}^{} {(τ-\sum_{n}^{} {s^i(x_n,q)})} $$
+$$ \sum_{i}^{} {(τ-\sum_{t}^{} {\text{score}(s_t,h)})} $$
 
 其中$τ$是给定的常数。
