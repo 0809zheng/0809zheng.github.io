@@ -1,22 +1,22 @@
 ---
 layout: post
-title: '自注意力模型'
+title: '自注意力机制(Self-Attention Mechanism)'
 date: 2020-04-24
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ea28825c2a9a83be5477d93.jpg'
 tags: 深度学习
 ---
 
-> Self-Attention Model.
+> Self-Attention Mechanism.
 
 **自注意力(Self-Attention)**机制也称为**内部注意力(Intra-Attention)**，是一种特殊的[注意力机制](https://0809zheng.github.io/2020/04/22/attention.html)。自注意力机制作为一种新型的网络结构被广泛应用于自然语言处理与计算机视觉等任务中。本文首先讨论注意力机制与自注意力机制的区别；其次对比卷积神经网络、循环神经网络和自注意力机制；最后介绍自注意力机制的实现细节。
 
 **本文目录**：
 1. Attention and Self-Attention
-1. CNN, RNN, and Self-Attention
-2. Self-Attention
-3. Multi-Head Self-Attention
-4. Position Encoding
+2. CNN, RNN, and Self-Attention
+3. Self-Attention
+4. Multi-Head Self-Attention
+5. Position Encoding
 
 # 1. Attention and Self-Attention
 [注意力机制](https://0809zheng.github.io/2020/04/22/attention.html)(**attention mechanism**)最早是在序列到序列模型中提出的，用于解决机器翻译任务。在该任务中需要把输入序列$$\{x_1,x_2,...,x_j\}$$转换为输出序列$$\{y_1,y_2,...,y_i\}$$，因此序列到序列模型采用编码器-解码器结构，即引入可学习的权重参数$w_{ij}$，使得：
@@ -68,7 +68,7 @@ $$ y_i = f(x_{1},x_{2},...,x_{n}) $$
 ### (d) 对不同网络结构的讨论
 
 1. 卷积神经网络事实上只能获得局部信息，需要通过**堆叠**更多层数来增大感受野；循环神经网络需要通过**递归**获得全局信息，因此一般采用双向形式；自注意力机制能够直接获得**全局信息**。
-1. 常用的神经网络模型(如多层感知机)，其每一层的权重参数经过训练后是**固定**的，与输入无关；而自注意力层的权重是由输入决定的，但其只能生成固定长度的输入序列。
+1. 常用的神经网络模型(如多层感知机)，其每一层的权重参数经过训练后是**固定**的，与输入无关；而自注意力层的权重是由输入决定的，但其只能处理长度固定的输入序列。
 1. 循环神经网络是递归计算的，无法并行；卷积神经网络的不同卷积核之间可以并行计算；自注意力机制的计算是高度并行的，很容易被**GPU**等加速。
 
 若输入序列长度为$n$，特征维度为$d$。则上述模型每层的计算复杂度、序列操作数(越大表示可并行化程度越差)和最大路径长度分别为：
@@ -77,7 +77,7 @@ $$
 \begin{array}{c|ccc}
     \text{Layer Type} & \text{Complexity per Layer} & \text{Sequential Operations} & \text{Maximum Path Length} \\
     \hline
-    \text{Convolutional} & O(k \cdot n \cdot d^2) & O(1) & O(log_k(n)) \\
+    \text{Convolutional} & O(k \cdot n \cdot d^2) & O(1) & O(\log_k(n)) \\
     \text{Recurrent} & O(n \cdot d^2) & O(n) & O(n) \\
     \text{Self-Attention} & O(n^2 \cdot d) & O(1) & O(1) \\ 
 \end{array}
@@ -160,10 +160,10 @@ $$ B = W^o \begin{bmatrix} B_1 \\ ... \\ B_M \\ \end{bmatrix} $$
 
 ![](https://pic.downk.cc/item/5ea29902c2a9a83be55cdc7b.jpg)
 
-位置编码$e$是自注意力机制中获取序列位置信息的唯一来源，是模型重要的组成部分。位置编码并不是从数据中学习得到的，而是人为定义并加到词嵌入向量上的。对位置编码的一些**解释**：
+位置编码$e$是自注意力机制中获取序列**位置**信息的唯一来源，是模型重要的组成部分。位置编码既可以从数据中学习得到，也可以人为定义并加到词嵌入向量上。对位置编码的一些**解释**：
 
-### (1)为什么是$add$而不是$concatenate$?
-假设位置编码为$one$-$hot$形式，$concatenate$到输入向量上进行词嵌入：
+### (1)为什么是add而不是concatenate ?
+假设位置编码为**one-hot**形式，**concatenate**到输入向量上进行词嵌入：
 
 ![](https://pic.downk.cc/item/5ea29a5ac2a9a83be55e6d0f.jpg)
 
@@ -189,3 +189,5 @@ $$ cos(\alpha+\beta)=cos(\alpha)cos(\beta)-sin(\alpha)sin(\beta) $$
 上述位置编码也被称为**Sinusoidal**位置编码，其编码矩阵可视化如下：
 
 ![](https://pic.downk.cc/item/5ea29a8ac2a9a83be55ea47e.jpg)
+
+更多的位置编码形式可以参考[<font color=Blue>自注意力机制中的位置编码 (Position Encoding)</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)。

@@ -31,7 +31,7 @@ $$ α_t = \text{softmax}(\text{score}(s_{t-1},h_t)) = \frac{\exp(\text{score}(s_
 
 **2**. 根据注意力分布对输入序列的编码器隐状态$h_{1:T}$进行加权平均，作为当前步的上下文向量：
 
-$$ c = \sum_{t=1}^{T} {α_tx_t} $$
+$$ c = \sum_{t=1}^{T} {α_th_t} $$
 
 其中$\text{score}(s,h)$是**注意力得分函数**，也称为**相似得分函数（alignment score function）**，常用的计算方式包括：
 
