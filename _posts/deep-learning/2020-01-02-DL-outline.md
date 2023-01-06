@@ -19,7 +19,7 @@ tags: 深度学习
 1. **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、轻量级卷积神经网络
 2. **循环神经网络**：循环神经网络的基本概念、序列到序列模型、
 3. **自注意力网络**：**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、预训练语言模型
-4. **生成模型**：生成对抗网络、变分自编码器、流模型
+4. **深度生成模型**：生成对抗网络、变分自编码器、流模型
 5. **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络
 - **深度学习的基本组件和方法技巧**
 1. **深度学习的基本组件**：激活函数、优化方法
@@ -41,7 +41,7 @@ tags: 深度学习
 
 卷积层是一种局部的互相关操作，使用卷积核在输入图像或特征上按照光栅扫描顺序滑动，并通过局部仿射变换构造输出特征；具有局部连接、参数共享和平移等变性等特点。
 
-卷积神经网络中的卷积层包括标准卷积, 转置卷积, 扩张卷积, 可分离卷积(空间可分离卷积, 深度可分离卷积, 平展卷积), 组卷积, 可变形卷积, 差分卷积(中心差分卷积, 交叉中心差分卷积, 像素差分卷积), 动态卷积(**CondConv**, **DynamicConv**, **DyNet**, **ODConv**), **Involution**, 圆形卷积, 八度卷积。
+卷积神经网络中的卷积层包括标准卷积, 转置卷积, 扩张卷积, 可分离卷积(空间可分离卷积, 深度可分离卷积, 平展卷积), 组卷积, 可变形卷积, 差分卷积(中心差分卷积, 交叉中心差分卷积, 像素差分卷积), 动态卷积(**CondConv**, **DynamicConv**, **DyNet**, **ODConv**), **Involution**, 圆形卷积, 八度卷积, 稀疏卷积(空间稀疏卷积, 子流形稀疏卷积)。
 
 
 ### ⚪ [<font color=Blue>卷积神经网络中的池化(Pooling)层</font>](https://0809zheng.github.io/2021/07/02/pool.html)
@@ -93,14 +93,14 @@ tags: 深度学习
 
 ### ⚪ [<font color=Blue>序列到序列模型中的注意力机制 (Attention Mechanism)</font>](https://0809zheng.github.io/2020/04/22/attention.html)
 
-在**Seq2Seq**模型中，将输入序列通过编码器转换为一个上下文向量$c$，再喂入解码器。注意力机制是指在解码器的每一步中，通过输入序列的所有隐状态$h_{1:T}$构造注意力分布$(α_1,...,α_t,...,α_T)$，然后构造当前步的上下文向量$c= \sum_{t=1}^{T} {α_tx_t}$。
-
-### ⚪ [自注意力模型](https://0809zheng.github.io/2020/04/24/self-attention.html)
+在**Seq2Seq**模型中，将输入序列通过编码器转换为一个上下文向量$c$，再喂入解码器。注意力机制是指在解码器的每一步中，通过输入序列的所有隐状态$h_{1:T}$构造注意力分布$(α_1,...,α_t,...,α_T)$，然后构造当前步的上下文向量$c= \sum_{t=1}^{T} {α_th_t}$。
 
 
 ## (3) 自注意力网络
 
-- [Transformer](https://0809zheng.github.io/2020/04/25/transformer.html)
+### ⚪ [自注意力模型](https://0809zheng.github.io/2020/04/24/self-attention.html)
+
+### ⚪ [Transformer](https://0809zheng.github.io/2020/04/25/transformer.html)
 
 
 ### ⚪ [<font color=Blue>Transformer中的位置编码 (Position Encoding)</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)
@@ -131,7 +131,7 @@ tags: 深度学习
 
 
 
-## (4) 生成模型
+## (4) 深度生成模型
 
 **生成模型**(**generative model**)是指使用带参数$\theta$的概率分布$p_{\theta}(x)$拟合已有数据样本集$$\{x\}$$。由于概率分布$p_{\theta}(x)$的形式通常是未知的，可以将其假设为离散型或连续型分布；若进一步引入**隐变量(latent variable)** $z$，则可以间接地构造概率分布$p_{\theta}(x)$：
 
@@ -310,7 +310,7 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 **图像识别**是计算机视觉的基本任务，旨在对每张图像内出现的物体进行类别区分。基于深度学习的图像识别方法不需要手工提取特征，而是使用卷积神经网络自动提取特征并进行分类。应用于图像识别任务的卷积神经网络的结构发展包括：
 1. 早期探索：奠定“卷积层-下采样层-全连接层”的拓扑结构。如**LeNet5**, **AlexNet**, **ZFNet**, **NIN**, **SPP-net**, **VGGNet**
 2. 深度化：增加堆叠卷积层的数量。如**Highway Network**, **ResNet**, **Stochastic Depth**, **DenseNet**, **Pyramidal ResNet**
-3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**, **ConvNeXt**
+3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**, **ConvNeXt v1-2**
 4. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
 5. 其他结构：**Noisy Student**, **SCAN**, **NFNet**, **ResNet-RS**
 

@@ -24,7 +24,7 @@ tags: 深度学习
 本节主要介绍应用于图像识别任务的**卷积神经网络**，按照其结构发展概述如下：
 1. 早期探索：奠定“卷积层-下采样层-全连接层”的拓扑结构。如**LeNet5**, **AlexNet**, **ZFNet**, **NIN**, **SPP-net**, **VGGNet**
 2. 深度化：增加堆叠卷积层的数量。如**Highway Network**, **ResNet**, **Stochastic Depth**, **DenseNet**, **Pyramidal ResNet**
-3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**, **ConvNeXt**
+3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**, **ConvNeXt v1-2**
 4. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
 5. 其他结构：**Noisy Student**, **SCAN**, **NFNet**, **ResNet-RS**
 
@@ -187,6 +187,15 @@ $$ y=H(x) \cdot T(x) + x \cdot(1-T(x)) $$
 **ConvNeXt**通过把标准**ResNet**逐步修改为**Swin Transformer**，在此过程中发现了导致卷积神经网络和视觉**Transformer**存在性能差异的几个关键组件，在此基础上设计的卷积模块结合训练技巧与微观设计，实现了性能最佳的卷积网络。
 
 ![](https://pic.imgdb.cn/item/63ac435f08b68301632949ce.jpg)
+
+### ⚪ ConvNeXt v2
+
+- paper：[<font color=blue>ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders</font>](https://0809zheng.github.io/2023/01/05/convnext2.html)
+
+**ConvNeXt v2**采用基于稀疏卷积设计的全卷积掩蔽自编码器(**FCMAE**)进行视觉自监督预训练，并引入全局响应归一化(**GRN**)缓解特征**collapse**现象。
+
+![](https://pic.imgdb.cn/item/63b6d61dbe43e0d30e7858d8.jpg)
+
 
 ## (4) 轻量化设计
 
