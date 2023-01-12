@@ -9,7 +9,7 @@ tags: 深度学习
 
 > Image Recognition.
 
-**图像识别**是**计算机视觉**的基本任务，旨在对每张图像内出现的物体进行类别区分。图像识别任务面临的主要问题是**语义鸿沟(semantic gap)**，表现在：
+**图像识别(Image Recognition)**也叫**图像分类(Image Classification)**，是**计算机视觉**的基本任务，旨在对每张图像内出现的物体进行类别区分。图像识别任务面临的主要问题是**语义鸿沟(semantic gap)**，表现在：
 - 不同图像的低级视觉特征(**low-level visual features**)相似，但高级语义(**high-level concepts**)差别很大；
 - 不同图像的低级视觉特征差距很大，但高级语义相同。
 
@@ -18,6 +18,10 @@ tags: 深度学习
 **本文目录**：
 1. 图像识别模型
 2. 图像识别基准
+
+### ⭐ 扩展阅读
+- [<font color=blue>Bag of Tricks for Image Classification with Convolutional Neural Networks</font>](https://0809zheng.github.io/2020/01/29/tricks-classify.html)：(arXiv1812)一些使用卷积神经网络进行图像分类的技巧。
+- [<font color=blue>Do ImageNet Classifiers Generalize to ImageNet?</font>](https://0809zheng.github.io/2020/06/29/generalize.html)：(arXiv1902)一篇讨论图像分类模型泛化能力的文章。
 
 # 1. 图像识别模型
 

@@ -17,13 +17,13 @@ tags: 深度学习
 本文目录：
 - **深度神经网络的类型**
 1. **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、轻量级卷积神经网络
-2. **循环神经网络**：循环神经网络的基本概念、序列到序列模型、
-3. **自注意力网络**：**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、预训练语言模型
+2. **循环神经网络**：循环神经网络的基本概念、序列到序列模型、序列到序列模型中的注意力机制
+3. **自注意力网络**：自注意力机制、**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、预训练语言模型
 4. **深度生成模型**：生成对抗网络、变分自编码器、流模型
 5. **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络
 - **深度学习的基本组件和方法技巧**
 1. **深度学习的基本组件**：激活函数、优化方法
-2. **深度学习的方法技巧**：长尾分布、多任务学习、主动学习
+2. **深度学习的方法技巧**：半监督学习、长尾分布、多任务学习、主动学习
 - **深度学习的应用**
 1. **计算机视觉**：图像识别、图像超分辨率、时空动作检测
 2. **自然语言处理**：
@@ -98,10 +98,17 @@ tags: 深度学习
 
 ## (3) 自注意力网络
 
-### ⚪ [自注意力模型](https://0809zheng.github.io/2020/04/24/self-attention.html)
+### ⚪ [<font color=Blue>自注意力机制 (Self-Attention Mechanism)</font>](https://0809zheng.github.io/2020/04/24/self-attention.html)
 
-### ⚪ [Transformer](https://0809zheng.github.io/2020/04/25/transformer.html)
+**自注意力机制**用于捕捉单个序列$X$的内部关系。把输入序列$X$映射为查询矩阵$Q$, 键矩阵$K$和值矩阵$V$；根据查询矩阵$Q$和键矩阵$K$生成注意力图，并作用于值矩阵$V$获得自注意力的输出$H$。
 
+![](https://pic.downk.cc/item/5ea28825c2a9a83be5477d93.jpg)
+
+### ⚪ [<font color=Blue>Transformer</font>](https://0809zheng.github.io/2020/04/25/transformer.html)
+
+**Transformer**是一个基于多头自注意力机制的深度网络模型，网络结构包括编码器和解码器。编码器生成基于注意力的特征表示，该表示具有从全局上下文中定位特定信息的能力；解码器从特征表示中进行检索。
+
+![](https://pic.imgdb.cn/item/618b94ea2ab3f51d91f6d24e.jpg)
 
 ### ⚪ [<font color=Blue>Transformer中的位置编码 (Position Encoding)</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)
 
@@ -112,8 +119,8 @@ tags: 深度学习
 
 ### ⚪ [<font color=Blue>降低Transformer的计算复杂度</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)
 
-自注意力运算中**计算自注意力矩阵**以及**加权求和计算输出**这两个步骤引入了$O(N^2)$的计算复杂度。因此可以改进这两个步骤，从而降低计算复杂度。
-- 改进注意力矩阵的计算: 这类方法的改进思路是使得注意力矩阵的计算**稀疏化**，即对输入序列中的每一个位置只计算其与一部分位置(而不是全部位置)之间的相关性，表现为注意力矩阵是稀疏的。如**Sparse Transformer**, **Reformer**, **Longformer**, **Big Bird** 。
+自注意力运算中**计算注意力矩阵**以及**加权求和计算输出**这两个步骤引入了$O(N^2)$的计算复杂度。因此可以改进这两个步骤，从而降低计算复杂度。
+- 改进注意力矩阵的计算: 这类方法的改进思路是使得注意力矩阵的计算**稀疏化**，即对输入序列中的每一个位置只计算其与一部分位置(而不是全部位置)之间的相关性，表现为注意力矩阵是稀疏的。如**Sparse Transformer**, **Reformer**, **Longformer**, **Big Bird**。
 - 改进输出的加权求和: 这类方法的改进思路是使得自注意力的计算**线性化**。如**Efficient Attention**, **Synthesizer**, **Linformer**, **Linear Transformer**, **Performer**, **Nyströmformer**, **External Attention**, **FLASH**。
 
 ### ⚪ [<font color=Blue>预训练语言模型 (Pretrained Language Model)</font>](https://0809zheng.github.io/2020/04/27/elmo-bert-gpt.html)
@@ -261,6 +268,16 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 
 
 ## (2) 深度学习的方法技巧
+
+### ⚪ [<font color=Blue>半监督学习 (Semi-Supervised Learning)</font>](https://0809zheng.github.io/2022/09/01/semi.html)
+
+**半监督学习**是指同时从有标签数据和无标签数据中进行学习。半监督学习的假设包括平滑性假设、聚类假设、低密度分离假设和流形假设。
+
+常用的半监督学习方法包括：
+- **一致性正则化**：假设神经网络的随机性或数据增强不会改变输入样本的真实标签，如$\Pi$**-Model**, **Temporal Ensembling**, **Mean Teacher**, **VAT**, **ICT**, **UDA**。
+- **伪标签**：根据当前模型的最大预测概率为无标签样本指定假标签，如**Label Propagation**, **Confirmation Bias**, **Noisy Student**, **Meta Pseudo Label**。
+- **一致性正则化+伪标签**：既构造无标签样本的伪标签，又同时建立监督损失和无监督损失，如**MixMatch**, **ReMixMatch**, **FixMatch**, **DivideMix**。
+
 
 ### ⚪ [<font color=Blue>长尾分布 (Long-Tailed)</font>](https://0809zheng.github.io/2020/03/02/optimization.html)
 
