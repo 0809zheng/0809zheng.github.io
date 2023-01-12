@@ -37,7 +37,7 @@ $$ \mathop{\min}_{\theta_T} \mathcal{L}_s(\theta_S(\theta_T)) \approx \mathop{\m
 
 上述优化过程实际上是在迭代地训练两个模型：
 - 更新学生网络：给定未标记数据$$x^u \in \mathcal{U}$$，生成伪标签$$f_{\theta_T}(x^u)$$，通过单步梯度下降更新学生网络参数$\theta_S$：$\theta_S' = \theta_S - \eta_S \cdot \nabla_{\theta_S} \mathcal{L}_u(\theta_S,\theta_T)$
-- 更新教师网络：给定已标记数据$$(x^l,y) \in \mathcal{X}$$，更新教师网络参数$\theta_T$：$\theta_T' = \theta_T - \eta_T \cdot \nabla_{\theta_T} \mathcal{L}_s(\theta_S - \eta_S \cdot \nabla_{\theta_S} \mathcal{L}_u(\theta_S,\theta_T))$
+- 更新教师网络：给定已标记数据$$(x^l,y) \in \mathcal{X}$$，更新教师网络参数$\theta_T$：$$\theta_T' = \theta_T - \eta_T \cdot \nabla_{\theta_T} \mathcal{L}_s(\theta_S - \eta_S \cdot \nabla_{\theta_S} \mathcal{L}_u(\theta_S,\theta_T))$$
 
 作者报告了不同方法在图像分类任务中的表现：
 
