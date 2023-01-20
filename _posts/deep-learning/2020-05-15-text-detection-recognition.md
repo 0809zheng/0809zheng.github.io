@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '文本检测与识别'
+title: '文本检测与识别(Text Detection and Recognition)'
 date: 2020-05-15
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ee1d7f1c2a9a83be5506347.jpg'
