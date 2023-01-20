@@ -25,7 +25,7 @@ tags: 深度学习
 1. **深度学习的基本组件**：激活函数、优化方法
 2. **深度学习的方法技巧**：半监督学习、长尾分布、多任务学习、主动学习
 - **深度学习的应用**
-1. **计算机视觉**：图像识别、图像超分辨率、时空动作检测
+1. **计算机视觉**：图像识别、图像超分辨率、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别
 2. **自然语言处理**：
 3. 
 
@@ -367,12 +367,21 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - **管级的检测器(tubelet-level detector)**：每次检测时输入多帧连续视频帧，对每帧上预定义的检测框进行修正，并对不同输入的结果在时序上进行连接。如**ACT-detector**, **MOC-detector**。
 
 
-### ⚪ [1](https://0809zheng.github.io/2020/08/27/SR.html)
+### ⚪ [<font color=blue>人脸检测, 识别与验证 (Face Detection, Recognition, and Verification)</font>](https://0809zheng.github.io/2020/05/10/face-recognition.html)
 
-- [人脸检测](https://0809zheng.github.io/2020/05/09/face-detection.html)
-- [人脸识别](https://0809zheng.github.io/2020/05/10/face-recognition.html)
-- [行人检测](https://0809zheng.github.io/2020/05/11/pedestrian-detection.html)
-- [行人属性识别](https://0809zheng.github.io/2020/05/12/pedestrian-attribute-recognition.html)
+**人脸检测**是指检测任意一幅给定的图像中是否含有人脸，如果是则返回人脸的位置、大小和姿态，是人脸验证与识别的关键步骤。常用的人脸检测方法包括**Eigenface**, **SSH**。
+
+**人脸识别**是指判断给定的人脸图像属于用户数据库中的哪个人（或没有匹配），是一种多分类问题。常用的人脸识别方法包括**DeepFace**。
+
+**人脸验证**是指判断给定的人脸图像和用户**ID**是否匹配，是一种二分类问题。常用的人脸识别方法包括**DeepID**, **DeepID2**。
+
+### ⚪ [<font color=blue>行人检测与属性识别 (Pedestrian Detection and Attribute Recognition)</font>](https://0809zheng.github.io/2020/05/12/pedestrian-attribute-recognition.html)
+
+**行人检测**是指找出图像或视频帧中所有的行人，包括位置和大小；常用的行人检测方法包括**DeepParts**。
+
+**行人属性识别**是指从行人图像中挖掘具有高级语义的属性信息；常用的行人属性识别方法包括**DeepSAR**, **DeepMAR**, **HydraPlus-Net**。
+
+
 - [文本检测与识别](https://0809zheng.github.io/2020/05/15/text-detection-recognition.html)
 
 
