@@ -23,7 +23,7 @@ tags: 深度学习
 5. **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络
 - **深度学习的基本组件和方法技巧**
 1. **深度学习的基本组件**：激活函数、优化方法
-2. **深度学习的方法技巧**：半监督学习、长尾分布、多任务学习、主动学习
+2. **深度学习的方法技巧**：半监督学习、度量学习、长尾分布、多任务学习、主动学习
 - **深度学习的应用**
 1. **计算机视觉**：图像识别、图像超分辨率、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别
 2. **自然语言处理**：
@@ -278,6 +278,13 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - **伪标签**：根据当前模型的最大预测概率为无标签样本指定假标签，如**Label Propagation**, **Confirmation Bias**, **Noisy Student**, **Meta Pseudo Label**。
 - **一致性正则化+伪标签**：既构造无标签样本的伪标签，又同时建立监督损失和无监督损失，如**MixMatch**, **ReMixMatch**, **FixMatch**, **DivideMix**。
 
+### ⚪ [<font color=Blue>度量学习 (Metric Learning)</font>](https://0809zheng.github.io/2022/11/01/metric.html)
+
+**深度度量学习**通过共享权重的**Siamese**网络把原始样本映射到低维特征空间，并设计合理的度量损失使得同类样本在特征空间上的距离比较近，不同类样本之间的距离比较远。
+
+度量学习的目标在于最小化相似样本(正样本对)之间的距离，最大化不相似样本(负样本对)之间的距离。深度度量损失包括：
+- 基于**对(pair)**的度量损失：考虑一个批次样本中样本对之间的关系，最小化正样本对$(x,x^+)$之间的距离，最大化负样本对$(x,x^-)$之间的距离。如**Contrastive Loss**, **Binomial Deviance Loss**, **Triplet Loss**, **Improved Triplet Loss**, **Batch Hard Triplet Loss**, **Hierarchical Triplet Loss**, **Angular Loss**, **Quadruplet Loss**, **N-pair Loss**, **Lift Structured Loss**, **Histogram Loss**, **Ranked List Loss**, **Multi-Similarity Loss**, **Circle Loss**。
+- 基于**代理(proxy)**的度量损失：为每个类别赋予一个代理样本，拉近每个类别的样本和该类别对应的代理样本之间的距离，拉远与其他类别对应的代理样本之间的距离。如**Magnet Loss**, **Clustering Loss**, **Proxy-NCA**, **ProxyNCA++**, **Proxy-Anchor**。
 
 ### ⚪ [<font color=Blue>长尾分布 (Long-Tailed)</font>](https://0809zheng.github.io/2020/03/02/optimization.html)
 
@@ -381,9 +388,9 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 
 **行人属性识别**是指从行人图像中挖掘具有高级语义的属性信息；常用的行人属性识别方法包括**DeepSAR**, **DeepMAR**, **HydraPlus-Net**。
 
+### ⚪ [<font color=blue>文本检测与识别 (Text Detection and Recognition)</font>](https://0809zheng.github.io/2020/05/15/text-detection-recognition.html)
 
-- [文本检测与识别](https://0809zheng.github.io/2020/05/15/text-detection-recognition.html)
-
+文本检测是指找出图像中的文字区域；文本识别是指对定位好的文字区域进行识别，将图像中的文字区域进转化为字符信息。常用的文本检测与识别方法包括**EAST**, **CRNN**, **Mask TextSpotter**。
 
 ## (2) 自然语言处理
 
