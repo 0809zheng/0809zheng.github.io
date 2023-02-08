@@ -15,13 +15,13 @@ tags: 深度学习
 
 根据是否提供了一对一的学习样本对，将图像到图像翻译任务划分为**有配对数据(paired data)**和**无配对数据(unpaired data)**两种情况。
 - 有配对数据(监督图像翻译)是指在训练数据集中具有一对一的数据对；即给定联合分布$p(X,Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**Pix2Pix**, **BicycleGAN**, **LPTN**。
-- 无配对数据(无监督图像翻译)是指模型在多个独立的数据集之间训练，能够从多个数据集合中自动地发现集合之间的关联，从而学习出映射函数；即给定边缘分布$p(X)$和$p(Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**。
+- 无配对数据(无监督图像翻译)是指模型在多个独立的数据集之间训练，能够从多个数据集合中自动地发现集合之间的关联，从而学习出映射函数；即给定边缘分布$p(X)$和$p(Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**, **CUT**。
 
 
 
 # 1. 有配对数据的图像到图像翻译
 
-## ⚪ [<font color=Blue>Pix2Pix</font>](https://0809zheng.github.io/2022/03/10/p2p.html)
+### ⚪ [<font color=Blue>Pix2Pix</font>](https://0809zheng.github.io/2022/03/10/p2p.html)
 
 **Pix2Pix**的生成器采用**UNet**网络，把一种类型的图像$x$转换为另一种类型的图像$\hat{y}=G(x)$；损失函数包括对抗损失(**NSGAN**)和**L1**重构损失。
 
@@ -167,6 +167,15 @@ $$ \begin{aligned}  \mathop{\min}_{D_X=E_X\circ C_X,D_Y=E_Y\circ C_Y} & \Bbb{E}_
 
 ![](https://pic.imgdb.cn/item/63998f25b1fccdcd364ecf5b.jpg)
 
+### ⚪ [<font color=Blue>CUT</font>](https://0809zheng.github.io/2022/05/10/cut.html)
+
+**CUT**使用对比学习构造生成器的损失函数。把输入图像$x$和生成图像$\hat{y}$通过生成器的编码部分提取特征，然后使用多层感知机$H_l$对特征进行变换。此时特征的每个像素位置对应原始图像的一个图像块；则两个图像相同位置的图像块对应的特征向量为正样本对，其余位置的特征向量为负样本。基于此可以构造对比损失：
+
+$$ \mathcal{L}(v,v^+,v^-) = -\log [\frac{\exp(v \cdot v^+/ \tau)}{\exp(v \cdot v^+/ \tau)+
+\sum_{n=1}^N \exp(v \cdot v^-_n/ \tau)}] $$
+
+![](https://pic.imgdb.cn/item/63e3585d4757feff33191e07.jpg)
+
 
 # ⚪ 参考文献
 
@@ -184,6 +193,7 @@ $$ \begin{aligned}  \mathop{\min}_{D_X=E_X\circ C_X,D_Y=E_Y\circ C_Y} & \Bbb{E}_
 - [<font color=Blue>GANILLA: Generative Adversarial Networks for Image to Illustration Translation</font>](https://0809zheng.github.io/2022/04/29/ganilla.html)：(arXiv2002)GANILLA：把图像转换为儿童绘本风格。
 - [<font color=Blue>Reusing Discriminators for Encoding: Towards Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/05/17/nicegan.html)：(arXiv2003)NICE-GAN: 把判别器重用为编码器的图像翻译模型。
 - [<font color=Blue>Rethinking the Truly Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/04/28/tunit.html)：(arXiv2006)TUNIT：完全无监督图像到图像翻译。
+- [<font color=Blue>Contrastive Learning for Unpaired Image-to-Image Translation</font>](https://0809zheng.github.io/2022/05/10/cut.html)：(arXiv2006)CUT：无配对数据图像到图像翻译中的对比学习。
 - [<font color=Blue>High-Resolution Photorealistic Image Translation in Real-Time: A Laplacian Pyramid Translation Network</font>](https://0809zheng.github.io/2022/04/27/lptn.html)：(arXiv2105)LPTN：高分辨率真实感实时图像翻译。
 
 
