@@ -158,10 +158,10 @@ $$ \Delta \theta^* = -\nabla_g \ln Z(||g||) = -\frac{Z'(||g||)}{Z(||g||)} \nabla
 # 3. 常用的梯度下降算法
 
 标准的批量梯度下降方法存在一些缺陷：
-- 更新过程中容易陷入局部极小值或鞍点(这些点处的梯度也为$0$)；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**)。
-- 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；损失函数的**条件数(Condition number**，指损失函数的**Hessian**矩阵最大奇异值与最小奇异值之比)越大，这一现象越严重。常见解决措施是为每个特征设置**自适应**学习率(如**AdaGrad**, **RMSprop**, **AdaDelta**)。这类算法的缺点是改变了梯度更新的方向，一定程度上造成精度损失。![](https://pic.downk.cc/item/5e902a62504f4bcb04758232.jpg)
+- 更新过程中容易陷入局部极小值或鞍点(这些点处的梯度也为$0$)；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**, **Funnelled SGDM**, **Lion**)。
+- 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；损失函数的**条件数(Condition number**，指损失函数的**Hessian**矩阵最大奇异值与最小奇异值之比)越大，这一现象越严重。常见解决措施是为每个特征设置**自适应**学习率(如**RProp**, **AdaGrad**, **RMSprop**, **AdaDelta**)。这类算法的缺点是改变了梯度更新的方向，一定程度上造成精度损失。![](https://pic.downk.cc/item/5e902a62504f4bcb04758232.jpg)
+- 可以结合基于动量的方法和基于自适应学习率的方法，如**Adam**, **AdamW**, **Adamax**, **Nadam**, **AMSGRad**, **Radam**, **AdaX**, **Amos**。这类方法需要同时存储与模型参数具有相同尺寸的动量和方差，通常会占用较多内存，一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
 - 批量大小难以选择。批量较小时，引入较大的梯度噪声；批量较大时，内存负担较大。在分布式训练大规模神经网络时，整体批量通常较大，训练的模型精度会剧烈降低。这是因为总训练轮数保持不变时，批量增大意味着权重更新的次数减少。常见解决措施是通过**层级自适应**实现每一层的梯度归一化(如**LARS**, **LAMB**, **NovoGrad**)，从而使得更新步长依赖于参数的数值大小而不是梯度的大小。
-- 上述优化算法通常会占用较多内存，比如常用的**Adam**算法需要存储与模型参数具有相同尺寸的动量和方差。一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
 
 在实际应用梯度下降算法时，可以根据截止到当前步$t$的历史梯度信息$$\{g_{1},...,g_{t}\}$$计算修正的参数更新量$h_t$（比如累积动量、累积二阶矩校正学习率等），从而弥补上述缺陷。因此梯度下降算法的一般形式可以表示为：
 
@@ -191,8 +191,7 @@ $$ \begin{align} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla
 | [<font color=Blue>LARS</font>](https://0809zheng.github.io/2020/12/15/lars.html)：层级自适应学习率+momentum | $$m_t\text{: 动量}(0) \\ \gamma\text{: 全局学习率} \\ \mu \text{: 衰减率}(0.9) \\ L \text{: 网络层数}$$ | $$\begin{align}  m_t &= \mu m_{t-1} + g_t \\ θ_t^{(i)}&=θ_{t-1}^{(i)}-\gamma \frac{\| θ_{t-1}^{(i)} \|}{\| m_t^{(i)} \|} m_t^{(i)}, \text{for all }i \in [L] \end{align}$$   |
 | [<font color=Blue>LAMB</font>](https://0809zheng.github.io/2020/12/17/lamb.html)：层级自适应学习率+Adam | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 全局学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \epsilon \text{: 小值}(1e-8) \\ L \text{: 网络层数}$$ | $$\begin{align} m_t &= β_1m_{t-1} + (1-β_1)g_t \\ v_t &= β_2v_{t-1} + (1-β_2)g_t^2 \\\hat{m}_t &= \frac{m_t}{1-β_1^t} \\ \hat{v}_t &= \frac{v_t}{1-β_2^t} \\ θ_t^{(i)}&=θ_{t-1}^{(i)}-\gamma \frac{\| θ_{t-1}^{(i)} \|}{\|\frac{\hat{m}_t^{(i)}}{\sqrt{\hat{v}_t^{(i)}}+ε}\|} \frac{\hat{m}_t^{(i)}}{\sqrt{\hat{v}_t^{(i)}}+ε} , \text{for all }i \in [L]  \end{align}$$   |
 | [<font color=Blue>NovoGrad</font>](https://0809zheng.github.io/2020/12/19/novograd.html)：使用层级自适应二阶矩进行梯度归一化 | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 全局学习率} \\ \lambda\text{: 权重衰减率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.25) \\ \epsilon \text{: 小值}(1e-8) \\ L \text{: 网络层数}$$ | $$\begin{align} v_1^{(i)}&=\|g_1^{(i)}\|^2, m_1^{(i)}=\frac{g_1^{(i)}}{\sqrt{v_1^{(i)}}}+\lambda w_1^l \\ v_t^{(i)} &= \beta_2 \cdot v_{t-1}^{(i)} + (1-\beta_2) \cdot \|g_t^{(i)}\|^2 \\  m_t^{(i)} &= \beta_1 \cdot m_{t-1}^{(i)} + (\frac{g_t^{(i)}}{\sqrt{v_t^{(i)}}+\epsilon}+\lambda \theta_t^{(i)})  \\ θ_t^{(i)}&=θ_{t-1}^{(i)}-\gamma m_t^{(i)} , \text{for all }i \in [L] \end{align}$$   |
-| [<font color=Blue>Lookahead</font>](https://0809zheng.github.io/2020/12/14/lookahead.html)：快权重更新k次,慢权重更新1次 | $$\phi_t\text{: 慢权重} \\ k\text{: 快权重更新次数}(5) \\ \alpha \text{: 慢权重更新步长}(0.5)  \\ \gamma\text{: 学习率}$$ | $$\begin{align} h_t &= f(g_{1},...,g_{t}) \\ θ_t&=θ_{t-1}-\gamma h_t \\ \text{if } t \text{ m}&\text{od }k =0: \\ \phi_{t} &= \phi_{t-1} +\alpha(\theta_{t}-\phi_{t-1}) \\ \theta_t &= \phi_t \end{align}$$   |
-
+| [<font color=Blue>Lion</font>](https://0809zheng.github.io/2023/02/21/lion.html)：自动搜索优化器 | $$m_t\text{: 动量}(0) \\ \gamma\text{: 学习率} \\ \lambda \text{: 权重衰减率}(1.0) \\ \beta_1 \text{: 衰减率}(0.9)\\ \beta_2 \text{: 衰减率}(0.99)$$ | $$\begin{align} u_t &= \text{sign}( \beta_1m_{t-1}+(1-\beta_1)g_t ) + \lambda\theta_{t} \\ θ_t&=θ_{t-1}-\gamma u_t \\ m_t &= \beta_2m_{t-1}+(1-\beta_2)g_t \end{align}$$   |
 
 
 # 4. 其他优化算法
@@ -273,6 +272,27 @@ $$ g(\theta) = (\nabla f(\theta)\cdot v) v $$
 
 ![](https://pic.imgdb.cn/item/6210a6302ab3f51d9160d8c5.jpg)
 
+### ⚪ [<font color=Blue>Lookahead</font>](https://0809zheng.github.io/2020/12/14/lookahead.html): 快权重更新k次,慢权重更新1次
+
+**lookahead**迭代地更新两组权重：**慢权重** $\phi$ 和**快权重** $\theta$。**快权重** $\theta$是通过任意一种标准优化算法$A$进行更新的；**慢权重** $\phi$是通过在参数空间$\theta-\phi$中进行线性插值得到的；快权重每经过$k$次更新后，慢权重更新$1$次。
+
+$$ \begin{aligned} h_t &= f(g_{1},...,g_{t}) \\ θ_t&=θ_{t-1}-\gamma h_t \\ \text{if } t \text{ m}&\text{od }k =0: \\ \phi_{t} &= \phi_{t-1} +\alpha(\theta_{t}-\phi_{t-1}) \\ \theta_t &= \phi_t \end{aligned}$$
+
+**lookahead**算法相比于直接使用优化器更新$k$次，运算操作数变为$O(\frac{k+1}{k})$倍。当快权重沿低曲率方向进行更新时，慢权重通过参数插值平滑振荡，实现快速收敛。当快权重在极小值附近探索时，慢权重更新将推向一个测试精度更高的区域。
+
+### ⚪ [<font color=Blue>Amos</font>](https://0809zheng.github.io/2022/12/02/amos.html)
+
+带权重衰减的梯度下降公式可写作：
+
+$$ \theta_{t+1} = \theta_t - (\alpha_tu_t+\rho_t\theta_t) $$
+
+**Amos**提出了一种自适应地设置学习率$\alpha_t$和权重衰减项$\rho_t$的方法：
+
+$$ \begin{aligned} \alpha_t &\approx  \frac{\alpha_0 ||\epsilon_0||}{||u_t||} \frac{1}{2 \alpha_0 p_0 t+1} \\ \rho_t  &\approx  \frac{\alpha_0^2}{2q} \frac{1}{2 \alpha_0 p_0 t+1} \end{aligned} $$
+
+其中$\alpha_0$代表了每一步的相对更新幅度（全局学习率），一般取$1e−3$，任务简单也可以取到$1e−2$；$q=1$；参数初始化误差$\|\|\epsilon_0\|\|^2 \approx k\sigma^2$
+
+
 
 # ⚪ 参考文献
 
@@ -300,3 +320,5 @@ $$ g(\theta) = (\nabla f(\theta)\cdot v) v $$
 - [<font color=Blue>Every Model Learned by Gradient Descent Is Approximately a Kernel Machine</font>](https://0809zheng.github.io/2021/05/19/kernalmachine.html)：(arXiv2012)使用梯度下降优化的深度学习模型近似于核方法。
 - [<font color=Blue>Step-size Adaptation Using Exponentiated Gradient Updates</font>](https://0809zheng.github.io/2022/03/04/stepadap.html)：(arXiv2202)基于指数梯度更新的步长自适应学习率。
 - [<font color=Blue>Gradients without Backpropagation</font>](https://0809zheng.github.io/2022/02/19/fgradient.html)：(arXiv2202)使用前向梯度代替反向传播。
+- [<font color=Blue>Amos: An Adam-style Optimizer with Adaptive Weight Decay towards Model-Oriented Scale</font>](https://0809zheng.github.io/2022/12/02/amos.html)：(arXiv2210)Amos：一种面向模型的自适应权重衰减的Adam风格优化器。
+- [<font color=Blue>Symbolic Discovery of Optimization Algorithms</font>](https://0809zheng.github.io/2023/02/21/lion.html)：(arXiv2302)优化算法的符号发现。
