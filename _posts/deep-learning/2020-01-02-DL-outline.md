@@ -138,6 +138,8 @@ tags: 深度学习
 
 
 
+
+
 ## (4) 深度生成模型
 
 **生成模型**(**generative model**)是指使用带参数$\theta$的概率分布$p_{\theta}(x)$拟合已有数据样本集$$\{x\}$$。由于概率分布$p_{\theta}(x)$的形式通常是未知的，可以将其假设为离散型或连续型分布；若进一步引入**隐变量(latent variable)** $z$，则可以间接地构造概率分布$p_{\theta}(x)$：
@@ -163,7 +165,7 @@ $$ \begin{aligned} \mathop{ \min}_{G} \mathop{\max}_{D}  \Bbb{E}_{x \text{~} P_{
 - 改进目标函数：基于分布散度(如**f-GAN**, **BGAN**, **Softmax GAN**, **RGAN**, **LSGAN**, **WGAN-div**, **GAN-QP**, **Designing GAN**)、基于积分概率度量(如**WGAN**, **WGAN-GP**, **DRAGAN**, **SN-GAN**, **GN-GAN**, **GraN-GAN**, **c-transform**, **McGAN**, **MMD GAN**, **Fisher GAN**)
 - 改进网络结构：调整神经网络(如**DCGAN**, **SAGAN**, **BigGAN**, **Self-Modulation**, **StyleGAN1,2,3**, **TransGAN**)、引入编码器(如**VAE-GAN**, **BiGAN**, **VQGAN**)、使用能量模型(如**EBGAN**, **LSGAN**, **BEGAN**, **MAGAN**, **MEG**)、由粗到细的生成(如**LAPGAN**, **StackGAN**, **PGGAN**, **SinGAN**)
 - 改进优化过程：**TTUR**, **Dirac-GAN**, **Cascading Rejection**, **ADA**, **Hubness Prior**
-- 其他应用：条件生成(如**CGAN**, **InfoGAN**, **ACGAN**, **Projection Discriminator**)、[<font color=Blue>图像到图像翻译</font>](https://0809zheng.github.io/2020/05/23/image_translation.html)(有配对数据, 如**Pix2Pix**, **BicycleGAN**, **LPTN**; 无配对数据, 如**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**, **CUT**)、超分辨率(如**SRGAN**, **ESRGAN**)、图像修补(如**Context Encoder**, **CCGAN**, **SPADE**)、机器学习应用(如**Semi-Supervised GAN**, **AnoGAN**, **ClusterGAN**)
+- 其他应用：条件生成(如**CGAN**, **InfoGAN**, **ACGAN**, **Projection Discriminator**)、[<font color=Blue>图像到图像翻译</font>](https://0809zheng.github.io/2020/05/23/image_translation.html)(有配对数据, 如**Pix2Pix**, **BicycleGAN**, **LPTN**; 无配对数据, 如**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**, **CUT**, **SimDCL**)、超分辨率(如**SRGAN**, **ESRGAN**)、图像修补(如**Context Encoder**, **CCGAN**, **SPADE**)、机器学习应用(如**Semi-Supervised GAN**, **AnoGAN**, **ClusterGAN**)
 
 ### ⚪ [<font color=Blue>变分自编码器 (Variational Autoencoder)</font>](https://0809zheng.github.io/2022/04/01/vae.html)
 
@@ -252,11 +254,14 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla_{\theta} l(θ_{t-1}) \\ h_t &= f(g_{1},...,g_{t}) \\ θ_t&=θ_{t-1}-\gamma h_t \end{aligned} $$
 
 基于梯度的方法存在一些缺陷，不同的改进思路如下：
-- 更新过程中容易陷入局部极小值或鞍点(这些点处的梯度也为$0$)；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**)。
-- 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；常见解决措施是为每个特征设置**自适应**学习率(如**AdaGrad**, **RMSprop**, **AdaDelta**)。这类算法的缺点是改变了梯度更新的方向，一定程度上造成精度损失。
-- 在分布式训练大规模神经网络时，整体批量通常较大，训练的模型精度会剧烈降低。这是因为总训练轮数保持不变时，批量增大意味着权重更新的次数减少。常见解决措施是通过**层级自适应**实现每一层的梯度归一化(如**LARS**, **LAMB**, **NovoGrad**)，从而使得更新步长依赖于参数的数值大小而不是梯度的大小。
-- 上述优化算法通常会占用较多内存，比如常用的**Adam**算法需要存储与模型参数具有相同尺寸的动量和方差。一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
-- 也有一些不直接依赖于一阶梯度的方法，如零阶优化方法或使用前向梯度代替反向传播梯度。
+- 更新过程中容易陷入局部极小值或鞍点；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**, **Funnelled SGDM**, **Lion**)。
+- 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；常见解决措施是为每个特征设置**自适应**学习率(如**RProp**, **AdaGrad**, **RMSprop**, **AdaDelta**)。
+- 可以结合基于动量的方法和基于自适应学习率的方法，如**Adam**, **AdamW**, **Adamax**, **Nadam**, **AMSGRad**, **Radam**, **AdaX**。这类方法需要同时存储与模型参数具有相同尺寸的动量和方差，通常会占用较多内存，一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
+- 在分布式训练大规模神经网络时，整体批量通常较大，权重更新的次数减少，常见解决措施是通过**层级自适应**实现每一层的梯度归一化(如**LARS**, **LAMB**, **NovoGrad**)。
+- 其他优化方法：随机权重平均、零阶优化、使用前向梯度代替反向传播梯度、**Lookahead**、**Amos**。
+
+
+
 
 ### ⚪ 
 

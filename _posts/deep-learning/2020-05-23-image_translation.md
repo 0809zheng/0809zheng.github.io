@@ -15,7 +15,7 @@ tags: 深度学习
 
 根据是否提供了一对一的学习样本对，将图像到图像翻译任务划分为**有配对数据(paired data)**和**无配对数据(unpaired data)**两种情况。
 - 有配对数据(监督图像翻译)是指在训练数据集中具有一对一的数据对；即给定联合分布$p(X,Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**Pix2Pix**, **BicycleGAN**, **LPTN**。
-- 无配对数据(无监督图像翻译)是指模型在多个独立的数据集之间训练，能够从多个数据集合中自动地发现集合之间的关联，从而学习出映射函数；即给定边缘分布$p(X)$和$p(Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**, **CUT**。
+- 无配对数据(无监督图像翻译)是指模型在多个独立的数据集之间训练，能够从多个数据集合中自动地发现集合之间的关联，从而学习出映射函数；即给定边缘分布$p(X)$和$p(Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**, **CUT**, **SimDCL**。
 
 
 
@@ -176,6 +176,11 @@ $$ \mathcal{L}(v,v^+,v^-) = -\log [\frac{\exp(v \cdot v^+/ \tau)}{\exp(v \cdot v
 
 ![](https://pic.imgdb.cn/item/63e3585d4757feff33191e07.jpg)
 
+### ⚪ [<font color=Blue>SimDCL</font>](https://0809zheng.github.io/2022/06/30/simdcl.html)
+
+**SimDCL**使用两个**CUT**构成对偶结构。损失函数包括对抗损失、对比损失、恒等损失（目标域图像$Y$经过生成器$$G_{X→Y}$$后图像风格应该保持不变）和相似度损失（同一数据模态的样本$X_1,X_2$的特征应用多层感知机$H_{X1},H_{X2}$后应相同）。
+
+![](https://pic.imgdb.cn/item/63e457cb4757feff33833266.jpg)
 
 # ⚪ 参考文献
 
@@ -194,6 +199,7 @@ $$ \mathcal{L}(v,v^+,v^-) = -\log [\frac{\exp(v \cdot v^+/ \tau)}{\exp(v \cdot v
 - [<font color=Blue>Reusing Discriminators for Encoding: Towards Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/05/17/nicegan.html)：(arXiv2003)NICE-GAN: 把判别器重用为编码器的图像翻译模型。
 - [<font color=Blue>Rethinking the Truly Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/04/28/tunit.html)：(arXiv2006)TUNIT：完全无监督图像到图像翻译。
 - [<font color=Blue>Contrastive Learning for Unpaired Image-to-Image Translation</font>](https://0809zheng.github.io/2022/05/10/cut.html)：(arXiv2006)CUT：无配对数据图像到图像翻译中的对比学习。
+- [<font color=Blue>Dual Contrastive Learning for Unsupervised Image-to-Image Translation</font>](https://0809zheng.github.io/2022/06/30/simdcl.html)：(arXiv2104)SimDCL：无监督图像到图像翻译的对偶对比学习。
 - [<font color=Blue>High-Resolution Photorealistic Image Translation in Real-Time: A Laplacian Pyramid Translation Network</font>](https://0809zheng.github.io/2022/04/27/lptn.html)：(arXiv2105)LPTN：高分辨率真实感实时图像翻译。
 
 
