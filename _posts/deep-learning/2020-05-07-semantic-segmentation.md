@@ -28,75 +28,89 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63f2e1aef144a0100707c297.jpg)
 
-图像分割模型通常采用**编码器-解码器(encoder-decoder)**结构。编码器从预处理的图像数据中提取特征，解码器把特征解码为分割热图。
+图像分割模型通常采用**编码器-解码器(encoder-decoder)**结构。编码器从预处理的图像数据中提取特征，解码器把特征解码为分割热图。图像分割模型的发展趋势可以大致总结为：
+- 全卷积网络：**FCN**, **SegNet**, **U-Net**, 
+- 多尺度特征：**DeepLab v1,2,3,3+**, **PSPNet**, 
+- 基于**Transformer**：
 
-## ⚪ [<font color=Blue>FCN</font>](https://0809zheng.github.io/2021/02/08/fcn.html)
+## (1) 基于全卷积网络的图像分割模型
+
+标准卷积神经网络包括卷积层、下采样层和全连接层。因此早期基于深度学习的图像分割模型旨在解决如何更好从卷积下采样中恢复丢掉的信息损失。
+
+这一阶段的模型为生成与输入图像尺寸一致的分割结果，丢弃了全连接层，并引入一系列上采样操作。逐渐形成了以**U-Net**为核心的对称编码器-解码器结构。
+
+### ⚪ [<font color=Blue>FCN</font>](https://0809zheng.github.io/2021/02/08/fcn.html)
 
 **FCN**提出用全卷积网络来处理语义分割问题，通过全卷积网络进行特征提取和下采样，通过双线性插值进行上采样。
 
 ![](https://pic.imgdb.cn/item/63f3294ff144a010076aeec8.jpg)
 
-## ⚪ [<font color=Blue>U-Net</font>](https://0809zheng.github.io/2021/02/13/unet.html)
-
-**U-Net**最采用对称的U型网络设计，在对应的下采样和上采样之间引入跳跃连接，上采样采用转置卷积。
-
-![](https://pic.imgdb.cn/item/63f32f2ff144a01007724bfb.jpg)
-
-## ⚪ [<font color=Blue>SegNet</font>](https://0809zheng.github.io/2021/02/11/segnet.html)
+### ⚪ [<font color=Blue>SegNet</font>](https://0809zheng.github.io/2021/02/11/segnet.html)
 
 **SegNet**采用编码器-解码器结构，通过反池化进行上采样。
 
 ![](https://pic.downk.cc/item/5ebb64bcc2a9a83be59a49f5.jpg)
 
+### ⚪ [<font color=Blue>U-Net</font>](https://0809zheng.github.io/2021/02/13/unet.html)
+
+**U-Net**使用对称的U型网络设计，在对应的下采样和上采样之间引入跳跃连接。
+
+![](https://pic.imgdb.cn/item/63f32f2ff144a01007724bfb.jpg)
 
 
 
+## (2) 基于多尺度特征的图像分割模型
 
+多尺度问题是指当图像中的目标对象存在不同大小时，分割效果不佳的现象。比如同样的物体，在近处拍摄时物体显得大，远处拍摄时显得小。解决多尺度问题的目标就是不论目标对象是大还是小，网络都能将其分割地很好。
 
-# 5. DeepLab
-**DeepLab**是谷歌提出的一系列图像分割网络，至今共有四个版本。
+随着图像分割模型的效果不断提升，分割任务的主要矛盾逐渐从恢复像素信息逐渐演变为如何更有效地利用上下文(**context**)信息，并基于此设计了一系列用于提取多尺度特征的网络结构。
 
+### ⚪ [<font color=Blue>Deeplab</font>](https://0809zheng.github.io/2021/02/14/deeplab.html)
 
+**Deeplab**引入空洞卷积进行图像分割任务，并使用全连接条件随机场精细化分割结果。
 
-### (2)Deeplab v2
-- paper：[DeepLab: Semantic Image Segmentation with Deep Convolutional Nets, Atrous Convolution, and Fully Connected CRFs](https://arxiv.org/abs/1606.00915)
+![](https://pic.imgdb.cn/item/63f333ecf144a010077a1a93.jpg)
 
-提出**空洞空间金字塔池化 Atrous Spatial Pyramid Pooling(ASPP)**，使用不同扩张率的空洞卷积，能够提取多尺度特征：
+### ⚪ [<font color=Blue>DeepLab v2</font>](https://0809zheng.github.io/2021/02/15/deeplab2.html)
 
-![](https://pic.downk.cc/item/5ebcdcdcc2a9a83be5246ac8.jpg)
+**Deeplab v2**引入了**空洞空间金字塔池化层 ASPP**，即带有不同扩张率的空洞卷积的金字塔池化。
 
-![](https://pic.downk.cc/item/5ebcdd28c2a9a83be524a0fa.jpg)
+![](https://pic.imgdb.cn/item/63f724f6f144a010074d13e4.jpg)
 
-相比于**DeepLab v1**，**DeepLab v2**的改进在于：
-1. 使用**ASPP**实现多尺度的目标分割；
-2. 使用**ResNet**网络；
-3. 改进了学习率策略。
+### ⚪ [<font color=Blue>DeepLab v3</font>](https://0809zheng.github.io/2021/02/16/deeplab3.html)
 
-### (3)Deeplab v3
-- paper：[Rethinking Atrous Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1706.05587)
-
-**DeepLab v3**去除了条件随机场，改进了**ASPP**层，增加了$1×1$卷积和全局平均池化：
+**Deeplab v3**对**ASPP**模块做了升级，把扩张率调整为$[1, 6, 12, 18]$，并增加了全局平均池化：
 
 ![](https://pic.downk.cc/item/5ebcde6bc2a9a83be525b262.jpg)
 
-另一个改进方法是串联使用不同扩张率的空洞卷积：
 
-![](https://pic.downk.cc/item/5ebcdf3ac2a9a83be52684bd.jpg)
+### ⚪ [<font color=Blue>DeepLab v3+</font>](https://0809zheng.github.io/2021/02/17/deeplab3+.html)
 
-效果不如前者。
-
-### (4)Deeplab v3+
-- paper：[Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1802.02611v1)
-
-**DeepLab v3+**采用了两种卷积网络结构，分别是**Resnet 101**和**Xception**，后者效果更好。
-
-下图是**（a）DeepLab v3**和**（c）DeepLab v3+**的对比：
+**Deeplab v3+**采用了编码器-解码器结构。
 
 ![](https://pic.downk.cc/item/5ebce009c2a9a83be5274019.jpg)
 
-**DeepLab v3+**的Decoder部分使用了卷积网络中间层的特征映射：
+上述**Deeplab**模型的对比如下：
 
-![](https://pic.downk.cc/item/5ebce077c2a9a83be527a780.jpg)
+![](https://pic.imgdb.cn/item/63f729f8f144a0100755b990.jpg)
+
+### ⚪ [<font color=Blue>PSPNet</font>](https://0809zheng.github.io/2021/02/18/pspnet.html)
+
+**PSPNet**引入了**金字塔池化模块 PPM**。**PPM**模块并联了四个不同大小的平均池化层，经过卷积和上采样恢复到原始大小。
+
+![](https://pic.imgdb.cn/item/63f86f67f144a010072e9a47.jpg)
+
+
+
+## (3) 基于Transformer的图像分割模型
+
+
+
+
+
+
+
+
 
 # 6. RefineNet
 - paper：[RefineNet: Multi-Path Refinement Networks for High-Resolution Semantic Segmentation](https://arxiv.org/abs/1611.06612)
@@ -133,8 +147,13 @@ tags: 深度学习
 
 ### ⚪ 参考文献
 - [<font color=Blue>Fully Convolutional Networks for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/08/fcn.html)：(arXiv1411)FCN: 语义分割的全卷积网络。
+- [<font color=Blue>Semantic Image Segmentation with Deep Convolutional Nets and Fully Connected CRFs</font>](https://0809zheng.github.io/2021/02/14/deeplab.html)：(arXiv1412)DeepLab: 通过深度卷积网络和全连接条件随机场实现图像语义分割。
 - [<font color=Blue>U-Net: Convolutional Networks for Biomedical Image Segmentation</font>](https://0809zheng.github.io/2021/02/13/unet.html)：(arXiv1505)U-Net: 用于医学图像分割的卷积网络。
 - [<font color=Blue>SegNet: A Deep Convolutional Encoder-Decoder Architecture for Image Segmentation</font>](https://0809zheng.github.io/2021/02/11/segnet.html)：(arXiv1511)SegNet: 图像分割的深度卷积编码器-解码器结构。
+- [<font color=Blue>DeepLab: Semantic Image Segmentation with Deep Convolutional Nets, Atrous Convolution, and Fully Connected CRFs</font>](https://0809zheng.github.io/2021/02/15/deeplab2.html)：(arXiv1606)DeepLab v2: 通过带有空洞卷积的金字塔池化实现图像语义分割。
+- [<font color=Blue>Pyramid Scene Parsing Network</font>](https://0809zheng.github.io/2021/02/18/pspnet.html)：(arXiv1612)PSPNet: 金字塔场景解析网络。
+- [<font color=Blue>Rethinking Atrous Convolution for Semantic Image Segmentation</font>](https://0809zheng.github.io/2021/02/16/deeplab3.html)：(arXiv1706)DeepLab v3: 重新评估图像语义分割中的扩张卷积。
+- [<font color=Blue>Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation</font>](https://0809zheng.github.io/2021/02/17/deeplab3+.html)：(arXiv1802)DeepLab v3+: 图像语义分割中的扩张可分离卷积。
 
 
 # 2. 图像分割的评估指标 
