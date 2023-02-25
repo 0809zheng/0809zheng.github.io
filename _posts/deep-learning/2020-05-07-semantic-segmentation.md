@@ -51,13 +51,55 @@ tags: 深度学习
 
 ![](https://pic.downk.cc/item/5ebb64bcc2a9a83be59a49f5.jpg)
 
+
+### ⚪ [<font color=Blue>RefineNet</font>](https://0809zheng.github.io/2021/02/19/refinenet.html)
+
+**RefineNet**把编码器产生的多个分辨率特征进行一系列卷积、融合、池化。
+
+![](https://pic.downk.cc/item/5ebcea7ac2a9a83be531a81b.jpg)
+
 ### ⚪ [<font color=Blue>U-Net</font>](https://0809zheng.github.io/2021/02/13/unet.html)
 
 **U-Net**使用对称的U型网络设计，在对应的下采样和上采样之间引入跳跃连接。
 
 ![](https://pic.imgdb.cn/item/63f32f2ff144a01007724bfb.jpg)
 
+### ⚪ [<font color=Blue>V-Net</font>](https://0809zheng.github.io/2021/06/05/vnet.html)
 
+**V-Net**是**3D**版本的**U-Net**，下采样使用步长为$2$的卷积。
+
+![](https://pic.imgdb.cn/item/63f96706f144a01007a6219c.jpg)
+
+### ⚪ [<font color=Blue>M-Net</font>](https://0809zheng.github.io/2021/06/06/mnet.html)
+
+**M-Net**在**U-Net**的基础上引入了**left leg**和**right leg**。**left leg**使用最大池化不断下采样数据，**right leg**则对数据进行上采样并叠加到每一层次的输出后。
+
+![](https://pic.imgdb.cn/item/60db00195132923bf85b72b1.jpg)
+
+
+### ⚪ [<font color=Blue>W-Net</font>](https://0809zheng.github.io/2021/06/07/wnet.html)
+
+**W-Net**通过堆叠两个**U-Net**实现无监督的图像分割。编码器**U-Net**提取分割表示，解码器**U-Net**重构原始图像。
+
+![](https://pic.imgdb.cn/item/60dbc55a5132923bf89ebb75.jpg)
+
+### ⚪ [<font color=Blue>Y-Net</font>](https://0809zheng.github.io/2021/06/08/ynet.html)
+
+**Y-Net**在**U-Net**的编码位置后增加了一个概率图预测结构，在分割任务的基础上额外引入了分类任务。
+
+![](https://pic.imgdb.cn/item/60dc51415132923bf82c49dd.jpg)
+
+### ⚪ [<font color=Blue>UNet++</font>](https://0809zheng.github.io/2021/06/29/unetpp.html)
+
+**UNet++**通过跳跃连接融合了不同深度的**U-Net**，并为每级**U-Net**引入深度监督。
+
+![](https://pic.imgdb.cn/item/63f97021f144a01007b12a99.jpg)
+
+### ⚪ [<font color=Blue>Attention U-Net</font>](https://0809zheng.github.io/2021/02/20/attunet.html)
+
+**Attention U-Net**通过引入**Attention gate**模块将空间注意力机制集成到**U-Net**的跳跃连接和上采样模块中。
+
+![](https://pic.imgdb.cn/item/63f97532f144a01007b9c89a.jpg)
 
 ## (2) 基于多尺度特征的图像分割模型
 
@@ -112,35 +154,10 @@ tags: 深度学习
 
 
 
-# 6. RefineNet
-- paper：[RefineNet: Multi-Path Refinement Networks for High-Resolution Semantic Segmentation](https://arxiv.org/abs/1611.06612)
-
-**RefineNet**的创新点在于$decoder$的方式:
-
-不同于$UNet$在上采样后直接和$encoder$的$feature$ $map$进行级联，本文通过$RefineNet$进行上采样，把$encoder$产生的$feature$和上一阶段$decoder$的输出同时作为输入，在$RefineNet$中进行一系列卷积、融合、池化，使得多尺度特征的融合更加深入。
-
-![](https://pic.downk.cc/item/5ebcea7ac2a9a83be531a81b.jpg)
-
-**RefineNet**模块包括：
-1. 残差卷积单元**RCU：Residual Conv Unit**
-2. 多分辨率融合单元**Muitl-resolution Fusion**
-3. 链式残差池化单元**Chained Residual Pooling**
-
-![](https://pic.downk.cc/item/5ebceacbc2a9a83be5320358.jpg)
 
 
 
-## ⚪ 图像分割
 
-- [V-Net: Fully Convolutional Neural Networks for Volumetric Medical Image Segmentation](https://0809zheng.github.io/2021/06/05/vnet.html)：(arXiv1606)V-Net：用于三维医学图像分割的全卷积网络。
-
-- [M-Net: A Convolutional Neural Network for Deep Brain Structure Segmentation](https://0809zheng.github.io/2021/06/06/mnet.html)：(ISBI 2017)M-Net：用于三维脑结构分割的二维卷积神经网络。
-
-- [W-Net: A Deep Model for Fully Unsupervised Image Segmentation](https://0809zheng.github.io/2021/06/07/wnet.html)：(arXiv1711)W-Net：一种无监督的图像分割方法。
-
-- [Y-Net: Joint Segmentation and Classification for Diagnosis of Breast Biopsy Images](https://0809zheng.github.io/2021/06/08/unetpp.html)：(arXiv1806)Y-Net：乳腺活检图像的分割和分类。
-
-- [UNet++: A Nested U-Net Architecture for Medical Image Segmentation](https://0809zheng.github.io/2021/06/29/unetpp.html)：(arXiv1807)UNet++：用于医学图像分割的巢型UNet。
 
 
 
@@ -150,10 +167,18 @@ tags: 深度学习
 - [<font color=Blue>Semantic Image Segmentation with Deep Convolutional Nets and Fully Connected CRFs</font>](https://0809zheng.github.io/2021/02/14/deeplab.html)：(arXiv1412)DeepLab: 通过深度卷积网络和全连接条件随机场实现图像语义分割。
 - [<font color=Blue>U-Net: Convolutional Networks for Biomedical Image Segmentation</font>](https://0809zheng.github.io/2021/02/13/unet.html)：(arXiv1505)U-Net: 用于医学图像分割的卷积网络。
 - [<font color=Blue>SegNet: A Deep Convolutional Encoder-Decoder Architecture for Image Segmentation</font>](https://0809zheng.github.io/2021/02/11/segnet.html)：(arXiv1511)SegNet: 图像分割的深度卷积编码器-解码器结构。
+- [<font color=Blue>V-Net: Fully Convolutional Neural Networks for Volumetric Medical Image Segmentation</font>](https://0809zheng.github.io/2021/06/05/vnet.html)：(arXiv1606)V-Net：用于三维医学图像分割的全卷积网络。
 - [<font color=Blue>DeepLab: Semantic Image Segmentation with Deep Convolutional Nets, Atrous Convolution, and Fully Connected CRFs</font>](https://0809zheng.github.io/2021/02/15/deeplab2.html)：(arXiv1606)DeepLab v2: 通过带有空洞卷积的金字塔池化实现图像语义分割。
+- [<font color=Blue>RefineNet: Multi-Path Refinement Networks for High-Resolution Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/19/refinenet.html)：(arXiv1611)RefineNet: 高分辨率语义分割的多路径优化网络。
 - [<font color=Blue>Pyramid Scene Parsing Network</font>](https://0809zheng.github.io/2021/02/18/pspnet.html)：(arXiv1612)PSPNet: 金字塔场景解析网络。
+- [<font color=Blue>M-Net: A Convolutional Neural Network for Deep Brain Structure Segmentation</font>](https://0809zheng.github.io/2021/06/06/mnet.html)：(ISBI 2017)M-Net：用于三维脑结构分割的二维卷积神经网络。
 - [<font color=Blue>Rethinking Atrous Convolution for Semantic Image Segmentation</font>](https://0809zheng.github.io/2021/02/16/deeplab3.html)：(arXiv1706)DeepLab v3: 重新评估图像语义分割中的扩张卷积。
+- [<font color=Blue>W-Net: A Deep Model for Fully Unsupervised Image Segmentation</font>](https://0809zheng.github.io/2021/06/07/wnet.html)：(arXiv1711)W-Net：一种无监督的图像分割方法。
 - [<font color=Blue>Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation</font>](https://0809zheng.github.io/2021/02/17/deeplab3+.html)：(arXiv1802)DeepLab v3+: 图像语义分割中的扩张可分离卷积。
+- [<font color=Blue>Attention U-Net: Learning Where to Look for the Pancreas</font>](https://0809zheng.github.io/2021/02/20/attunet.html)：(arXiv1804)Attention U-Net: 向U-Net引入注意力机制。
+- [<font color=Blue>Y-Net: Joint Segmentation and Classification for Diagnosis of Breast Biopsy Images</font>](https://0809zheng.github.io/2021/06/08/ynet.html)：(arXiv1806)Y-Net：乳腺活检图像的分割和分类。
+- [<font color=Blue>UNet++: A Nested U-Net Architecture for Medical Image Segmentation</font>](https://0809zheng.github.io/2021/06/29/unetpp.html)：(arXiv1807)UNet++：用于医学图像分割的巢型UNet。
+
 
 
 # 2. 图像分割的评估指标 
@@ -375,6 +400,11 @@ def Dice(confusionMatrix):
 
 
 # 3. 图像分割的损失函数
+
+
+### ⚪ [<font color=Blue>Dice Loss</font>](https://0809zheng.github.io/2021/06/05/vnet.html)
+
+
 
 # 4. 常用的图像分割数据集
 
