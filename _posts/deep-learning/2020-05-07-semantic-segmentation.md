@@ -29,8 +29,9 @@ tags: 深度学习
 ![](https://pic.imgdb.cn/item/63f2e1aef144a0100707c297.jpg)
 
 图像分割模型通常采用**编码器-解码器(encoder-decoder)**结构。编码器从预处理的图像数据中提取特征，解码器把特征解码为分割热图。图像分割模型的发展趋势可以大致总结为：
-- 全卷积网络：**FCN**, **SegNet**, **U-Net**, 
-- 多尺度特征：**DeepLab v1,2,3,3+**, **PSPNet**, 
+- 全卷积网络：**FCN**, **SegNet**, **RefineNet**, **U-Net**, **V-Net**, **M-Net**, **W-Net**, **Y-Net**, **UNet++**, **Attention U-Net**, 
+- 多尺度特征：**DeepLab v1,2,3,3+**, **PSPNet**, **EncNet**, 
+- 轻量化：
 - 基于**Transformer**：
 
 ## (1) 基于全卷积网络的图像分割模型
@@ -142,6 +143,14 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63f86f67f144a010072e9a47.jpg)
 
+### ⚪ [<font color=Blue>EncNet</font>](https://0809zheng.github.io/2021/02/21/encnet.html)
+
+**EncNet**引入了**上下文编码模块 CEM**，通过字典学习和残差编码捕获全局场景上下文信息；并通过**语义编码损失 SE-loss**强化网络学习上下文语义。 
+
+![](https://pic.imgdb.cn/item/63fb12bcf144a01007f7486a.jpg)
+
+
+
 
 
 ## (3) 基于Transformer的图像分割模型
@@ -175,6 +184,7 @@ tags: 深度学习
 - [<font color=Blue>Rethinking Atrous Convolution for Semantic Image Segmentation</font>](https://0809zheng.github.io/2021/02/16/deeplab3.html)：(arXiv1706)DeepLab v3: 重新评估图像语义分割中的扩张卷积。
 - [<font color=Blue>W-Net: A Deep Model for Fully Unsupervised Image Segmentation</font>](https://0809zheng.github.io/2021/06/07/wnet.html)：(arXiv1711)W-Net：一种无监督的图像分割方法。
 - [<font color=Blue>Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation</font>](https://0809zheng.github.io/2021/02/17/deeplab3+.html)：(arXiv1802)DeepLab v3+: 图像语义分割中的扩张可分离卷积。
+- [<font color=Blue>Context Encoding for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/21/encnet.html)：(arXiv1803)EncNet: 语义分割的上下文编码。
 - [<font color=Blue>Attention U-Net: Learning Where to Look for the Pancreas</font>](https://0809zheng.github.io/2021/02/20/attunet.html)：(arXiv1804)Attention U-Net: 向U-Net引入注意力机制。
 - [<font color=Blue>Y-Net: Joint Segmentation and Classification for Diagnosis of Breast Biopsy Images</font>](https://0809zheng.github.io/2021/06/08/ynet.html)：(arXiv1806)Y-Net：乳腺活检图像的分割和分类。
 - [<font color=Blue>UNet++: A Nested U-Net Architecture for Medical Image Segmentation</font>](https://0809zheng.github.io/2021/06/29/unetpp.html)：(arXiv1807)UNet++：用于医学图像分割的巢型UNet。
