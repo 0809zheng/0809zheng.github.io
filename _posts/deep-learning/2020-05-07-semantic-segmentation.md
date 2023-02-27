@@ -149,7 +149,11 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63fb12bcf144a01007f7486a.jpg)
 
+### ⚪ [<font color=Blue>DFANet</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)
 
+**DFANet**以修改过的**Xception**为**backbone**网络，设计了一种多分支的特征重用框架来融合空间细节和上下文信息。
+
+![](https://pic.imgdb.cn/item/63fc01e5f144a0100732efc8.jpg)
 
 
 
@@ -188,6 +192,7 @@ tags: 深度学习
 - [<font color=Blue>Attention U-Net: Learning Where to Look for the Pancreas</font>](https://0809zheng.github.io/2021/02/20/attunet.html)：(arXiv1804)Attention U-Net: 向U-Net引入注意力机制。
 - [<font color=Blue>Y-Net: Joint Segmentation and Classification for Diagnosis of Breast Biopsy Images</font>](https://0809zheng.github.io/2021/06/08/ynet.html)：(arXiv1806)Y-Net：乳腺活检图像的分割和分类。
 - [<font color=Blue>UNet++: A Nested U-Net Architecture for Medical Image Segmentation</font>](https://0809zheng.github.io/2021/06/29/unetpp.html)：(arXiv1807)UNet++：用于医学图像分割的巢型UNet。
+- [<font color=Blue>DFANet: Deep Feature Aggregation for Real-Time Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)：(arXiv1904)DFANet: 实时语义分割的深度特征聚合。
 
 
 
