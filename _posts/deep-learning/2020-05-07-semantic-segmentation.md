@@ -29,9 +29,9 @@ tags: 深度学习
 ![](https://pic.imgdb.cn/item/63f2e1aef144a0100707c297.jpg)
 
 图像分割模型通常采用**编码器-解码器(encoder-decoder)**结构。编码器从预处理的图像数据中提取特征，解码器把特征解码为分割热图。图像分割模型的发展趋势可以大致总结为：
-- 全卷积网络：**FCN**, **SegNet**, **RefineNet**, **U-Net**, **V-Net**, **M-Net**, **W-Net**, **Y-Net**, **UNet++**, **Attention U-Net**, 
-- 多尺度特征：**DeepLab v1,2,3,3+**, **PSPNet**, **EncNet**, 
-- 轻量化：
+- 全卷积网络：**FCN**, **SegNet**, **RefineNet**, **U-Net**, **V-Net**, **M-Net**, **W-Net**, **Y-Net**, **UNet++**, 
+- 多尺度特征：**DeepLab v1,2,3,3+**, **PSPNet**, **EncNet**, **DFANet**
+- 注意力机制：**Attention U-Net**, 
 - 基于**Transformer**：
 
 ## (1) 基于全卷积网络的图像分割模型
@@ -108,6 +108,8 @@ tags: 深度学习
 
 随着图像分割模型的效果不断提升，分割任务的主要矛盾逐渐从恢复像素信息逐渐演变为如何更有效地利用上下文(**context**)信息，并基于此设计了一系列用于提取多尺度特征的网络结构。
 
+此外还有一些方法把自注意力机制引入图像分割任务，通过自注意力机制的全局交互性来捕获视觉场景中的全局依赖，如；对于这些方法的讨论详见[<font color=Blue>卷积神经网络中的自注意力机制</font>]()。
+
 ### ⚪ [<font color=Blue>Deeplab</font>](https://0809zheng.github.io/2021/02/14/deeplab.html)
 
 **Deeplab**引入空洞卷积进行图像分割任务，并使用全连接条件随机场精细化分割结果。
@@ -155,6 +157,19 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63fc01e5f144a0100732efc8.jpg)
 
+### ⚪ [<font color=Blue>APCNet</font>](https://0809zheng.github.io/2021/02/24/apcnet.html)
+
+**APCNet**使用了自适应上下文模块**ACM**计算每个局部位置的上下文向量，并与原始特征图进行加权实现聚合上下文信息的作用。
+
+![](https://pic.imgdb.cn/item/63fd5b40f144a0100744268d.jpg)
+
+
+### ⚪ [<font color=Blue>DMNet</font>](https://0809zheng.github.io/2021/02/23/dmnet.html)
+
+**DMNet**使用了动态卷积模块**DCM**来捕获多尺度语义信息，每一个**DCM**模块都可以处理与输入尺寸相关的比例变化。
+
+![](https://pic.imgdb.cn/item/63fd5395f144a0100738b4cd.jpg)
+
 
 
 ## (3) 基于Transformer的图像分割模型
@@ -193,6 +208,8 @@ tags: 深度学习
 - [<font color=Blue>Y-Net: Joint Segmentation and Classification for Diagnosis of Breast Biopsy Images</font>](https://0809zheng.github.io/2021/06/08/ynet.html)：(arXiv1806)Y-Net：乳腺活检图像的分割和分类。
 - [<font color=Blue>UNet++: A Nested U-Net Architecture for Medical Image Segmentation</font>](https://0809zheng.github.io/2021/06/29/unetpp.html)：(arXiv1807)UNet++：用于医学图像分割的巢型UNet。
 - [<font color=Blue>DFANet: Deep Feature Aggregation for Real-Time Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)：(arXiv1904)DFANet: 实时语义分割的深度特征聚合。
+- [<font color=Blue>Adaptive Pyramid Context Network for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/24/apcnet.html)：(CVPR2019)APCNet: 语义分割的自适应金字塔上下文网络。
+- [<font color=Blue>Dynamic Multi-Scale Filters for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/23/dmnet.html)：(ICCV2019)DMNet: 语义分割的动态多尺度滤波器。
 
 
 
