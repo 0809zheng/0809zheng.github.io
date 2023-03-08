@@ -145,11 +145,30 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63f86f67f144a010072e9a47.jpg)
 
+### ⚪ [<font color=Blue>FPN</font>](https://0809zheng.github.io/2021/01/28/fpn.html)
+
+**特征金字塔网络 FPN**金字塔把编码器每一层的特征通过卷积和上采样合并为输出语义特征。
+
+![](https://pic.imgdb.cn/item/64083b39f144a01007451842.jpg)
+
+
+### ⚪ [<font color=Blue>UPerNet</font>](https://0809zheng.github.io/2021/02/28/upernet.html)
+
+**UPerNet**设计了一个基于**FPN**和**PPM**的多任务分割范式，为每一个**task**设计了不同的检测头，可执行场景分类、目标和部位分割、材质和纹理检测。
+
+![](https://pic.imgdb.cn/item/64082f5ff144a0100732faf1.jpg)
+
 ### ⚪ [<font color=Blue>EncNet</font>](https://0809zheng.github.io/2021/02/21/encnet.html)
 
 **EncNet**引入了**上下文编码模块 CEM**，通过字典学习和残差编码捕获全局场景上下文信息；并通过**语义编码损失 SE-loss**强化网络学习上下文语义。 
 
 ![](https://pic.imgdb.cn/item/63fb12bcf144a01007f7486a.jpg)
+
+### ⚪ [<font color=Blue>PSANet</font>](https://0809zheng.github.io/2021/02/26/psanet.html)
+
+**PSANet**引入了**逐点空间注意力 PSA**建立每个特征像素与其他像素之间的联系，并且设计了双向的信息流传播路径。
+
+![](https://pic.imgdb.cn/item/63fea9def144a01007258fcf.jpg)
 
 ### ⚪ [<font color=Blue>DFANet</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)
 
@@ -207,6 +226,9 @@ tags: 深度学习
 - [<font color=Blue>Attention U-Net: Learning Where to Look for the Pancreas</font>](https://0809zheng.github.io/2021/02/20/attunet.html)：(arXiv1804)Attention U-Net: 向U-Net引入注意力机制。
 - [<font color=Blue>Y-Net: Joint Segmentation and Classification for Diagnosis of Breast Biopsy Images</font>](https://0809zheng.github.io/2021/06/08/ynet.html)：(arXiv1806)Y-Net：乳腺活检图像的分割和分类。
 - [<font color=Blue>UNet++: A Nested U-Net Architecture for Medical Image Segmentation</font>](https://0809zheng.github.io/2021/06/29/unetpp.html)：(arXiv1807)UNet++：用于医学图像分割的巢型UNet。
+- [<font color=Blue>Unified Perceptual Parsing for Scene Understanding</font>](https://0809zheng.github.io/2021/02/28/upernet.html)：(arXiv1807)UPerNet: 场景理解的统一感知解析。
+- [<font color=Blue>PSANet: Point-wise Spatial Attention Network for Scene Parsing</font>](https://0809zheng.github.io/2021/02/26/psanet.html)：(ECCV2018)PSANet: 场景解析的逐点空间注意力网络。
+- [<font color=Blue>Panoptic Feature Pyramid Networks</font>](https://0809zheng.github.io/2021/01/28/fpn.html)：(arXiv1901)全景特征金字塔网络。
 - [<font color=Blue>DFANet: Deep Feature Aggregation for Real-Time Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)：(arXiv1904)DFANet: 实时语义分割的深度特征聚合。
 - [<font color=Blue>Adaptive Pyramid Context Network for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/24/apcnet.html)：(CVPR2019)APCNet: 语义分割的自适应金字塔上下文网络。
 - [<font color=Blue>Dynamic Multi-Scale Filters for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/23/dmnet.html)：(ICCV2019)DMNet: 语义分割的动态多尺度滤波器。
