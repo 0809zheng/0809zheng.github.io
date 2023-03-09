@@ -102,6 +102,19 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63f97532f144a01007b9c89a.jpg)
 
+### ⚪ [<font color=Blue>BiSeNet</font>](https://0809zheng.github.io/2021/01/26/bisenet.html)
+
+**BiSeNet**设计了一个双边结构，分别为**空间路径（Spatial Path）**和**上下文路径（Context Path）**。通过一个**特征融合模块（FFM）**将两个路径的特征进行融合，可以实现实时语义分割。
+
+![](https://pic.imgdb.cn/item/640981f1f144a01007559bf7.jpg)
+
+### ⚪ [<font color=Blue>BiSeNet V2</font>](https://0809zheng.github.io/2021/01/27/bisenetv2.html)
+
+**BiSeNet V2**精心设计了**Detail Branch**和**Semantic Branch**，使用更加轻巧的深度可分离卷积来加速模型；通过**Aggregation Layer**进行特征聚合；并额外引入辅助损失。
+
+![](https://pic.imgdb.cn/item/6409878ff144a010075ff114.jpg)
+
+
 ## (2) 基于多尺度特征的图像分割模型
 
 多尺度问题是指当图像中的目标对象存在不同大小时，分割效果不佳的现象。比如同样的物体，在近处拍摄时物体显得大，远处拍摄时显得小。解决多尺度问题的目标就是不论目标对象是大还是小，网络都能将其分割地很好。
@@ -227,11 +240,13 @@ tags: 深度学习
 - [<font color=Blue>Y-Net: Joint Segmentation and Classification for Diagnosis of Breast Biopsy Images</font>](https://0809zheng.github.io/2021/06/08/ynet.html)：(arXiv1806)Y-Net：乳腺活检图像的分割和分类。
 - [<font color=Blue>UNet++: A Nested U-Net Architecture for Medical Image Segmentation</font>](https://0809zheng.github.io/2021/06/29/unetpp.html)：(arXiv1807)UNet++：用于医学图像分割的巢型UNet。
 - [<font color=Blue>Unified Perceptual Parsing for Scene Understanding</font>](https://0809zheng.github.io/2021/02/28/upernet.html)：(arXiv1807)UPerNet: 场景理解的统一感知解析。
+- [<font color=Blue>BiSeNet: Bilateral Segmentation Network for Real-time Semantic Segmentation</font>](https://0809zheng.github.io/2021/01/26/bisenet.html)：(arXiv1808)BiSeNet: 实时语义分割的双边分割网络。
 - [<font color=Blue>PSANet: Point-wise Spatial Attention Network for Scene Parsing</font>](https://0809zheng.github.io/2021/02/26/psanet.html)：(ECCV2018)PSANet: 场景解析的逐点空间注意力网络。
 - [<font color=Blue>Panoptic Feature Pyramid Networks</font>](https://0809zheng.github.io/2021/01/28/fpn.html)：(arXiv1901)全景特征金字塔网络。
 - [<font color=Blue>DFANet: Deep Feature Aggregation for Real-Time Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)：(arXiv1904)DFANet: 实时语义分割的深度特征聚合。
 - [<font color=Blue>Adaptive Pyramid Context Network for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/24/apcnet.html)：(CVPR2019)APCNet: 语义分割的自适应金字塔上下文网络。
 - [<font color=Blue>Dynamic Multi-Scale Filters for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/23/dmnet.html)：(ICCV2019)DMNet: 语义分割的动态多尺度滤波器。
+- [<font color=Blue>BiSeNet V2: Bilateral Network with Guided Aggregation for Real-time Semantic Segmentation</font>](https://0809zheng.github.io/2021/01/27/bisenetv2.html)：(arXiv2004)BiSeNet V2: 实时语义分割的带引导聚合的双边网络。
 
 
 
