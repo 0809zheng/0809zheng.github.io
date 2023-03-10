@@ -102,6 +102,12 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63f97532f144a01007b9c89a.jpg)
 
+### ⚪ [<font color=Blue>GRUU-Net</font>](https://0809zheng.github.io/2021/01/25/gruunet.html)
+
+**GRUU-Net**通过循环神经网络构造**U**型网络，根据多个尺度上的**CNN**和**RNN**特征聚合来细化分割结果。
+
+![](https://pic.imgdb.cn/item/640ae613f144a01007ae45c8.jpg)
+
 ### ⚪ [<font color=Blue>BiSeNet</font>](https://0809zheng.github.io/2021/01/26/bisenet.html)
 
 **BiSeNet**设计了一个双边结构，分别为**空间路径（Spatial Path）**和**上下文路径（Context Path）**。通过一个**特征融合模块（FFM）**将两个路径的特征进行融合，可以实现实时语义分割。
@@ -114,6 +120,12 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/6409878ff144a010075ff114.jpg)
 
+### ⚪ [<font color=Blue>DFANet</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)
+
+**DFANet**以修改过的**Xception**为**backbone**网络，设计了一种多分支的特征重用框架来融合空间细节和上下文信息。
+
+![](https://pic.imgdb.cn/item/63fc01e5f144a0100732efc8.jpg)
+
 
 ## (2) 基于多尺度特征的图像分割模型
 
@@ -121,7 +133,9 @@ tags: 深度学习
 
 随着图像分割模型的效果不断提升，分割任务的主要矛盾逐渐从恢复像素信息逐渐演变为如何更有效地利用上下文(**context**)信息，并基于此设计了一系列用于提取多尺度特征的网络结构。
 
-此外还有一些方法把自注意力机制引入图像分割任务，通过自注意力机制的全局交互性来捕获视觉场景中的全局依赖，如；对于这些方法的讨论详见[<font color=Blue>卷积神经网络中的自注意力机制</font>]()。
+这一时期的分割网络的基本结构为：首先使用预训练模型(如**ResNet**)提取图像特征，然后应用精心设计的上下文模块增强多尺度特征信息，最后对特征应用上采样(通常为$8$**x**)和$1\times 1$分割头生成分割结果。
+
+有一些方法把自注意力机制引入图像分割任务，通过自注意力机制的全局交互性来捕获视觉场景中的全局依赖，并以此构造上下文模块，如；对于这些方法的讨论详见[<font color=Blue>卷积神经网络中的自注意力机制</font>]()。
 
 ### ⚪ [<font color=Blue>Deeplab</font>](https://0809zheng.github.io/2021/02/14/deeplab.html)
 
@@ -183,11 +197,6 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63fea9def144a01007258fcf.jpg)
 
-### ⚪ [<font color=Blue>DFANet</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)
-
-**DFANet**以修改过的**Xception**为**backbone**网络，设计了一种多分支的特征重用框架来融合空间细节和上下文信息。
-
-![](https://pic.imgdb.cn/item/63fc01e5f144a0100732efc8.jpg)
 
 ### ⚪ [<font color=Blue>APCNet</font>](https://0809zheng.github.io/2021/02/24/apcnet.html)
 
@@ -242,6 +251,7 @@ tags: 深度学习
 - [<font color=Blue>Unified Perceptual Parsing for Scene Understanding</font>](https://0809zheng.github.io/2021/02/28/upernet.html)：(arXiv1807)UPerNet: 场景理解的统一感知解析。
 - [<font color=Blue>BiSeNet: Bilateral Segmentation Network for Real-time Semantic Segmentation</font>](https://0809zheng.github.io/2021/01/26/bisenet.html)：(arXiv1808)BiSeNet: 实时语义分割的双边分割网络。
 - [<font color=Blue>PSANet: Point-wise Spatial Attention Network for Scene Parsing</font>](https://0809zheng.github.io/2021/02/26/psanet.html)：(ECCV2018)PSANet: 场景解析的逐点空间注意力网络。
+- [<font color=Blue>GRUU-Net: Integrated convolutional and gated recurrent neural network for cell segmentation</font>](https://0809zheng.github.io/2021/01/25/gruunet.html)：(Medical Image Analysis2018)GRUU-Net: 细胞分割的融合卷积门控循环神经网络。
 - [<font color=Blue>Panoptic Feature Pyramid Networks</font>](https://0809zheng.github.io/2021/01/28/fpn.html)：(arXiv1901)全景特征金字塔网络。
 - [<font color=Blue>DFANet: Deep Feature Aggregation for Real-Time Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)：(arXiv1904)DFANet: 实时语义分割的深度特征聚合。
 - [<font color=Blue>Adaptive Pyramid Context Network for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/24/apcnet.html)：(CVPR2019)APCNet: 语义分割的自适应金字塔上下文网络。
