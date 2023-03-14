@@ -16,6 +16,8 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63f2c620f144a01007e3c370.jpg)
 
+**语义分割**模型可以直接根据图像像素进行分组，转换为密集的分类问题。**实例分割**一般可分为“自上而下” 和 “自下而上”的方法，自上而下的框架是先计算实例的检测框，在检测框内进行分割；自下而上的框架则是先进行语义分割，在分割结果上对实例对象进行检测。**全景分割**在实例分割框架上添加语义分割分支，或基于语义分割方法采用不同的像素分组策略。本文重点关注语义分割方法。
+
 本文目录：
 1. 图像分割模型
 2. 图像分割的评估指标
@@ -126,6 +128,19 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63fc01e5f144a0100732efc8.jpg)
 
+### ⚪ [<font color=Blue>PointRend</font>](https://0809zheng.github.io/2021/01/24/pointrender.html)
+
+**PointRend**从**coarse prediction**中挑选**N**个“难点”，根据其**fine-grained features**和**coarse prediction**构造点特征向量，通过**MLP**网络更新**coarse prediction**。相当于对这些难点进行新的预测。
+
+![](https://pic.imgdb.cn/item/640ec603f144a01007388399.jpg)
+
+### ⚪ [<font color=Blue>K-Net</font>](https://0809zheng.github.io/2021/01/23/knet.html)
+
+**K-Net**提出了一种基于动态内核的分割模型，为每个任务分配不同的核来实现语义分割、实例分割和全景分割的统一。具体地，使用**N**个**Kernel**将图像划分为**N**组，每个**Kernel**都负责找到属于其相应组的像素，并应用**Kernel Update Head**增强**Kernel**的特征提取能力。
+
+![](https://pic.imgdb.cn/item/641021f3ebf10e5d53e04e5e.jpg)
+
+
 
 ## (2) 基于多尺度特征的图像分割模型
 
@@ -133,7 +148,7 @@ tags: 深度学习
 
 随着图像分割模型的效果不断提升，分割任务的主要矛盾逐渐从恢复像素信息逐渐演变为如何更有效地利用上下文(**context**)信息，并基于此设计了一系列用于提取多尺度特征的网络结构。
 
-这一时期的分割网络的基本结构为：首先使用预训练模型(如**ResNet**)提取图像特征，然后应用精心设计的上下文模块增强多尺度特征信息，最后对特征应用上采样(通常为$8$**x**)和$1\times 1$分割头生成分割结果。
+这一时期的分割网络的基本结构为：首先使用预训练模型(如**ResNet**)提取图像特征(通常$8$**x**下采样)，然后应用精心设计的上下文模块增强多尺度特征信息，最后对特征应用上采样(通常为$8$**x**上采样)和$1\times 1$分割头生成分割结果。
 
 有一些方法把自注意力机制引入图像分割任务，通过自注意力机制的全局交互性来捕获视觉场景中的全局依赖，并以此构造上下文模块，如；对于这些方法的讨论详见[<font color=Blue>卷积神经网络中的自注意力机制</font>]()。
 
@@ -254,9 +269,11 @@ tags: 深度学习
 - [<font color=Blue>GRUU-Net: Integrated convolutional and gated recurrent neural network for cell segmentation</font>](https://0809zheng.github.io/2021/01/25/gruunet.html)：(Medical Image Analysis2018)GRUU-Net: 细胞分割的融合卷积门控循环神经网络。
 - [<font color=Blue>Panoptic Feature Pyramid Networks</font>](https://0809zheng.github.io/2021/01/28/fpn.html)：(arXiv1901)全景特征金字塔网络。
 - [<font color=Blue>DFANet: Deep Feature Aggregation for Real-Time Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)：(arXiv1904)DFANet: 实时语义分割的深度特征聚合。
+- [<font color=Blue>PointRend: Image Segmentation as Rendering</font>](https://0809zheng.github.io/2021/01/24/pointrender.html)：(arXiv1912)PointRend: 把图像分割建模为渲染。
 - [<font color=Blue>Adaptive Pyramid Context Network for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/24/apcnet.html)：(CVPR2019)APCNet: 语义分割的自适应金字塔上下文网络。
 - [<font color=Blue>Dynamic Multi-Scale Filters for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/23/dmnet.html)：(ICCV2019)DMNet: 语义分割的动态多尺度滤波器。
 - [<font color=Blue>BiSeNet V2: Bilateral Network with Guided Aggregation for Real-time Semantic Segmentation</font>](https://0809zheng.github.io/2021/01/27/bisenetv2.html)：(arXiv2004)BiSeNet V2: 实时语义分割的带引导聚合的双边网络。
+- [<font color=Blue>K-Net: Towards Unified Image Segmentation</font>](https://0809zheng.github.io/2021/01/23/knet.html)：(arXiv2106)K-Net: 面向统一的图像分割。
 
 
 
