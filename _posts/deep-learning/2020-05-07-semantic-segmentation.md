@@ -31,26 +31,24 @@ tags: 深度学习
 ![](https://pic.imgdb.cn/item/63f2e1aef144a0100707c297.jpg)
 
 图像分割模型通常采用**编码器-解码器(encoder-decoder)**结构。编码器从预处理的图像数据中提取特征，解码器把特征解码为分割热图。图像分割模型的发展趋势可以大致总结为：
-- 全卷积网络：**FCN**, **SegNet**, **RefineNet**, **U-Net**, **V-Net**, **M-Net**, **W-Net**, **Y-Net**, **UNet++**, 
-- 多尺度特征：**DeepLab v1,2,3,3+**, **PSPNet**, **EncNet**, **DFANet**
-- 注意力机制：**Attention U-Net**, 
+- 全卷积网络：**FCN**, **SegNet**, **RefineNet**, **U-Net**, **V-Net**, **M-Net**, **W-Net**, **Y-Net**, **UNet++**, **Attention U-Net**, **GRUU-Net**, **BiSeNet V1,2**, **DFANet**
+- 上下文模块：**DeepLab v1,2,3,3+**, **PSPNet**, **FPN**, **UPerNet**, **EncNet**, **PSANet**, **APCNet**, **DMNet**, **PointRend**, **K-Net**
 - 基于**Transformer**：
+- 分割技巧：
 
 ## (1) 基于全卷积网络的图像分割模型
 
-标准卷积神经网络包括卷积层、下采样层和全连接层。因此早期基于深度学习的图像分割模型旨在解决如何更好从卷积下采样中恢复丢掉的信息损失。
-
-这一阶段的模型为生成与输入图像尺寸一致的分割结果，丢弃了全连接层，并引入一系列上采样操作。逐渐形成了以**U-Net**为核心的对称编码器-解码器结构。
+标准卷积神经网络包括卷积层、下采样层和全连接层。早期基于深度学习的图像分割模型为生成与输入图像尺寸一致的分割结果，丢弃了全连接层，并引入一系列上采样操作。因此这一阶段的模型旨在解决如何更好从卷积下采样中恢复丢掉的信息损失，逐渐形成了以**U-Net**为核心的对称编码器-解码器结构。
 
 ### ⚪ [<font color=Blue>FCN</font>](https://0809zheng.github.io/2021/02/08/fcn.html)
 
-**FCN**提出用全卷积网络来处理语义分割问题，通过全卷积网络进行特征提取和下采样，通过双线性插值进行上采样。
+**FCN**提出用全卷积网络来处理语义分割问题。首先通过全卷积网络进行特征提取和下采样，然后通过双线性插值进行上采样。
 
 ![](https://pic.imgdb.cn/item/63f3294ff144a010076aeec8.jpg)
 
 ### ⚪ [<font color=Blue>SegNet</font>](https://0809zheng.github.io/2021/02/11/segnet.html)
 
-**SegNet**采用编码器-解码器结构，通过反池化进行上采样。
+**SegNet**设计了对称的编码器-解码器结构，通过反池化进行上采样。
 
 ![](https://pic.downk.cc/item/5ebb64bcc2a9a83be59a49f5.jpg)
 
@@ -63,7 +61,7 @@ tags: 深度学习
 
 ### ⚪ [<font color=Blue>U-Net</font>](https://0809zheng.github.io/2021/02/13/unet.html)
 
-**U-Net**使用对称的U型网络设计，在对应的下采样和上采样之间引入跳跃连接。
+**U-Net**使用对称的**U**型网络设计，在对应的下采样和上采样之间引入跳跃连接。
 
 ![](https://pic.imgdb.cn/item/63f32f2ff144a01007724bfb.jpg)
 
@@ -128,29 +126,19 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63fc01e5f144a0100732efc8.jpg)
 
-### ⚪ [<font color=Blue>PointRend</font>](https://0809zheng.github.io/2021/01/24/pointrender.html)
-
-**PointRend**从**coarse prediction**中挑选**N**个“难点”，根据其**fine-grained features**和**coarse prediction**构造点特征向量，通过**MLP**网络更新**coarse prediction**。相当于对这些难点进行新的预测。
-
-![](https://pic.imgdb.cn/item/640ec603f144a01007388399.jpg)
-
-### ⚪ [<font color=Blue>K-Net</font>](https://0809zheng.github.io/2021/01/23/knet.html)
-
-**K-Net**提出了一种基于动态内核的分割模型，为每个任务分配不同的核来实现语义分割、实例分割和全景分割的统一。具体地，使用**N**个**Kernel**将图像划分为**N**组，每个**Kernel**都负责找到属于其相应组的像素，并应用**Kernel Update Head**增强**Kernel**的特征提取能力。
-
-![](https://pic.imgdb.cn/item/641021f3ebf10e5d53e04e5e.jpg)
 
 
 
-## (2) 基于多尺度特征的图像分割模型
+
+## (2) 基于上下文模块的图像分割模型
 
 多尺度问题是指当图像中的目标对象存在不同大小时，分割效果不佳的现象。比如同样的物体，在近处拍摄时物体显得大，远处拍摄时显得小。解决多尺度问题的目标就是不论目标对象是大还是小，网络都能将其分割地很好。
 
 随着图像分割模型的效果不断提升，分割任务的主要矛盾逐渐从恢复像素信息逐渐演变为如何更有效地利用上下文(**context**)信息，并基于此设计了一系列用于提取多尺度特征的网络结构。
 
-这一时期的分割网络的基本结构为：首先使用预训练模型(如**ResNet**)提取图像特征(通常$8$**x**下采样)，然后应用精心设计的上下文模块增强多尺度特征信息，最后对特征应用上采样(通常为$8$**x**上采样)和$1\times 1$分割头生成分割结果。
+这一时期的分割网络的基本结构为：首先使用预训练模型(如**ResNet**)提取图像特征(通常$8 \times$下采样)，然后应用精心设计的**上下文模块**增强多尺度特征信息，最后对特征应用上采样(通常为$8 \times$上采样)和$1\times 1$分割头生成分割结果。
 
-有一些方法把自注意力机制引入图像分割任务，通过自注意力机制的全局交互性来捕获视觉场景中的全局依赖，并以此构造上下文模块，如；对于这些方法的讨论详见[<font color=Blue>卷积神经网络中的自注意力机制</font>]()。
+有一些方法把自注意力机制引入图像分割任务，通过自注意力机制的全局交互性来捕获视觉场景中的全局依赖，并以此构造上下文模块。对于这些方法的讨论详见[<font color=Blue>卷积神经网络中的自注意力机制</font>](https://0809zheng.github.io/2020/11/21/SAinCNN.html)。
 
 ### ⚪ [<font color=Blue>Deeplab</font>](https://0809zheng.github.io/2021/02/14/deeplab.html)
 
@@ -227,23 +215,48 @@ tags: 深度学习
 ![](https://pic.imgdb.cn/item/63fd5395f144a0100738b4cd.jpg)
 
 
+### ⚪ [<font color=Blue>PointRend</font>](https://0809zheng.github.io/2021/01/24/pointrender.html)
+
+**PointRend**从**coarse prediction**中挑选**N**个“难点”，根据其**fine-grained features**和**coarse prediction**构造点特征向量，通过**MLP**网络对这些难点进行重新预测。
+
+![](https://pic.imgdb.cn/item/640ec603f144a01007388399.jpg)
+
+### ⚪ [<font color=Blue>K-Net</font>](https://0809zheng.github.io/2021/01/23/knet.html)
+
+**K-Net**提出了一种基于动态内核的分割模型，为每个任务分配不同的核来实现语义分割、实例分割和全景分割的统一。具体地，使用**N**个**Kernel**将图像划分为**N**组，每个**Kernel**都负责找到属于其相应组的像素，并应用**Kernel Update Head**增强**Kernel**的特征提取能力。
+
+![](https://pic.imgdb.cn/item/641021f3ebf10e5d53e04e5e.jpg)
 
 ## (3) 基于Transformer的图像分割模型
 
+**Transformer**是一种基于自注意力机制的序列处理模型，该模型在任意层都能实现全局的感受野，建立全局依赖；而且无需进行较大程度的下采样就能实现特征提取，保留了图像的更多信息。
+
+### ⚪ [<font color=Blue>SETR</font>](https://0809zheng.github.io/2023/01/13/setr.html)
+
+**SETR**采取了**ViT**作为编码器提取图像特征；通过基于卷积的渐进上采样或者多层次特征聚合生成分割结果。
+
+![](https://pic.imgdb.cn/item/6412d409ebf10e5d53c73766.jpg)
 
 
+### ⚪ [<font color=Blue>TransUNet</font>](https://0809zheng.github.io/2023/01/14/transunet.html)
+
+**TransUNet**的**Encoder**部分主要由**ResNet50**和**ViT**组成，其中前三个模块为两倍下采样的**ResNet Block**，最后一个模块为**12**层**Transformer Layer**。
+
+![](https://pic.imgdb.cn/item/64141254a682492fcc281b9b.jpg)
 
 
+### ⚪ [<font color=Blue>SegFormer</font>](https://0809zheng.github.io/2023/01/15/segformer.html)
+
+**SegFormer**包括用于生成多尺度特征的分层**Encoder**（包含**Efficient Self-Attention**、**Mix-FFN**和**Overlap Patch Embedding**三个模块）和仅由**MLP**层组成的轻量级**All-MLP Decoder**。
+
+![](https://pic.imgdb.cn/item/6414188aa682492fcc38e8ce.jpg)
 
 
+### ⚪ [<font color=Blue>Segmenter</font>](https://0809zheng.github.io/2023/01/17/segmenter.html)
 
+**Segmenter**完全基于**Transformer**的编码器-解码器架构。图像块序列由**Transformer**编码器编码，并由**mask Transformer**解码。**Mask Transformer**引入一组个可学习的类别嵌入，通过计算其与解码序列特征的乘积来生成每个图像块的分割图。
 
-
-
-
-
-
-
+![](https://pic.imgdb.cn/item/6416d47da682492fccc0d56d.jpg)
 
 
 ### ⚪ 参考文献
@@ -273,6 +286,10 @@ tags: 深度学习
 - [<font color=Blue>Adaptive Pyramid Context Network for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/24/apcnet.html)：(CVPR2019)APCNet: 语义分割的自适应金字塔上下文网络。
 - [<font color=Blue>Dynamic Multi-Scale Filters for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/23/dmnet.html)：(ICCV2019)DMNet: 语义分割的动态多尺度滤波器。
 - [<font color=Blue>BiSeNet V2: Bilateral Network with Guided Aggregation for Real-time Semantic Segmentation</font>](https://0809zheng.github.io/2021/01/27/bisenetv2.html)：(arXiv2004)BiSeNet V2: 实时语义分割的带引导聚合的双边网络。
+- [<font color=Blue>Rethinking Semantic Segmentation from a Sequence-to-Sequence Perspective with Transformers</font>](https://0809zheng.github.io/2023/01/13/setr.html)：(arXiv2012)用Transformer从序列到序列的角度重新思考语义分割。
+- [<font color=Blue>TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation</font>](https://0809zheng.github.io/2023/01/14/transunet.html)：(arXiv2102)TransUNet：用Transformer为医学图像分割构造强力编码器。
+- [<font color=Blue>SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers</font>](https://0809zheng.github.io/2023/01/15/segformer.html)：(arXiv2105)SegFormer：为语义分割设计的简单高效的Transformer模型。
+- [<font color=Blue>Segmenter: Transformer for Semantic Segmentation</font>](https://0809zheng.github.io/2023/01/17/segmenter.html)：(arXiv2105)Segmenter：为语义分割设计的视觉Transformer。
 - [<font color=Blue>K-Net: Towards Unified Image Segmentation</font>](https://0809zheng.github.io/2021/01/23/knet.html)：(arXiv2106)K-Net: 面向统一的图像分割。
 
 
@@ -313,9 +330,13 @@ $$ \text{Accuracy} = \frac{TP+TN}{TP+FP+TN+FN} $$
 
 $$ \text{Precision} = \frac{TP}{TP+FP} $$
 
-- **查全率(recall)**,又称**召回率**，定义为所有真正为正例的像素中，模模型预测为正例的像素比例：
+- **查全率(recall)**,又称**召回率**，定义为所有真正为正例的像素中，模型预测为正例的像素比例：
 
 $$ \text{Recall} = \frac{TP}{TP+FN} $$
+
+- **F1分数(F1-Score)**，定义为查准率和召回率的调和平均数。
+
+$$ \text{F}_1 = 2\frac{\text{Precision} \cdot \text{Recall}}{\text{Precision}+\text{Recall}} $$
 
 ### (2) 多分类
 
@@ -455,7 +476,7 @@ def meanIntersectionOverUnion(confusionMatrix):
 
 $$ \text{FWIoU} = \frac{TP+FN}{TP+FP+FN+TN} \cdot \frac{TP}{TP+FP+FN} $$
 
-最终给出的**FWIoU**应为所有类别**FWIoU**的平均值。
+最终给出的**FWIoU**应为所有类别**FWIoU**的求和。
 
 ```python
 def Frequency_Weighted_Intersection_over_Union(confusion_matrix):
@@ -497,8 +518,376 @@ def Dice(confusionMatrix):
 
 # 3. 图像分割的损失函数
 
+本节参考论文 [Loss odyssey in medical image segmentation](https://www.sciencedirect.com/science/article/pii/S1361841521000815) 和**Github**库 [SegLoss: A collection of loss functions for medical image segmentation](https://github.com/JunMa11/SegLoss)。
+
+图像分割的损失函数用于衡量预测分割结果和真实标签之间的差异。一个合理的损失函数不仅用于指导网络学习在给定评估指标上与真实标签相接近的预测结果，还启发网络如何权衡错误结果（如假阳性、假阴性）。
+
+根据损失函数的推导方式不同，图像分割任务中常用的损失函数可以划分为：
+- 基于分布的损失：**Cross-Entropy Loss**, **Weighted Cross-Entropy Loss**, **TopK Loss**, **Focal Loss**
+- 基于区域的损失：**Sensitivity-Specifity Loss**, **Dice Loss**, **Tversky Loss**, **Focal Tversky Loss**, **Asymmetric Similarity Loss**, **Generalized Dice Loss**, **Penalty Loss**, **IoU Loss**,
+- 基于边界的损失：**Boundary Loss**,
+
+在实践中，通常使用上述损失函数的组合形式，如**Cross-Entropy Loss + Dice Loss**。
+
+## (1) 基于分布的损失 Distribution-based Loss
+
+基于分布的损失函数旨在最小化两种分布之间的差异。
+
+### ⚪ Cross-Entropy Loss
+
+交叉熵损失是由**KL**散度导出的，衡量数据分布$P$和预测分布$Q$之间的差异：
+
+$$
+\begin{aligned}
+D_{K L}(P \mid Q) & =\sum_i p_i \log \frac{p_i}{q_i} \\
+& =-\sum_i p_i \log q_i+\sum_i p_i \log p_i \\
+& =H(P, Q)-H(P)
+\end{aligned}
+$$
+
+注意到数据分布$P$通常是已知的，因此最小化数据分布$P$和预测分布$Q$之间的**KL**散度等价于最小化交叉熵$H(P,Q)$。对于分割任务，指定$g_i^c$是像素$i$是否属于标签$c$的二元指示符，$s_i^c$是对应的预测结果，则交叉熵损失定义为：
+
+$$
+L_{C E}=-\frac{1}{N} \sum_{c=1}^C \sum_{i=1}^N g_i^c \log s_i^c
+$$
+
+```python
+ce_loss = torch.nn.CrossEntropyLoss()
+# result无需经过Softmax，gt为整型
+loss = ce_loss(result, gt)
+```
+
+### ⚪ Weighted Cross-Entropy Loss
+
+为缓解类别不平衡问题，加权交叉熵损失为每个类别指定一个权重$w_c$。权重$w_c$通常与类别出现频率成反比，比如设置为训练集中类别出现频率的倒数。
+
+$$
+L_{W C E}=-\frac{1}{N} \sum_{c=1}^c \sum_{i=1}^N w_c g_i^c \log s_i^c
+$$
+
+```python
+wce_loss = torch.nn.CrossEntropyLoss(weight=weight)
+loss = wce_loss(result, gt)
+```
+
+### ⚪ [TopK Loss](https://arxiv.org/abs/1605.06885)
+
+**TopK**损失旨在迫使网络在训练过程中专注于难例样本（**hard samples**）。在计算交叉熵损失时，只保留前$k\%$个最差的（损失最大的）分类像素。
+
+$$
+L_{\text {Top} K}=-\frac{1}{N} \sum_{c=1}^c \sum_{i \in \mathbf{K}} g_i^c \log s_i^c
+$$
+
+```python
+class TopKLoss(nn.Module):
+    def __init__(self, weight=None, ignore_index=-100, k=10):
+        super(TopKLoss, self).__init__()
+        self.k = k
+        self.ce_loss = torch.nn.CrossEntropyLoss(reduce=False)
+
+    def forward(self, result, gt):
+        res = self.ce_loss(result, gt)
+        num_pixels = np.prod(res.shape)
+        res, _ = torch.topk(res.view((-1, )), int(num_pixels * self.k / 100), sorted=False)
+        return res.mean()
+```
+
+### ⚪ [Focal Loss](https://arxiv.org/abs/1605.06885)
+
+**Focal Loss**通过减少容易分类像素的损失权重，以处理前景-背景类别的不平衡问题。
+
+$$
+L_{\text {Focal }}=-\frac{1}{N} \sum_c^c \sum_{i=1}^N\left(1-s_i^c\right)^\gamma g_i^c \log s_i^c
+$$
+
+```python
+from einops import rearrange
+
+class FocalLoss(nn.Module):
+    def __init__(self, gamma=2):
+        super(FocalLoss, self).__init__()
+        self.gamma = gamma
+
+    def forward(self, result, gt):
+        result = rearrange(result, 'b c h w -> b c (h w)')
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        pt = (y_onehot * result).sum(1)
+        logpt = pt.log()
+
+        gamma = self.gamma
+        loss = -1 * torch.pow((1 - pt), gamma) * logpt
+        return loss.mean()
+```
+
+## (2) 基于区域的损失 Region-based Loss
+
+基于区域的损失函数旨在最小化真实标签$G$和预测分割$S$之间的不匹配程度或者最大化两者之间的重叠区域。
+
+### ⚪ [Sensitivity-Specifity Loss](https://link.springer.com/chapter/10.1007/978-3-319-24574-4_1)
+
+敏感性-特异性损失通过加权敏感性与特异性来解决类别不平衡问题：
+
+$$
+\begin{aligned}
+L_{S S}= & w \frac{\sum_{c=1}^C \sum_{i=1}^N\left(g_i^c-s_i^c\right)^2 g_i^c}{\sum_{c=1}^C \sum_{i=1}^N g_i^c+\epsilon} \\
+& +(1-w) \frac{\sum_{c=1}^C \sum_{i=1}^N\left(g_i^c-s_i^c\right)^2\left(1-g_i^c\right)}{\sum_{c=1}^C \sum_{i=1}^N\left(1-g_i^C\right)+\epsilon}
+\end{aligned}
+$$
+
+```python
+from einops import rearrange, einsum
+
+class SSLoss(nn.Module):
+    def __init__(self, smooth=1.):
+        super(SSLoss, self).__init__()
+        self.smooth = smooth
+        self.r = 0.1 # weight parameter in SS paper
+
+    def forward(self, result, gt):
+        result = rearrange(result, 'b c h w -> b c (h w)')
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        # no object value
+        bg_onehot = 1 - y_onehot
+        squared_error = (y_onehot - result)**2
+        specificity_numerator = einsum(squared_error, y_onehot, 'b c n, b c n -> b c')
+        specificity_denominator = einsum(y_onehot, 'b c n -> b c')+self.smooth
+        specificity_part = einsum(specificity_numerator, 'b c -> b')/einsum(specificity_denominator, 'b c -> b')
+        sensitivity_numerator = einsum(squared_error, bg_onehot, 'b c n, b c n -> b c')
+        sensitivity_denominator = einsum(bg_onehot, 'b c n -> b c')+self.smooth
+        sensitivity_part = einsum(sensitivity_numerator, 'b c -> b')/einsum(sensitivity_denominator, 'b c -> b')
+
+        ss = self.r * specificity_part + (1-self.r) * sensitivity_part
+        return ss.mean()
+```
 
 ### ⚪ [<font color=Blue>Dice Loss</font>](https://0809zheng.github.io/2021/06/05/vnet.html)
+
+**Dice Loss**直接优化**Dice Coefficient**。由于预测热图和真实标签都可以表示为$[0,1]$矩阵，因此集合运算可以直接通过对应元素计算：
+
+$$
+L_{\text {Dice }}=1-\frac{2|A ∩ B |}{|A|+| B |}=1-\frac{2 \sum_{c=1}^C \sum_{i=1}^N g_i^c s_i^c}{\sum_{c=1}^C \sum_{i=1}^N g_i^c+\sum_{c=1}^C \sum_{i=1}^N s_i^c}
+$$
+
+```python
+from einops import rearrange, einsum
+   
+class DiceLoss(nn.Module):
+    def __init__(self, smooth=1e-5):
+        super(DiceLoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, result, gt):
+        result = rearrange(result, 'b c h w -> b c (h w)')
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        intersection = einsum(result, y_onehot, "b c n, b c n -> b c")
+        union = einsum(result, "b c n -> b c") + einsum(y_onehot, "b c n -> b c")
+        divided = 1 - 2 * (einsum(intersection, "b c -> b") + self.smooth) / (einsum(union, "b c -> b") + self.smooth)
+        return divided.mean()
+```
+
+### ⚪ [Tversky Loss](https://arxiv.org/abs/1706.05721)
+
+**Dice Loss**可以被视为查准率和召回率的调和平均值，它对假阳性和假阴性样本的权重相等。**Tversky Loss**在**Dice Loss**的分母中调整了假阳性和假阴性样本的权重，以实现查准率和召回率之间的权衡。
+
+$$
+\begin{aligned}
+L_{\text {Tversky }}= & 1-\left(\sum_c^C \sum_{i=1}^N g_i^c s_i^c\right) /\left(\sum_c^C \sum_{i=1}^N g_i^c s_j^c\right. \\
+& \left.+\alpha \sum_c^C \sum_{i=1}^N\left(1-g_i^c\right) s_i^c+\beta \sum_c^C \sum_{i=1}^N g_i^c\left(1-s_i^c\right)\right)
+\end{aligned}
+$$
+
+```python
+from einops import rearrange, einsum
+
+class TverskyLoss(nn.Module):
+    def __init__(self, smooth=1.):
+        super(TverskyLoss, self).__init__()
+        self.smooth = smooth
+        self.alpha = 0.3
+        self.beta = 0.7
+
+    def forward(self, result, gt):
+        result = rearrange(result, 'b c h w -> b c (h w)')
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        intersection = einsum(result, y_onehot, "b c n, b c n -> b c")
+        FP = einsum(result, 1-y_onehot, "b c n, b c n -> b c")
+        FN = einsum(1-result, y_onehot, "b c n, b c n -> b c")
+        denominator = intersection + self.alpha * FP + self.beta * FN
+        divided = 1 - einsum(intersection, "b c -> b") / einsum(denominator, "b c -> b").clamp(min=self.smooth)
+        return divided.mean()
+```
+
+### ⚪ [Focal Tversky Loss](https://arxiv.org/abs/1810.07842)
+
+**Focal Tversky Loss**把**Focal Loss**引入**Tversky Loss**，旨在更加关注具有较低概率的难例像素：
+
+$$ L_{\text {FTL}} = (L_{\text {Tversky}})^{\frac{1}{\gamma}} $$
+
+### ⚪ [Asymmetric Similarity Loss](https://ieeexplore.ieee.org/document/8573779)
+
+**Asymmetric Similarity Loss**和**Tversky Loss**的动机类似，也是调整假阳性和假阴性样本的权重，以平衡查准率和召回率。该损失相当于设置**Tversky Loss**中$\alpha+\beta=1$：
+
+$$
+\begin{aligned}
+L_{\text {Asym }}= & 1-\left(\sum_c^C \sum_{i=1}^N g_i^c s_i^c\right) /\left(\sum_c^C \sum_{i=1}^N g_i^c s_j^c\right. \\
+& \left.+\frac{\beta^2}{1+\beta^2} \sum_c^C \sum_{i=1}^N\left(1-g_i^c\right) s_i^c+\frac{1}{1+\beta^2} \sum_c^C \sum_{i=1}^N g_i^c\left(1-s_i^c\right)\right)
+\end{aligned}
+$$
+
+```python
+from einops import rearrange, einsum
+
+class AsymLoss(nn.Module):
+    def __init__(self, smooth=1.):
+        super(AsymLoss, self).__init__()
+        self.smooth = smooth
+        self.beta = 1.5
+
+    def forward(self, result, gt):
+        result = rearrange(result, 'b c h w -> b c (h w)')
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        weight = (self.beta**2)/(1+self.beta**2)
+        intersection = einsum(result, y_onehot, "b c n, b c n -> b c")
+        FP = einsum(result, 1-y_onehot, "b c n, b c n -> b c")
+        FN = einsum(1-result, y_onehot, "b c n, b c n -> b c")
+        denominator = intersection + weight * FP + (1-weight) * FN
+        divided = 1 - einsum(intersection, "b c -> b") / einsum(denominator, "b c -> b").clamp(min=self.smooth)
+        return divided.mean()
+```
+
+### ⚪ [Generalized Dice Loss](https://arxiv.org/abs/1707.03237)
+
+**Generalized Dice Loss**是**Dice Loss**的多类别扩展，其中每个类别的权重与标签频率成反比：$w_c=1/(\sum_{i=1}^Ng_i^c)^2$。
+
+$$
+L_{\text {GD }}=1-\frac{2 \sum_{c=1}^C w_c \sum_{i=1}^N g_i^c s_i^c}{\sum_{c=1}^C w_c \sum_{i=1}^N (g_i^c+s_i^c)}
+$$
+
+```python
+from einops import rearrange, einsum
+
+class GDiceLoss(nn.Module):
+    def __init__(self, smooth=1e-5):
+        super(GDiceLoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, result, gt):
+        result = rearrange(result, 'b c h w -> b c (h w)')
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        w = 1 / (einsum(y_onehot, "b c n -> b c") + 1e-10)**2
+        intersection = einsum(result, y_onehot, "b c n, b c n -> b c")
+        union = einsum(result, "b c n -> b c") + einsum(y_onehot, "b c n -> b c")
+        divided = 1 - 2 * (einsum(intersection, w, "b c, b c -> b") + self.smooth) / (einsum(union, w, "b c, b c -> b") + self.smooth)
+        return divided.mean()
+```
+
+### ⚪ [Penalty Loss](https://openreview.net/forum?id=H1lTh8unKN)
+
+**Penalty Loss**把**Tversky Loss**中调整假阳性和假阴性样本权重的思想引入**Generalized Dice Loss**。
+
+$$
+\begin{aligned}
+L_{\text {Penalty }}= & 1-2\left(\sum_c^C  w_c \sum_{i=1}^N g_i^c s_i^c\right) /\left(\sum_c^C  w_c \sum_{i=1}^N (g_i^c+ s_j^c)\right. \\
+& \left.+k \sum_c^C  w_c \sum_{i=1}^N\left(1-g_i^c\right) s_i^c+k \sum_c^C  w_c \sum_{i=1}^N g_i^c\left(1-s_i^c\right)\right)
+\end{aligned}
+$$
+
+```python
+from einops import rearrange, einsum
+
+class PenaltyLoss(nn.Module):
+    def __init__(self, smooth=1e-5):
+        super(PenaltyLoss, self).__init__()
+        self.smooth = smooth
+        self.k = 2.5
+
+    def forward(self, result, gt):
+        result = rearrange(result, 'b c h w -> b c (h w)')
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        w = 1 / (einsum(y_onehot, "b c n -> b c") + 1e-10)**2
+        intersection = einsum(result, y_onehot, "b c n, b c n -> b c")
+        union = einsum(result+y_onehot, "b c n -> b c")
+        FP = einsum(result, 1-y_onehot, "b c n, b c n -> b c")
+        FN = einsum(1-result, y_onehot, "b c n, b c n -> b c")
+        denominator = einsum(union, w, "b c, b c -> b") + self.k * einsum(FP, w, "b c, b c -> b") + self.k * einsum(FN, w, "b c, b c -> b")
+        divided = 1 - 2 * einsum(intersection, w, "b c, b c -> b") / denominator.clamp(min=self.smooth)
+        return divided.mean()
+```
+
+### ⚪ [IoU Loss](https://link.springer.com/chapter/10.1007/978-3-319-50835-1_22)
+
+**IoU Loss**与**Dice Loss**类似，直接优化**IoU**指标。
+
+$$
+L_{I O U}=1- \frac{|A ∩ B |}{|A|+| B |-|A ∩ B |}=1-\frac{\sum_{c=1}^c \sum_{i=1}^N g_i^c s_i^c}{\sum_{c=1}^C \sum_{i=1}^N\left(g_i^c+s_i^c-g_i^c s_i^c\right)}
+$$
+
+```python
+from einops import rearrange, einsum
+
+class IoULoss(nn.Module):
+    def __init__(self, smooth=1e-5):
+        super(IoULoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, result, gt):
+        result = rearrange(result, 'b c h w -> b c (h w)')
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        intersection = einsum(result, y_onehot, "b c n, b c n -> b c")
+        union = einsum(result, "b c n -> b c") + einsum(y_onehot, "b c n -> b c") - einsum(result, y_onehot, "b c n, b c n -> b c")
+        divided = 1 - (einsum(intersection, "b c -> b") + self.smooth) / (einsum(union, "b c -> b") + self.smooth)
+        return divided.mean()
+```
+
+## (3) 基于边界的损失 Boundary-based Loss
+
+基于边界的损失是指在轮廓空间而不是区域空间上采用距离度量的形式。有两种不同的框架来计算两个边界之间的距离。一种是**微分**框架，它通过计算每个点沿边界曲线法线上的速度来评估每个点的运动情况。另一种是**积分**框架，它通过计算两个边界的不匹配区域的积分来近似距离。
+
+在训练神经网络时，边界损失通常应该与基于区域的损失相结合，以减少训练的不稳定性。
+
+
+
+
 
 
 
