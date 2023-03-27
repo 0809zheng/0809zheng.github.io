@@ -52,7 +52,7 @@ $$
 
 在超立方体$H_n$上，存在 $n!$ 条不同的从全零向量$0_n$到全一向量$1_n$的最短路径。记$P=[0_n=X_0,X_1,...,1_n=X_n]$为一条路径，$C_P$为路径$P$上的点组成的凸包(**convex hull**)。每条路径上共存在$n!$个凸包，这些凸包把$K_n$划分成$n!$个相等的部分。
 
-给定一个点$x \in K_n$，可以对应一个凸包$C_P$和路径$P=[0_n=X_0,X_1,...,1_n=X_n]$使得$x \in C_P$。我们可以找到系数$\lambda_i$使得$x=\sum_{i=0}^n \lambda_i X_{i}$，并且满足$\sum_{i=0}^n \lambda_i = 1,\lambda_i \geq 0$。点$x$处的**Lovász**延拓定义为：
+给定一个点$x \in K_n$，可以对应一个凸包$C_P$和路径$$P=[0_n=X_0,X_1,...,1_n=X_n]$$使得$x \in C_P$。我们可以找到系数$\lambda_i$使得$$x=\sum_{i=0}^n \lambda_i X_{i}$$，并且满足$$\sum_{i=0}^n \lambda_i = 1,\lambda_i \geq 0$$。点$x$处的**Lovász**延拓定义为：
 
 $$
 \hat{f}(x) = \sum_{i=0}^n \lambda_i f(X_{i})
@@ -64,7 +64,7 @@ $$
 \lambda_i = x_{\pi(i)}-x_{\pi(i+1)}
 $$
 
-按照上述定义的$\lambda_i$满足$\sum_{i=0}^n \lambda_i = 1,\lambda_i \geq 0$。下面证明$x=\sum_{i=0}^n \lambda_i X_{i}$。令$X_0=0_n$，$e_{\pi(i)}$表示$\pi(i)$位置为$1$其余位置为$0$的向量，则有：
+按照上述定义的$\lambda_i$满足$\sum_{i=0}^n \lambda_i = 1,\lambda_i \geq 0$。下面证明$x=\sum_{i=0}^n \lambda_i X_{i}$。令$$X_0=0_n$$，$$e_{\pi(i)}$$表示$\pi(i)$位置为$1$其余位置为$0$的向量，则有：
 
 $$
 X_i = X_{i-1} + e_{\pi(i)}
@@ -129,7 +129,7 @@ $$
 m_i(c) = \begin{cases} 1-s_i^c, & \text{if }c=\boldsymbol{y}^*_i \\ s_i^c, & \text{otherwise} \end{cases}
 $$
 
-则$\Delta_{J_c}(\mathbf{M}_c)$的**Lovász**延拓$\overline{\Delta_{J_c}}(m(c))$根据定义可表示为：
+则$$\Delta_{J_c}(\mathbf{M}_c)$$的**Lovász**延拓$$\overline{\Delta_{J_c}}(m(c))$$根据定义可表示为：
 
 $$
 \overline{\Delta_{J_c}}: m \in R^N \mapsto \sum_{i=1}^N m_{\pi(i)} g_i(m)
