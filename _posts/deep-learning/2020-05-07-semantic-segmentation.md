@@ -523,11 +523,13 @@ def Dice(confusionMatrix):
 图像分割的损失函数用于衡量预测分割结果和真实标签之间的差异。一个合理的损失函数不仅用于指导网络学习在给定评估指标上与真实标签相接近的预测结果，还启发网络如何权衡错误结果（如假阳性、假阴性）。
 
 根据损失函数的推导方式不同，图像分割任务中常用的损失函数可以划分为：
-- 基于分布的损失：**Cross-Entropy Loss**, **Weighted Cross-Entropy Loss**, **TopK Loss**, **Focal Loss**
-- 基于区域的损失：**Sensitivity-Specifity Loss**, **Dice Loss**, **Tversky Loss**, **Focal Tversky Loss**, **Asymmetric Similarity Loss**, **Generalized Dice Loss**, **Penalty Loss**, **IoU Loss**,
-- 基于边界的损失：**Boundary Loss**,
+- 基于分布的损失：**Cross-Entropy Loss**, **Weighted Cross-Entropy Loss**, **TopK Loss**, **Focal Loss**, **Distance Map Penalized CE Loss**
+- 基于区域的损失：**Sensitivity-Specifity Loss**, **IoU Loss**, **Lovász Loss**, **Dice Loss**, **Tversky Loss**, **Focal Tversky Loss**, **Asymmetric Similarity Loss**, **Generalized Dice Loss**, **Penalty Loss**,
+- 基于边界的损失：**Boundary Loss**, **Hausdorff Distance Loss**
 
 在实践中，通常使用上述损失函数的组合形式，如**Cross-Entropy Loss + Dice Loss**。
+
+![](https://pic.imgdb.cn/item/641e59a6a682492fcc029e90.jpg)
 
 ## (1) 基于分布的损失 Distribution-based Loss
 
@@ -624,6 +626,54 @@ class FocalLoss(nn.Module):
         return loss.mean()
 ```
 
+### ⚪ [Distance Map Penalized CE Loss](https://arxiv.org/abs/1908.03679)
+
+距离图惩罚交叉熵损失通过由真实标签计算的[距离变换图](https://0809zheng.github.io/2023/03/22/distancetransfrom.html)对交叉熵进行加权，引导网络重点关注难以分割的边界区域。
+
+$$
+L_{D P C E}=-\frac{1}{N} \sum_{c=1}^c\left(1+D^c\right) \circ \sum_{i=1}^N g_i^c \log s_i^c
+$$
+
+其中$D^c$是类别$c$的距离惩罚项，通过取真实标签的距离变换图的倒数来生成。通过这种方式可以为边界上的像素分配更大的权重。
+
+```python
+from einops import rearrange
+from scipy.ndimage import distance_transform_edt
+
+class DisPenalizedCE(torch.nn.Module):
+    def __init__(self):
+        super(DisPenalizedCE, self).__init__()
+
+    @torch.no_grad()
+    def one_hot2dist(self, seg):
+        res = np.zeros_like(seg)
+        for c in range(seg.shape[1]):
+            posmask = seg[:,c,...]
+            if posmask.any():
+                negmask = 1.-posmask
+                pos_edt = distance_transform_edt(posmask)
+                pos_edt = (np.max(pos_edt)-pos_edt)*posmask 
+                neg_edt =  distance_transform_edt(negmask)
+                neg_edt = (np.max(neg_edt)-neg_edt)*negmask        
+                res[:,c,...] = pos_edt + neg_edt
+        return res
+
+    def forward(self, result, gt):
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 h w')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+        dist = torch.from_numpy(self.one_hot2dist(y_onehot.cpu().numpy())+1).float()
+
+        result = torch.softmax(result, dim=1)
+        result_logs = torch.log(result)
+
+        loss = -result_logs * y_onehot
+        weighted_loss = loss*dist
+        return weighted_loss.mean()
+```
+
 ## (2) 基于区域的损失 Region-based Loss
 
 基于区域的损失函数旨在最小化真实标签$G$和预测分割$S$之间的不匹配程度或者最大化两者之间的重叠区域。
@@ -670,9 +720,112 @@ class SSLoss(nn.Module):
         return ss.mean()
 ```
 
+### ⚪ [IoU Loss](https://link.springer.com/chapter/10.1007/978-3-319-50835-1_22)
+
+**IoU Loss**直接优化**IoU index**。由于预测热图和真实标签都可以表示为$[0,1]$矩阵，因此集合运算可以直接通过对应元素计算：
+
+$$
+L_{I O U}=1- \frac{|A ∩ B |}{|A|+| B |-|A ∩ B |}=1-\frac{\sum_{c=1}^c \sum_{i=1}^N g_i^c s_i^c}{\sum_{c=1}^C \sum_{i=1}^N\left(g_i^c+s_i^c-g_i^c s_i^c\right)}
+$$
+
+```python
+from einops import rearrange, einsum
+
+class IoULoss(nn.Module):
+    def __init__(self, smooth=1e-5):
+        super(IoULoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, result, gt):
+        result = rearrange(result, 'b c h w -> b c (h w)')
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        intersection = einsum(result, y_onehot, "b c n, b c n -> b c")
+        union = einsum(result, "b c n -> b c") + einsum(y_onehot, "b c n -> b c") - einsum(result, y_onehot, "b c n, b c n -> b c")
+        divided = 1 - (einsum(intersection, "b c -> b") + self.smooth) / (einsum(union, "b c -> b") + self.smooth)
+        return divided.mean()
+```
+
+### ⚪ [Lovász Loss](https://arxiv.org/abs/1705.08790)
+
+**Lovász Loss**采用[**Lovász**延拓](https://0809zheng.github.io/2023/03/25/submodularity.html)把图像分割中离散的**IoU Loss**变得光滑化。
+
+首先定义类别$c$的误分类像素集合$M_c$：
+
+$$
+\mathbf{M}_c\left(\boldsymbol{y}^*, \tilde{\boldsymbol{y}}\right)=\left\{\boldsymbol{y}^*=c, \tilde{\boldsymbol{y}} \neq c\right\} \cup\left\{\boldsymbol{y}^* \neq c, \tilde{\boldsymbol{y}}=c\right\}
+$$
+
+则**IoU Loss**可以写成集合$M_c$的函数：
+
+$$
+\Delta_{J_c}: \mathbf{M}_c \in\{0,1\}^N \mapsto 1-\frac{\left|\mathbf{M}_c\right|}{\left|\left\{\boldsymbol{y}^*=c\right\} \cup \mathbf{M}_c\right|}
+$$
+
+定义类别$c$的像素误差向量$m(c) \in [0,1]^N$：
+
+$$
+m_i(c) = \begin{cases} 1-s_i^c, & \text{if }c=\boldsymbol{y}^*_i \\ s_i^c, & \text{otherwise} \end{cases}
+$$
+
+则$\Delta_{J_c}(\mathbf{M}_c)$的**Lovász**延拓$\overline{\Delta_{J_c}}(m(c))$根据定义可表示为：
+
+$$
+\overline{\Delta_{J_c}}: m \in R^N \mapsto \sum_{i=1}^N m_{\pi(i)} g_i(m)
+$$
+
+其中$$g_i(m)=\Delta_{J_c}(\{\pi_1,...,\pi_i\})-\Delta_{J_c}(\{\pi_1,...,\pi_{i-1}\})$$，$\pi$是$m$中元素的一个按递减顺序排列：$m_{\pi_1} \geq m_{\pi_2} \geq \cdots \geq m_{\pi_N}$。
+
+```python
+from einops import rearrange
+
+def lovasz_grad(gt_sorted):
+    """
+    Computes gradient of the Lovasz extension w.r.t sorted errors
+    """
+    n = len(gt_sorted)
+    gts = gt_sorted.sum()
+    intersection = gts - gt_sorted.float().cumsum(0)
+    union = gts + (1 - gt_sorted).float().cumsum(0)
+    jaccard = 1. - intersection / union
+    if n > 1:  # cover 1-pixel case
+        jaccard[1:n] = jaccard[1:n] - jaccard[0:-1]
+    return jaccard
+
+class LovaszLoss(nn.Module):
+    def __init__(self):
+        super(LovaszLoss, self).__init__()
+
+    def lovasz_softmax_flat(self, inputs, targets):
+        num_classes = inputs.size(1)
+        losses = []
+        for c in range(num_classes):
+            target_c = (targets == c).float()
+            input_c = inputs[:, c]
+            loss_c = (target_c - input_c).abs()
+            loss_c_sorted, loss_index = torch.sort(loss_c, 0, descending=True)
+            target_c_sorted = target_c[loss_index]
+            losses.append(torch.dot(loss_c_sorted, lovasz_grad(target_c_sorted)))
+        losses = torch.stack(losses)
+        return losses.mean()
+
+    def forward(self, inputs, targets):
+        # inputs.shape = (batch size, class_num, h, w)
+        # targets.shape = (batch size, h, w)
+        inputs = rearrange(inputs, 'b c h w -> (b h w) c')
+        targets = targets.view(-1)
+        losses = self.lovasz_softmax_flat(inputs, targets)
+        return losses
+```
+
+
 ### ⚪ [<font color=Blue>Dice Loss</font>](https://0809zheng.github.io/2021/06/05/vnet.html)
 
-**Dice Loss**直接优化**Dice Coefficient**。由于预测热图和真实标签都可以表示为$[0,1]$矩阵，因此集合运算可以直接通过对应元素计算：
+**Dice Loss**与**IoU loss**类似，直接优化**Dice Coefficient**。由于预测热图和真实标签都可以表示为$[0,1]$矩阵，因此集合运算可以直接通过对应元素计算：
 
 $$
 L_{\text {Dice }}=1-\frac{2|A ∩ B |}{|A|+| B |}=1-\frac{2 \sum_{c=1}^C \sum_{i=1}^N g_i^c s_i^c}{\sum_{c=1}^C \sum_{i=1}^N g_i^c+\sum_{c=1}^C \sum_{i=1}^N s_i^c}
@@ -849,46 +1002,104 @@ class PenaltyLoss(nn.Module):
         return divided.mean()
 ```
 
-### ⚪ [IoU Loss](https://link.springer.com/chapter/10.1007/978-3-319-50835-1_22)
 
-**IoU Loss**与**Dice Loss**类似，直接优化**IoU**指标。
+## (3) 基于边界的损失 Boundary-based Loss
 
-$$
-L_{I O U}=1- \frac{|A ∩ B |}{|A|+| B |-|A ∩ B |}=1-\frac{\sum_{c=1}^c \sum_{i=1}^N g_i^c s_i^c}{\sum_{c=1}^C \sum_{i=1}^N\left(g_i^c+s_i^c-g_i^c s_i^c\right)}
-$$
+基于边界的损失是指在目标的轮廓空间而不是区域空间上采用距离度量的形式定义的损失函数，衡量真实标签和预测分割中目标边界之间的距离。
+
+有两种不同的框架来计算两个边界之间的距离。一种是**微分**框架，它通过计算每个点沿边界曲线法线上的速度来评估每个点的运动情况。另一种是**积分**框架，它通过计算两个边界的不匹配区域的积分来近似距离。
+
+在训练神经网络时，边界损失通常应该与基于区域的损失相结合，以减少训练的不稳定性。
+
+### ⚪ [<font color=Blue>Boundary Loss</font>](https://0809zheng.github.io/2021/03/25/boundary.html)
+
+在**Boundary Loss**中，每个点$q$的**softmax**输出$s_{\theta}(q)$通过$ϕ_G$进行加权。$ϕ_G:Ω→R$是真实标签边界$∂G$的水平集表示：如果$q∈G$则$ϕ_G(q)=−D_G(q)$否则$ϕ_G(q)=D_G(q)$。$D_G:Ω→R^+$是一个相对于边界$∂G$的[距离变换图](https://0809zheng.github.io/2023/03/22/distancetransfrom.html)。
+
+$$ \mathcal{L}_B(\theta) = \int_{\Omega} \phi_G(q) s_{\theta}(q) d q $$
 
 ```python
 from einops import rearrange, einsum
+from scipy.ndimage import distance_transform_edt
 
-class IoULoss(nn.Module):
-    def __init__(self, smooth=1e-5):
-        super(IoULoss, self).__init__()
-        self.smooth = smooth
+class BDLoss(nn.Module):
+    def __init__(self):
+        super(BDLoss, self).__init__()
+
+    @torch.no_grad()
+    def one_hot2dist(self, seg):
+        res = np.zeros_like(seg)
+        for c in range(seg.shape[1]):
+            posmask = seg[:,c,...]
+            if posmask.any():
+                negmask = 1.-posmask
+                neg_map = distance_transform_edt(negmask)
+                pos_map = distance_transform_edt(posmask)
+                res[:,c,...] = neg_map * negmask - (pos_map - 1) * posmask
+        return res
 
     def forward(self, result, gt):
-        result = rearrange(result, 'b c h w -> b c (h w)')
         result = torch.softmax(result, dim=1)
-        gt = rearrange(gt, 'b h w -> b 1 (h w)')
+        gt = rearrange(gt, 'b h w -> b 1 h w')
 
         y_onehot = torch.zeros_like(result)
         y_onehot = y_onehot.scatter_(1, gt.data, 1)
 
-        intersection = einsum(result, y_onehot, "b c n, b c n -> b c")
-        union = einsum(result, "b c n -> b c") + einsum(y_onehot, "b c n -> b c") - einsum(result, y_onehot, "b c n, b c n -> b c")
-        divided = 1 - (einsum(intersection, "b c -> b") + self.smooth) / (einsum(union, "b c -> b") + self.smooth)
-        return divided.mean()
+        bound = torch.from_numpy(self.one_hot2dist(y_onehot.cpu().numpy())).float()
+        # only compute the loss of foreground
+        pc = result[:, 1:, ...]
+        dc = bound[:, 1:, ...]
+        multipled = pc * dc
+        return multipled.mean()
 ```
 
-## (3) 基于边界的损失 Boundary-based Loss
+### ⚪ [Hausdorff Distance Loss](https://arxiv.org/abs/1904.10030)
 
-基于边界的损失是指在轮廓空间而不是区域空间上采用距离度量的形式。有两种不同的框架来计算两个边界之间的距离。一种是**微分**框架，它通过计算每个点沿边界曲线法线上的速度来评估每个点的运动情况。另一种是**积分**框架，它通过计算两个边界的不匹配区域的积分来近似距离。
+豪斯多夫距离损失通过[距离变换图](https://0809zheng.github.io/2023/03/22/distancetransfrom.html)来近似并优化真实标签和预测分割之间的[Hausdorff距离](https://0809zheng.github.io/2021/03/03/distance.html#-%E8%B1%AA%E6%96%AF%E5%A4%9A%E5%A4%AB%E8%B7%9D%E7%A6%BB-hausdorff-distance)：
 
-在训练神经网络时，边界损失通常应该与基于区域的损失相结合，以减少训练的不稳定性。
+$$
+L_{H D}=\frac{1}{N} \sum_{c=1}^c \sum_{i=1}^N\left[\left(s_i^c-g_i^c\right)^2 \circ\left(d_{G_i^c}^{\alpha}+d_{S_i^c}^{\alpha}\right)\right]
+$$
 
+其中$d_G,d_S$分别是真实标签和预测分割的距离变换图，计算每个像素与目标边界之间的最短距离。
 
+```python
+from einops import rearrange
+from scipy.ndimage import distance_transform_edt
 
+class HausdorffDTLoss(nn.Module):
+    """Binary Hausdorff loss based on distance transform"""
+    def __init__(self, alpha=2.0):
+        super(HausdorffDTLoss, self).__init__()
+        self.alpha = alpha
 
+    @torch.no_grad()
+    def one_hot2dist(self, seg):
+        res = np.zeros_like(seg)
+        for c in range(seg.shape[1]):
+            posmask = seg[:,c,...]
+            if posmask.any():
+                negmask = 1.-posmask
+                pos_edt = distance_transform_edt(posmask)
+                neg_edt = distance_transform_edt(negmask)      
+                res[:,c,...] = pos_edt + neg_edt
+        return res
 
+    def forward(self, result, gt):
+        result = torch.softmax(result, dim=1)
+        gt = rearrange(gt, 'b h w -> b 1 h w')
+
+        y_onehot = torch.zeros_like(result)
+        y_onehot = y_onehot.scatter_(1, gt.data, 1)
+
+        pred_dt = torch.from_numpy(self.one_hot2dist(result.cpu().numpy())).float()
+        target_dt = torch.from_numpy(self.one_hot2dist(y_onehot.cpu().numpy())).float()
+
+        pred_error = (result - y_onehot) ** 2
+        distance = pred_dt ** self.alpha + target_dt ** self.alpha
+
+        dt_field = pred_error * distance
+        return dt_field.mean()
+```
 
 
 # 4. 常用的图像分割数据集
