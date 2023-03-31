@@ -1,15 +1,15 @@
 ---
 layout: post
-title: 'Denoising Diffusion Probabilistic Models'
-date: 2022-06-02
+title: 'Improved Denoising Diffusion Probabilistic Models'
+date: 2022-06-03
 author: 郑之杰
-cover: 'https://pic.imgdb.cn/item/6423e3a6a682492fcc45fbe0.jpg'
+cover: 'https://pic.imgdb.cn/item/642692a9a682492fccbfb03b.jpg'
 tags: 论文阅读
 ---
 
-> DDPM：去噪扩散概率模型.
+> 改进的去噪扩散概率模型.
 
-- paper：[Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
+- paper：[Improved Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2102.09672)
 
 # 1. 扩散模型
 
@@ -165,50 +165,40 @@ L_t & =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{1}{2\left\|\b
 \end{aligned}
 $$
 
-# 2. 一些化简
+# 2. 一些改进
 
-## （1）参数化 $L_0$
+## （1）参数化 $\beta_{t}$
 
-$$
-\begin{aligned}
-L_0 & =-\log p_\theta\left(\mathbf{x}_0 \mid \mathbf{x}_1\right)
-\end{aligned}
-$$
-
-使用一个离散解码器单独参数化$L_0$：
+本文采用基于余弦函数的方差策略。作者指出，策略函数的选择比较灵活，只要在$t=0,t=T$附近具有平缓的改变，而在训练中部有近似线性的变化即可。前向方差$\beta_1,...,\beta_T$设置如下：
 
 $$
-\begin{aligned}
-p_\theta\left(\mathbf{x}_{0} \mid \mathbf{x}_1\right)&=\mathcal{N}\left(\mathbf{x}_{0} ; \boldsymbol{\mu}_\theta\left(\mathbf{x}_1, 1\right), \boldsymbol{\Sigma}_\theta\left(\mathbf{x}_1, 1\right)\right)
-\end{aligned}
+\beta_t=\operatorname{clip}\left(1-\frac{\bar{\alpha}_t}{\bar{\alpha}_{t-1}}, 0.999\right) \quad \bar{\alpha}_t=\frac{f(t)}{f(0)} \quad \text { where } f(t)=\cos \left(\frac{t / T+s}{1+s} \cdot \frac{\pi}{2}\right)^2
 $$
 
-## （2）参数化 $\beta_{t}$
-
-前向方差$\beta_1,...,\beta_T$被设置为一系列线性增加的常数，其中$\beta_1=10^{-4},\beta_T=0.02$。相对于归一化为$[-1,1]$的图像像素值，$\beta_t$通常是比较小的。扩散模型在实验中显示了高质量的生成样本，但仍然不能像其他生成模型那样取得较大的模型对数似然。
+![](https://pic.imgdb.cn/item/64269425a682492fccc23bdb.jpg)
 
 ```python
-def linear_beta_schedule(timesteps=1000):
-    scale = 1000 / timesteps
-    beta_start = scale * 0.0001
-    beta_end = scale * 0.02
-    return torch.linspace(beta_start, beta_end, timesteps, dtype = torch.float64)
+def cosine_beta_schedule(timesteps, s = 0.008):
+    steps = timesteps + 1
+    t = torch.linspace(0, timesteps, steps, dtype = torch.float64) / timesteps
+    alphas_cumprod = torch.cos((t + s) / (1 + s) * math.pi * 0.5) ** 2
+    alphas_cumprod = alphas_cumprod / alphas_cumprod[0]
+    betas = 1 - (alphas_cumprod[1:] / alphas_cumprod[:-1])
+    return torch.clip(betas, 0, 0.999)
 ```
 
-## （3）参数化 $\Sigma_{\theta}$
+## （2）参数化 $\Sigma_{\theta}$
 
-可以设置$\Sigma_{\theta}(x_t,t)=\sigma_t^2\mathbf{I}$，其中$\sigma_t=\beta_t$或者$$\sigma_t=\tilde{\beta}_t=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t$$。如果把$$\Sigma_{\theta}$$设置为可学习参数，则容易导致训练的不稳定和较差的采样质量。
+本文把$\sigma_t$设置为$\beta_t$和$$\tilde{\beta}_t=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t$$之间的插值结果，通过预测一个混合向量$v$进行插值：
 
-```python
-betas = linear_beta_schedule(timesteps)
+$$
+\Sigma_{\theta}(x_t,t)=\exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t)
+$$
 
-alphas = 1. - betas
-alphas_cumprod = torch.cumprod(alphas, dim=0)
-alphas_cumprod_prev = F.pad(alphas_cumprod[:-1], (1, 0), value = 1.)
-posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod)
-```
 
-## （4）简化 $L_t$
+## （3）简化 $L_t$
+
+原始的损失函数写作：
 
 $$
 \begin{aligned}
@@ -216,174 +206,20 @@ L_t & =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{\left(1-\alph
 \end{aligned}
 $$
 
-实验表明，简化损失函数中的加权项有助于提交表现：
+在**DDPM**模型中，作者使用了简化损失函数：
 
 $$
 \begin{aligned}
-L_t^{\text {simple }} & =\mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right\|^2\right] \\
-& =\mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right]
+L_t^{\text {simple }} =\mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right]
 \end{aligned}
 $$
 
-最终目标函数为上式与一个常数之和：
+本文作者设置了一种混合损失函数：
 
 $$
 \begin{aligned}
-L_{\text {simple }} & =L_t^{\text {simple }} + C
+L_{\text {hybrid }} & =L_t^{\text {simple }} + \lambda L_t,\quad \lambda=0.001
 \end{aligned}
 $$
 
-# 3. 实现DDPM
-
-**DDPM**的训练和采样过程如下：
-
-![](https://pic.imgdb.cn/item/6423e3dca682492fcc464096.jpg)
-
-**DDPM**的实现如下。
-
-```python
-# 按照索引t从a中取数据
-def extract(a, t, x_shape):
-    b, *_ = t.shape
-    out = a.gather(dim=-1, index=t)
-    return out.reshape(b, *((1,) * (len(x_shape) - 1)))
-
-class GaussianDiffusion(nn.Module):
-    def __init__(
-        self,
-        model,
-        *,
-        image_size,
-        timesteps = 1000
-    ):
-        super().__init__()
-        self.model = model # 用于拟合\epsilon(x_t,t)的神经网络
-        self.channels = self.model.channels
-        self.image_size = image_size
-
-        betas = linear_beta_schedule(timesteps) # \beta_t
-        alphas = 1. - betas # \alpha_t
-        alphas_cumprod = torch.cumprod(alphas, dim=0) # \bar{\alpha}_t
-        alphas_cumprod_prev = F.pad(alphas_cumprod[:-1], (1, 0), value = 1.) # \bar{\alpha}_{t-1}
-
-        self.num_timesteps = int(timesteps)
-
-        # helper function to register buffer from float64 to float32
-        register_buffer = lambda name, val: self.register_buffer(name, val.to(torch.float32))
-        register_buffer('betas', betas)
-  
-        # calculations for diffusion q(x_t | x_{t-1}) and others
-        register_buffer('sqrt_alphas_cumprod', torch.sqrt(alphas_cumprod)) # \sqrt{\bar{\alpha}_t}
-        register_buffer('sqrt_one_minus_alphas_cumprod', torch.sqrt(1. - alphas_cumprod)) # \sqrt{1-\bar{\alpha}_t}
-        register_buffer('log_one_minus_alphas_cumprod', torch.log(1. - alphas_cumprod)) # \log{1-\bar{\alpha}_t}
-        register_buffer('sqrt_recip_alphas_cumprod', torch.sqrt(1. / alphas_cumprod)) # \sqrt{1/\bar{\alpha}_t}
-        register_buffer('sqrt_recipm1_alphas_cumprod', torch.sqrt(1. / alphas_cumprod - 1)) # \sqrt{1/(\bar{\alpha}_t-1)}
-
-        # calculations for posterior q(x_{t-1} | x_t, x_0)
-        posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod) # \sigma_t
-        register_buffer('posterior_variance', posterior_variance)
-        # log calculation clipped because the posterior variance is 0 at the beginning of the diffusion chain
-        register_buffer('posterior_log_variance_clipped', torch.log(posterior_variance.clamp(min =1e-20)))
-        register_buffer('posterior_mean_coef1', betas * torch.sqrt(alphas_cumprod_prev) / (1. - alphas_cumprod))
-        register_buffer('posterior_mean_coef2', (1. - alphas_cumprod_prev) * torch.sqrt(alphas) / (1. - alphas_cumprod))
-
-    """
-    Training
-    """
-
-    # 计算x_t=\sqrt{\bat{\alpha}_t}x_0+\sqrt{1-\bat{\alpha}_t}\epsilon
-    def q_sample(self, x_start, t, noise=None):
-        return (
-            extract(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start +
-            extract(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise
-        )
-    
-    # 计算损失函数L_t=||\epsilon-\epsilon(x_t, t)||_1
-    def p_losses(self, x_start, t, noise = None):
-        b, c, h, w = x_start.shape
-        noise = torch.randn_like(x_start)
-        target = noise
-
-        # 计算 x_t
-        x = self.q_sample(x_start = x_start, t = t, noise = noise)
-
-        # 计算 \epsilon(x_t, t)
-        model_out = self.model(x, t)
-
-        loss = F.l1_loss(model_out, target, reduction = 'none')
-        loss = reduce(loss, 'b ... -> b (...)', 'mean')
-        return loss.mean()
-
-    # 训练过程
-    def forward(self, img, *args, **kwargs):
-        b, c, h, w, device = *img.shape, img.device
-        t = torch.randint(0, self.num_timesteps, (b,), device=device).long()
-
-        img = img * 2 - 1 # data [0, 1] -> [-1, 1]
-        return self.p_losses(img, t, *args, **kwargs)
-
-    """
-    Sampling
-    """
-
-    # 计算 x_0 = \sqrt{1/\bat{\alpha}_t}x_t-\sqrt{1/(1-\bat{\alpha}_t)}\epsilon_t
-    def predict_start_from_noise(self, x_t, t, noise):
-        return (
-            extract(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t -
-            extract(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape) * noise
-        )
-
-    # 计算 \mu_t(x_t, x_0) = coef_1*x_0 + coef_2*x_t
-    def q_posterior(self, x_start, x_t, t):
-        posterior_mean = (
-            extract(self.posterior_mean_coef1, t, x_t.shape) * x_start +
-            extract(self.posterior_mean_coef2, t, x_t.shape) * x_t
-        )
-        posterior_variance = extract(self.posterior_variance, t, x_t.shape)
-        posterior_log_variance_clipped = extract(self.posterior_log_variance_clipped, t, x_t.shape)
-        return posterior_mean, posterior_variance, posterior_log_variance_clipped
-
-    # 计算\mu_{\theta}(x_t,t),\sigma_{\theta}(x_t,t)
-    def p_mean_variance(self, x, t, clip_denoised = True):
-        pred_noise = self.model(x, t) # 计算 \epsilon(x_t, t)
-        x_start = self.predict_start_from_noise(x, t, pred_noise) # x_0
-        if clip_denoised:
-            x_start.clamp_(-1., 1.)
-        model_mean, posterior_variance, posterior_log_variance = self.q_posterior(x_start = x_start, x_t = x, t = t)
-        return model_mean, posterior_variance, posterior_log_variance
-
-    # 计算x_{t-1}=\mu_{\theta}(x_t,t)+\sigma_{\theta}(x_t,t)z
-    @torch.no_grad()
-    def p_sample(self, x, t: int):
-        b, *_, device = *x.shape, x.device
-        batched_times = torch.full((b,), t, device = x.device, dtype = torch.long)
-        model_mean, _, model_log_variance = self.p_mean_variance(x = x, t = batched_times)
-        noise = torch.randn_like(x) if t > 0 else 0. # no noise if t == 0
-        pred_img = model_mean + (0.5 * model_log_variance).exp() * noise
-        return pred_img
-
-    # 反向扩散过程：x_T -> ... -> x_t -> ... -> x_0
-    @torch.no_grad()
-    def p_sample_loop(self, shape, return_all_timesteps = False):
-        batch, device = shape[0], self.betas.device
-
-        img = torch.randn(shape, device = device) # x_T
-        imgs = [img]
-        x_start = None
-
-        for t in tqdm(reversed(range(0, self.num_timesteps)), desc = 'sampling loop time step', total = self.num_timesteps):
-            img = self.p_sample(img, t) # x_t -> x_{t-1}
-            imgs.append(img)
-
-        ret = img if not return_all_timesteps else torch.stack(imgs, dim = 1)
-        ret = (ret + 1) * 0.5
-        return ret
-
-    # 采样过程
-    @torch.no_grad()
-    def sample(self, batch_size = 16, img_channel = 3, return_all_timesteps = False):
-        image_size, channels = self.image_size, img_channel
-        return self.p_sample_loop((batch_size, channels, image_size, image_size), return_all_timesteps = return_all_timesteps)
-```
-
-在**DDPM**中，$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$是通过一个**UNet**网络进行建模的。其中$\mathbf{x}_t$会作为网络的图像输入，$t$经过正弦位置编码和**MLP**处理后为特征图生成**scale**和**shift**参数。**UNet**网络中的模块包括残差卷积块、线性自注意力层和注意力层；完整的实现代码可参考[denoising_diffusion_pytorch](https://github.com/lucidrains/denoising-diffusion-pytorch/blob/main/denoising_diffusion_pytorch/denoising_diffusion_pytorch.py)。
+在训练过程中，停止了损失$L_t$中对于$\mu_{\theta}$的梯度计算，即损失$L_t$只会引导$\Sigma_{\theta}$的学习。实践中$L_t$时很难优化的，因此通过重要性采样构造了$L_t$的时序平滑版本。
