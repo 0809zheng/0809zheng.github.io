@@ -17,7 +17,7 @@ tags: 论文阅读
 
 **TransUnet**只将编码器其中一部分换成**Transformer**也是有它自己的考虑。虽然**Transformer**能够获得到全局的感受野，但是在细节特征的处理上存在缺陷。实验表明**Transformer**对于局部的细节分割是有缺陷的，而**CNN**反而是得益于其局部的感受野，能够较为精确恢复细节特征。因此**TransUnet**模型只替换了最后一层，而这一层则更多关注全局信息，这是**Transformer**擅长的，至于浅层的细节识别任务则由**CNN**来完成。
 
-![](https://pic.imgdb.cn/item/64141254a682492fcc281b9b.jpg)
+![](https://pic.imgdb.cn/item/6422a162a682492fcc79d22d.jpg)
 
 **Encoder**部分主要由**ResNet50**和**Vit**组成，在**ResNet50**部分，取消掉**stem_block**结构中的**4**倍下采样，保留前三层模型结构，这三层都选择两倍下采样，其中最后一层的输出作为**Vit**的输入。最后一层则是**Vit**结构，也就是**12**层**Transformer Layer**；作者把该**encoder**叫做**R50-ViT**。
 
