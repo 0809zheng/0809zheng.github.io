@@ -189,11 +189,19 @@ def cosine_beta_schedule(timesteps, s = 0.008):
 
 ## （2）参数化 $\Sigma_{\theta}$
 
-本文把$\sigma_t$设置为$\beta_t$和$$\tilde{\beta}_t=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t$$之间的插值结果，通过预测一个混合向量$v$进行插值：
+本文把$\sigma_t^2$设置为$\beta_t$和$$\tilde{\beta}_t=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t$$之间的插值结果，通过预测一个混合向量$v$进行插值：
 
 $$
 \Sigma_{\theta}(x_t,t)=\exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t)
 $$
+
+```python
+posterior_variance1 = betas # \sigma_t
+posterior_variance2 = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod) # \tilde{\sigma}_t
+posterior_variance = self.v * posterior_variance1 + (1-self.v) * posterior_variance2
+# log calculation clipped because the posterior variance is 0 at the beginning of the diffusion chain
+self.posterior_log_variance_clipped = torch.log(posterior_variance.clamp(min =1e-20))
+```
 
 
 ## （3）简化 $L_t$
@@ -223,3 +231,7 @@ L_{\text {hybrid }} & =L_t^{\text {simple }} + \lambda L_t,\quad \lambda=0.001
 $$
 
 在训练过程中，停止了损失$L_t$中对于$\mu_{\theta}$的梯度计算，即损失$L_t$只会引导$\Sigma_{\theta}$的学习。实践中$L_t$时很难优化的，因此通过重要性采样构造了$L_t$的时序平滑版本。
+
+## （4）加速采样
+
+本文提出了交错采样策略(**strided sampling schedule**)来加速采样过程。该策略每$\lceil T/S \rceil$步进行一次采样更新，从而把总采样次数从$T$次减小为$S$次。
