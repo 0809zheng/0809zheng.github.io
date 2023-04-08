@@ -52,7 +52,7 @@ $$
 & =\cdots \\
 & =\sqrt{\prod_{i=1}^t \alpha_i} \mathbf{x}_0+\sqrt{1-\prod_{i=1}^t \alpha_i} \boldsymbol{\epsilon} \\
 & =\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon} \\
-q\left(\mathbf{x}_t \mid \mathbf{x}_0\right) & =\mathcal{N}\left(\mathbf{x}_t ; \sqrt{\bar{\alpha}_t} \mathbf{x}_0,\left(1-\bar{\alpha}_t\right) \mathbf{I}\right) &
+q\left(\mathbf{x}_t \mid \mathbf{x}_0\right) & =\mathcal{N}\left(\mathbf{x}_t ; \sqrt{\bar{\alpha}_t} \mathbf{x}_0,\left(1-\bar{\alpha}_t\right) \mathbf{I}\right) 
 \end{array}
 $$
 
@@ -188,9 +188,7 @@ L_t & =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{1}{2\left\|\b
 \end{aligned}
 $$
 
-通过神经网络建模$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$和$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)$，并最小化上述函数，即可完成扩散模型的训练过程。在实践中，$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)$$通常直接设置为可学习参数$\sigma_t^2$或直接指定为与$q$相同：$$\sigma_t^2=\tilde{\beta}_t=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t$$。而$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$包含两个输入$$\mathbf{x}_t, t$$，即原则上对于每个不同的$t$都应构造一个不同的模型；实践中共享所有模型的参数，把$t$作为条件传入；具体地，把$t$通过位置编码后输入到残差模块中。
-
-
+通过神经网络建模$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$和$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)$$，并最小化上述函数，即可完成扩散模型的训练过程。在实践中，$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)=\sigma_t^2I$$通常直接指定为与$q$相同：$$\sigma_t^2=\tilde{\beta}_t=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t$$。而$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$包含两个输入$$\mathbf{x}_t, t$$，即原则上对于每个不同的$t$都应构造一个不同的模型；实践中共享所有模型的参数，把$t$作为条件传入；具体地，把$t$通过位置编码后输入到残差模块中。
 
 
 ## （4）采样过程
@@ -215,10 +213,10 @@ $$
 # 2. 扩散模型的各种变体
 
 | 模型 | 表达式 |
-| :---:  |  :---:  |
-| [<font color=Blue>DDPM</font>](https://0809zheng.github.io/2022/06/02/ddpm.html) | $$ \begin{aligned} \text{目标函数：}& \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \\ \text{采样过程：}& \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)+ \sigma_t\mathbf{z} \end{aligned} $$ |
-| [<font color=Blue>Improved DDPM</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html) | $$ \begin{aligned} \text{目标函数：}& \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \\ \text{采样过程：}& \text{同DDPM} \end{aligned} $$ |
-| [<font color=Blue>DDIM</font>](https://0809zheng.github.io/2022/06/04/ddim.html) | $$ \begin{aligned} \text{目标函数：}& \text{同DDPM} \\ \text{采样过程：}& \mathbf{x}_{t-1} = \sqrt{\bar{\alpha}_{t-1}}\left(\frac{\mathbf{x}_{t}-\sqrt{1-\bar{\alpha}_t}\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)}{\sqrt{\bar{\alpha}_t}}\right)+ \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)+ \sigma_t\mathbf{z} \end{aligned} $$ |
+| :---:  |  :---  |
+| [<font color=Blue>DDPM</font>](https://0809zheng.github.io/2022/06/02/ddpm.html) | 目标函数：$$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right]\end{aligned} $$ <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)+ \sigma_t\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \sigma_t^2=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t $$ |
+| [<font color=Blue>Improved DDPM</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html) | 目标函数：$$ \begin{aligned} & \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \\  & + \lambda \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t} \left[\frac{\left(1-\alpha_t\right)^2}{2 \alpha_t\left(1-\bar{\alpha}_t\right)\left\|\boldsymbol{\Sigma}_t\right\|_2^2}\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_{sg(\theta)}\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \end{aligned} $$ <br> 采样过程： 同**DDPM** <br> 部分参数：$$ \boldsymbol{\Sigma}_t=\exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t) $$ |
+| [<font color=Blue>DDIM</font>](https://0809zheng.github.io/2022/06/04/ddim.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)+ \sigma_t\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \sigma_t^2=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t $$ |
 
 $$ \begin{aligned} \text{目标函数：}& \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \\  & + \lambda \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t} \left[\frac{\left(1-\alpha_t\right)^2}{2 \alpha_t\left(1-\bar{\alpha}_t\right)\left\|\boldsymbol{\Sigma}_\theta\right\|_2^2}\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_{sg(\theta)}\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \\ \text{采样过程：}& \mathbf{x}_{t-1} = \sqrt{\bar{\alpha}_{t-1}}\left(\frac{\mathbf{x}_{t}-\sqrt{1-\bar{\alpha}_t}\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)}{\sqrt{\bar{\alpha}_t}}\right)+ \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)+ \sigma_t\mathbf{z} \end{aligned} $$
 

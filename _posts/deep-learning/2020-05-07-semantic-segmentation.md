@@ -31,10 +31,10 @@ tags: 深度学习
 ![](https://pic.imgdb.cn/item/63f2e1aef144a0100707c297.jpg)
 
 图像分割模型通常采用**编码器-解码器(encoder-decoder)**结构。编码器从预处理的图像数据中提取特征，解码器把特征解码为分割热图。图像分割模型的发展趋势可以大致总结为：
-- 全卷积网络：**FCN**, **SegNet**, **RefineNet**, **U-Net**, **V-Net**, **M-Net**, **W-Net**, **Y-Net**, **UNet++**, **Attention U-Net**, **GRUU-Net**, **BiSeNet V1,2**, **DFANet**
-- 上下文模块：**DeepLab v1,2,3,3+**, **PSPNet**, **FPN**, **UPerNet**, **EncNet**, **PSANet**, **APCNet**, **DMNet**, **PointRend**, **K-Net**
-- 基于**Transformer**：
-- 分割技巧：
+- 全卷积网络：**FCN**, **SegNet**, **RefineNet**, **U-Net**, **V-Net**, **M-Net**, **W-Net**, **Y-Net**, **UNet++**, **Attention U-Net**, **GRUU-Net**, **BiSeNet V1,2**, **DFANet**, **SegNeXt**
+- 上下文模块：**DeepLab v1,2,3,3+**, **PSPNet**, **FPN**, **UPerNet**, **EncNet**, **PSANet**, **APCNet**, **DMNet**, **OCRNet**, **PointRend**, **K-Net**
+- 基于**Transformer**：**SETR**, **TransUNet**, **SegFormer**, **Segmenter**, **MaskFormer**, **SAM**
+- 通用技巧：**Deep Supervision**, **Self-Correction**
 
 ## (1) 基于全卷积网络的图像分割模型
 
@@ -126,7 +126,11 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63fc01e5f144a0100732efc8.jpg)
 
+### ⚪ [<font color=Blue>SegNeXt</font>](https://0809zheng.github.io/2021/03/27/segnext.html)
 
+**SegNeXt**的编码器部分采用**ViT**的结构，自注意力模块通过一种多尺度卷积注意力模块**MSCA**实现。解码器部分采用轻量型**Hamberger**模块对后三个阶段的特性进行聚合。
+
+![](https://pic.imgdb.cn/item/642ff205a682492fccb07174.jpg)
 
 
 
@@ -214,6 +218,12 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/63fd5395f144a0100738b4cd.jpg)
 
+### ⚪ [<font color=Blue>OCRNet</font>](https://0809zheng.github.io/2021/03/26/ocrnet.html)
+
+**OCRNet**根据预测结果和输出像素特征计算类别特征，然后计算像素特征与类别特征的相似度，用于增强特征的上下文表示。
+
+![](https://pic.imgdb.cn/item/642fd5bfa682492fcc5d21c7.jpg)
+
 
 ### ⚪ [<font color=Blue>PointRend</font>](https://0809zheng.github.io/2021/01/24/pointrender.html)
 
@@ -242,7 +252,7 @@ tags: 深度学习
 
 **TransUNet**的**Encoder**部分主要由**ResNet50**和**ViT**组成，其中前三个模块为两倍下采样的**ResNet Block**，最后一个模块为**12**层**Transformer Layer**。
 
-![](https://pic.imgdb.cn/item/64141254a682492fcc281b9b.jpg)
+![](https://pic.imgdb.cn/item/6422a162a682492fcc79d22d.jpg)
 
 
 ### ⚪ [<font color=Blue>SegFormer</font>](https://0809zheng.github.io/2023/01/15/segformer.html)
@@ -258,8 +268,48 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/6416d47da682492fccc0d56d.jpg)
 
+### ⚪ [<font color=Blue>MaskFormer</font>](https://0809zheng.github.io/2023/01/19/maskformer.html)
 
-### ⚪ 参考文献
+**MaskFormer**把分割问题看作掩码级的分类问题。对输入图像生成$N$个二值掩码，并为每个掩码预测$K+1$个类别中的某个。
+
+![](https://pic.imgdb.cn/item/642e7af5a682492fccd18af3.jpg)
+
+
+### ⚪ [<font color=Blue>Segment Anything</font>](https://0809zheng.github.io/2023/04/06/sam.html)
+
+**SAM**是一个图像分割的基础模型，模型的设计和训练是通过提示工程实现的。**SAM**采用一种简单的设计：一个图像编码器生成图像嵌入，一个提示编码器生成提示嵌入，然后将这两种嵌入组合后通过一个轻量级掩码解码器预测分割掩码。
+
+![](https://pic.imgdb.cn/item/642e6ea6a682492fccbedb0a.jpg)
+
+## (4) 分割模型中的通用技巧
+
+### ⚪ Deep Supervision
+
+- **Reference**：[<font color=Blue>Deeply-Supervised Nets</font>](https://0809zheng.github.io/2021/08/26/deepsuper.html)、[<font color=Blue>Training Deeper Convolutional Networks with Deep Supervision</font>](https://0809zheng.github.io/2021/08/27/deepersuper.html)
+
+**深度监督（Deep Supervision）**是在深度神经网络的某些隐藏层后增加一个辅助的分类器作为一种网络分支来对主干网络进行监督的技巧，用来解决深度神经网络训练梯度消失和收敛速度过慢等问题。
+
+一个带有深度监督的八层卷积网络结构如下图所示。在**Conv4**之后添加了一个监督分类器作为分支。**Conv4**输出的特征图除了随着主网络进入**Conv5**之外，也作为输入进入分支分类器。
+
+![](https://pic.imgdb.cn/item/61274a2b44eaada7397f0256.jpg)
+
+### ⚪ Self-Correction
+
+- **Reference**：[<font color=Blue>Self-Correction for Human Parsing</font>](https://0809zheng.github.io/2022/03/11/schp.html)
+
+图像分割任务的标签可能存在噪声。**自校正（Self-Correction）**是一种净化分割标签噪声的方法。模型训练从具有噪声的标签出发，通过聚合当前模型和前一个最优模型的参数来推断更可靠的标签，并用这些更正的标签训练更鲁棒的模型。
+
+自校正包括模型聚合和标签聚合两个过程。对于模型聚合，记录当前轮数的训练权重$\hat{w}$与之前训练的最优权重$\hat{w}_{m-1}$，得到融合权重并更新历史最优权重：
+
+$$ \hat{w}_m = \frac{m}{m+1}\hat{w}_{m-1} + \frac{1}{m+1}\hat{w} $$
+
+标签的更新类似，通过融合当前预测结果$\hat{y}$和前一轮标签$\hat{y}_{m-1}$获得类别关系更明确的新标签：
+
+$$ \hat{y}_m = \frac{m}{m+1}\hat{y}_{m-1} + \frac{1}{m+1}\hat{y} $$
+
+![](https://pic.imgdb.cn/item/6231958a5baa1a80abe25d05.jpg)
+
+## ⭐ 参考文献
 - [<font color=Blue>Fully Convolutional Networks for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/08/fcn.html)：(arXiv1411)FCN: 语义分割的全卷积网络。
 - [<font color=Blue>Semantic Image Segmentation with Deep Convolutional Nets and Fully Connected CRFs</font>](https://0809zheng.github.io/2021/02/14/deeplab.html)：(arXiv1412)DeepLab: 通过深度卷积网络和全连接条件随机场实现图像语义分割。
 - [<font color=Blue>U-Net: Convolutional Networks for Biomedical Image Segmentation</font>](https://0809zheng.github.io/2021/02/13/unet.html)：(arXiv1505)U-Net: 用于医学图像分割的卷积网络。
@@ -282,6 +332,7 @@ tags: 深度学习
 - [<font color=Blue>GRUU-Net: Integrated convolutional and gated recurrent neural network for cell segmentation</font>](https://0809zheng.github.io/2021/01/25/gruunet.html)：(Medical Image Analysis2018)GRUU-Net: 细胞分割的融合卷积门控循环神经网络。
 - [<font color=Blue>Panoptic Feature Pyramid Networks</font>](https://0809zheng.github.io/2021/01/28/fpn.html)：(arXiv1901)全景特征金字塔网络。
 - [<font color=Blue>DFANet: Deep Feature Aggregation for Real-Time Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/22/dfanet.html)：(arXiv1904)DFANet: 实时语义分割的深度特征聚合。
+- [<font color=Blue>Object-Contextual Representations for Semantic Segmentation</font>](https://0809zheng.github.io/2021/03/26/ocrnet.html)：(arXiv1909)OCRNet：语义分割中的目标上下文表示。
 - [<font color=Blue>PointRend: Image Segmentation as Rendering</font>](https://0809zheng.github.io/2021/01/24/pointrender.html)：(arXiv1912)PointRend: 把图像分割建模为渲染。
 - [<font color=Blue>Adaptive Pyramid Context Network for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/24/apcnet.html)：(CVPR2019)APCNet: 语义分割的自适应金字塔上下文网络。
 - [<font color=Blue>Dynamic Multi-Scale Filters for Semantic Segmentation</font>](https://0809zheng.github.io/2021/02/23/dmnet.html)：(ICCV2019)DMNet: 语义分割的动态多尺度滤波器。
@@ -291,6 +342,9 @@ tags: 深度学习
 - [<font color=Blue>SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers</font>](https://0809zheng.github.io/2023/01/15/segformer.html)：(arXiv2105)SegFormer：为语义分割设计的简单高效的Transformer模型。
 - [<font color=Blue>Segmenter: Transformer for Semantic Segmentation</font>](https://0809zheng.github.io/2023/01/17/segmenter.html)：(arXiv2105)Segmenter：为语义分割设计的视觉Transformer。
 - [<font color=Blue>K-Net: Towards Unified Image Segmentation</font>](https://0809zheng.github.io/2021/01/23/knet.html)：(arXiv2106)K-Net: 面向统一的图像分割。
+- [<font color=Blue>Per-Pixel Classification is Not All You Needfor Semantic Segmentation</font>](https://0809zheng.github.io/2023/01/19/maskformer.html)：(arXiv2107)MaskFormer：逐像素分类并不是语义分割所必需的。
+- [<font color=Blue>SegNeXt: Rethinking Convolutional Attention Design for Semantic Segmentation</font>](https://0809zheng.github.io/2021/03/27/segnext.html)：(arXiv2209)SegNeXt：重新思考语义分割中的卷积注意力设计。
+- [<font color=Blue>Segment Anything</font>](https://0809zheng.github.io/2023/04/06/sam.html)：(arXiv2304)SAM：分割任意模型。
 
 
 
@@ -515,6 +569,20 @@ def Dice(confusionMatrix):
     return Dice # 返回列表，其值为各个类别的Dice
 ```
 
+特别地，对于二值分割问题，**Dice**系数可以直接通过$$\{0,1\}$$预测矩阵和标签矩阵计算：
+
+```python
+def dice_coef(pred, target):
+    """
+    Dice =  2*sum(|A*B|)/(sum(A^2)+sum(B^2))
+    """
+    smooth = 1.
+    m1 = pred.view(-1).float()
+    m2 = target.view(-1).float()
+    intersection = (m1 * m2).sum().float()
+    dice = (2. * intersection + smooth) / (torch.sum(m1*m1) + torch.sum(m2*m2) + smooth)
+    return dice
+```
 
 # 3. 图像分割的损失函数
 
@@ -772,7 +840,7 @@ $$
 m_i(c) = \begin{cases} 1-s_i^c, & \text{if }c=\boldsymbol{y}^*_i \\ s_i^c, & \text{otherwise} \end{cases}
 $$
 
-则$\Delta_{J_c}(\mathbf{M}_c)$的**Lovász**延拓$\overline{\Delta_{J_c}}(m(c))$根据定义可表示为：
+则$$\Delta_{J_c}(\mathbf{M}_c)$$的**Lovász**延拓$$\overline{\Delta_{J_c}}(m(c))$$根据定义可表示为：
 
 $$
 \overline{\Delta_{J_c}}: m \in R^N \mapsto \sum_{i=1}^N m_{\pi(i)} g_i(m)
