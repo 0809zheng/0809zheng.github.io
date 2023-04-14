@@ -167,6 +167,8 @@ $$
 
 其中$L_T$是一个常数（$q$不包含可学习参数$\theta$, $\mathbf{x}_T$是高斯噪声），在训练时可以被省略；$L_0$可以通过一个离散解码器建模；而$L_t$计算了两个高斯分布的**KL**散度，可以得到[闭式解](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence#Multivariate_normal_distributions)。
 
+### ⚪ 建模$L_t$
+
 两个正态分布$$\mathcal{N}(\mu_1,\sigma_1^2),\mathcal{N}(\mu_2,\sigma_2^2)$$的**KL**散度计算为$\log \frac{\sigma_2}{\sigma_1}+\frac{\sigma_1^2+(\mu_1-\mu_2)^2}{2\sigma_2^2}-\frac{1}{2}$。根据之前的讨论，我们有：
 
 $$
@@ -176,24 +178,96 @@ q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t, \mathbf{x}_0\right) & =\mathcal{N}\le
 \end{aligned}
 $$
 
-不妨把$$\boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)$$表示为$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$的函数：
+通过神经网络建模$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$和$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)$$，并最小化两个分布的**KL**散度，即可完成扩散模型的训练过程。
+
+```python
+def normal_kl(mean1, logvar1, mean2, logvar2):
+    """
+    KL divergence between normal distributions parameterized by mean and log-variance.
+    """
+    return 0.5 * (-1.0 + logvar2 - logvar1 + torch.exp(logvar1 - logvar2) + ((mean1 - mean2) ** 2) * torch.exp(-logvar2))
+```
+
+在实践中，$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)=\sigma_t^2I$$通常直接人为指定，而不视为可训练参数，以减小训练难度。而$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$包含两个输入$$\mathbf{x}_t, t$$，即原则上对于每个不同的$t$都应构造一个不同的模型；实践中共享所有模型的参数，把$t$作为条件传入。
+
+不妨把$$\boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)$$进一步表示为$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$的函数：
 
 $$
 \boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right) = \frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)
 $$
 
-则损失$L_t$可以被表示为$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$和$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)$$的函数：
+则损失$L_t$可以被表示为$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$的函数：
 
 $$
 \begin{aligned}
-L_t & =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{1}{2\left\|\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)\right\|_2^2}\left\|\tilde{\boldsymbol{\mu}}_t\left(\mathbf{x}_t, \mathbf{x}_0\right)-\boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)\right\|^2\right] \\
-& =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{1}{2\left\|\boldsymbol{\Sigma}_\theta\right\|_2^2}\left\|\frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_t\right)-\frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)\right\|^2\right] \\
-& =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{\left(1-\alpha_t\right)^2}{2 \alpha_t\left(1-\bar{\alpha}_t\right)\left\|\boldsymbol{\Sigma}_\theta\right\|_2^2}\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right\|^2\right] \\
-& =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{\left(1-\alpha_t\right)^2}{2 \alpha_t\left(1-\bar{\alpha}_t\right)\left\|\boldsymbol{\Sigma}_\theta\right\|_2^2}\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right]
+L_t & =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{1}{2\sigma_t^2}\left\|\tilde{\boldsymbol{\mu}}_t\left(\mathbf{x}_t, \mathbf{x}_0\right)-\boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)\right\|^2\right] \\
+& =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{1}{2\sigma_t^2}\left\|\frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_t\right)-\frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)\right\|^2\right] \\
+& =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{\left(1-\alpha_t\right)^2}{2 \alpha_t\left(1-\bar{\alpha}_t\right)\sigma_t^2}\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right\|^2\right] \\
+& =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{\left(1-\alpha_t\right)^2}{2 \alpha_t\left(1-\bar{\alpha}_t\right)\sigma_t^2}\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right]
 \end{aligned}
 $$
 
-通过神经网络建模$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$和$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)$$，并最小化上述函数，即可完成扩散模型的训练过程。在实践中，$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)=\sigma_t^2I$$通常直接指定为与$q$相同：$$\sigma_t^2=\tilde{\beta}_t=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t$$。而$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$包含两个输入$$\mathbf{x}_t, t$$，即原则上对于每个不同的$t$都应构造一个不同的模型；实践中共享所有模型的参数，把$t$作为条件传入；具体地，把$t$通过位置编码后输入到残差模块中。
+因此在扩散模型中，神经网络学习的目标是在每一步前向扩散过程中加入输入样本的噪声，并尝试在反向扩散过程中去除该噪声；因此扩散模型也被称作**去噪(denoising**)扩散模型。
+
+```python
+simple_losses = F.l1_loss(pred_noise, noise, reduction = 'none')
+```
+
+### ⚪ 建模$L_0$
+
+损失项$L_0$表示为：
+
+$$
+\begin{aligned}
+L_0 & =-\log p_\theta\left(\mathbf{x}_0 \mid \mathbf{x}_1\right)
+\end{aligned}
+$$
+
+其中$$\mathbf{x}_0$$表示原始图像（每个像素的取值从$$\{0,1,...,255\}$$归一化到$[-1,1]$）。因此$$p_\theta\left(\mathbf{x}_0 \mid \mathbf{x}_1\right) = \mathcal{N}\left(\mathbf{x}_{0} ; \boldsymbol{\mu}_\theta\left(\mathbf{x}_1, 1\right), \sigma_1^2 \mathbf{I}\right)$$实现了从$$\mathbf{x}_1$$的值域到$[-1,1]$的线性映射，可以通过一个离散解码器建模（由于初始噪声很小，因此$$\mathbf{x}_1$$的值域也落在$[-1,1]$附近，将其均分为$256$份）：
+
+$$
+\begin{aligned}
+p_\theta\left(\mathbf{x}_0 \mid \mathbf{x}_1\right) &= \prod_{i=1}^D \int_{\delta_{-}(x_0^i)}^{\delta_+(x_0^i)} \mathcal{N}\left(\mathbf{x}_{0} ; \boldsymbol{\mu}_\theta\left(\mathbf{x}_1, 1\right), \sigma_1^2 \mathbf{I}\right) \\ 
+\delta_+(x_0^i) &= \begin{cases} \infty, & x = 1 \\ x + \frac{1}{255}, & x < 1   \end{cases} \\
+\delta_-(x_0^i) &= \begin{cases}- \infty, & x = -1 \\ x - \frac{1}{255}, & x > -1   \end{cases}
+\end{aligned}
+$$
+
+则$L_0$计算为上述分布的负对数似然（**NLL**）：
+
+```python
+def approx_standard_normal_cdf(x):
+    return 0.5 * (1.0 + torch.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * (x ** 3))))
+
+def discretized_gaussian_log_likelihood(x, means, log_scales, thres = 0.999):
+    """
+    计算 -log p_{\theta}(x_0 | x_1)
+    """
+    assert x.shape == means.shape == log_scales.shape
+
+    centered_x = x - means
+    inv_stdv = torch.exp(-log_scales)
+    plus_in = inv_stdv * (centered_x + 1. / 255.)
+    cdf_plus = approx_standard_normal_cdf(plus_in)
+    min_in = inv_stdv * (centered_x - 1. / 255.)
+    cdf_min = approx_standard_normal_cdf(min_in)
+    log_cdf_plus = math.log(cdf_plus)
+    log_one_minus_cdf_min = math.log(1. - cdf_min)
+    cdf_delta = cdf_plus - cdf_min
+
+    log_probs = torch.where(x < -thres,
+        log_cdf_plus,
+        torch.where(x > thres,
+            log_one_minus_cdf_min,
+            math.log(cdf_delta)))
+
+    return -log_probs
+```
+
+注意到$\beta_1 \approx 0$，即第一次前向扩散通常设置小到可以忽略的噪声，因此在实践中通常认为$$\boldsymbol{\mu}_\theta\left(\mathbf{x}_1, 1\right)$$是没有噪声的（$\sigma_1 =0$）；此时$L_0$与训练过程不相关，$$p_\theta\left(\mathbf{x}_0 \mid \mathbf{x}_1\right)$$是一个确定性的变换：
+
+$$ \mathbf{x}_0 = \boldsymbol{\mu}_\theta\left(\mathbf{x}_1,1\right) = \frac{1}{\sqrt{\alpha_1}}\left(\mathbf{x}_1-\sqrt{1-\alpha_1} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_1, 1\right)\right) $$
+
 
 
 ## （4）采样过程
@@ -220,10 +294,10 @@ $$
 | 模型 | 表达式 |
 | :---:  |  :---  |
 | [<font color=Blue>DDPM</font>](https://0809zheng.github.io/2022/06/02/ddpm.html) | 目标函数：$$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right]\end{aligned} $$ <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)+ \sigma_t\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \sigma_t^2=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t $$ |
-| [<font color=Blue>Improved DDPM</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html) | 目标函数：$$ \begin{aligned} & \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \\  & + \lambda \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t} \left[\frac{\left(1-\alpha_t\right)^2}{2 \alpha_t\left(1-\bar{\alpha}_t\right)\left\|\boldsymbol{\Sigma}_t\right\|_2^2}\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_{sg(\theta)}\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \end{aligned} $$ <br> 采样过程： 同**DDPM** <br> 部分参数：$$ \boldsymbol{\Sigma}_t=\exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t) $$ |
+| [<font color=Blue>Improved DDPM</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html) | 目标函数：$$ \begin{aligned} & \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \\  & + \lambda \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t} \left[D_{\mathrm{KL}}\left(q\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}, \mathbf{x}_0\right) \|\| p_\theta\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}\right)\right)\right] \end{aligned} $$ <br> 采样过程： 同**DDPM** <br> 部分参数：$$ \boldsymbol{\Sigma}_t=\exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t) $$ |
 | [<font color=Blue>DDIM</font>](https://0809zheng.github.io/2022/06/04/ddim.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)+ \sigma_t \mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \sigma_t^2=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t $$ |
 | [<font color=Blue>Analytic-DPM</font>](https://0809zheng.github.io/2022/06/06/analytic.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \\& + \sqrt{\sigma_t^2 + \left( \sqrt{\bar{\alpha}_{t-1}} - \sqrt{\frac{\bar{\alpha}_{t}(1-\bar{\alpha}_{t-1}-\sigma_t^2)}{1-\bar{\alpha}_{t}}} \right)^2\hat{\sigma}_t^2}\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \begin{aligned} \sigma_t^2&=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t \\ \hat{\sigma}_t^2&= \frac{1-\bar{\alpha}_t}{\bar{\alpha}_t} \left(1-\frac{1}{d}\mathbb{E}_{\mathbf{x}_t \sim q\left(\mathbf{x}_{t}\right)} \left[ \|\|\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \|\|^2 \right] \right) \end{aligned} $$ |
-| [<font color=Blue>Extended-Analytic-DPM</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \\& + \sqrt{\sigma_t^2 + \left( \sqrt{\bar{\alpha}_{t-1}} - \sqrt{\frac{\bar{\alpha}_{t}(1-\bar{\alpha}_{t-1}-\sigma_t^2)}{1-\bar{\alpha}_{t}}} \right)^2\hat{\sigma}_t^2}\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \begin{aligned} \sigma_t^2&=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t \\ \hat{\sigma}_t^2&= \frac{1-\bar{\alpha}_t}{\bar{\alpha}_t}\mathop{\arg\min}_{\mathbb{g}(\mathbf{x}_t)}\mathbb{E}_{\mathbf{x}_t ,\mathbf{x}_0 \sim q\left(\mathbf{x}_{t}| \mathbf{x}_0\right)q\left(\mathbf{x}_{0}\right)}\left[\left\| \left(\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \right)^2-\mathbb{g}(\mathbf{x}_t)\right\|^2\right] \end{aligned} $$ |
+| [<font color=Blue>Extended-Analytic-DPM</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \\& + \sqrt{\sigma_t^2 + \left( \sqrt{\bar{\alpha}_{t-1}} - \sqrt{\frac{\bar{\alpha}_{t}(1-\bar{\alpha}_{t-1}-\sigma_t^2)}{1-\bar{\alpha}_{t}}} \right)^2\hat{\sigma}_t^2}\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \begin{aligned} \sigma_t^2&=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t \\ \hat{\sigma}_t^2&= \frac{1-\bar{\alpha}_t}{\bar{\alpha}_t}\mathop{\arg\min}_{\mathbb{g}(\mathbf{x}_t)}\mathbb{E}_{\mathbf{x}_t ,\mathbf{x}_0 \sim q\left(\mathbf{x}_{t} \mid \mathbf{x}_0\right)q\left(\mathbf{x}_{0}\right)}\left[\left\| \left(\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \right)^2-\mathbb{g}(\mathbf{x}_t)\right\|^2\right] \end{aligned} $$ |
 
 
 # 2. 连续型扩散模型的基本原理
@@ -231,7 +305,7 @@ $$
 
 # 3. 条件扩散模型
 
-条件扩散模型是指根据给定的条件来控制生成结果，即在采样过程$$p_{\theta}\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t\right)$$中引入输入条件$$\mathbf{y}$$，使得采样过程变为$$p_{\theta}\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t,\mathbf{y}\right)$$。条件控制生成的方式可分为分两种：**事后修改（Classifier-Guidance）**和**事前训练（Classifier-Free）**。
+条件扩散模型是指根据给定的条件来控制生成结果，即在采样过程$$p_{\theta}\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t\right)$$中引入输入条件$$\mathbf{y}$$，使得采样过程变为$$p_{\theta}\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t,\mathbf{y}\right)$$。条件控制生成的方式可分为两种：**事后修改（Classifier-Guidance）**和**事前训练（Classifier-Free）**。
 
 ## （1）事后修改 Classifier-Guidance
 
@@ -318,7 +392,7 @@ $$
 
 $$
 \begin{aligned}
-\nabla_{\mathbf{x}_t} \log p_t(\mathbf{x})  =  -\frac{\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)}{\sqrt{\bar{\beta}_t}}
+\nabla_{\mathbf{x}_t} \log p_t(\mathbf{x})  =  -\frac{\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)}{\sqrt{1-\bar{\alpha}_t}}
 \end{aligned}
 $$
 
@@ -326,14 +400,20 @@ $$
 
 $$
 \begin{aligned}
-\nabla_{\mathbf{x}} \log p_t(\mathbf{x}\mid \mathbf{y})&=\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})-\frac{\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)}{\sqrt{\bar{\beta}_t}} \\
-&=-\frac{\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)-\sqrt{\bar{\beta}_t}\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})}{\sqrt{\bar{\beta}_t}} \\
+\nabla_{\mathbf{x}} \log p_t(\mathbf{x}\mid \mathbf{y})&=\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})-\frac{\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)}{\sqrt{1-\bar{\alpha}_t}} \\
+&=-\frac{\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)-\sqrt{1-\bar{\alpha}_t}\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})}{\sqrt{1-\bar{\alpha}_t}} \\
 \end{aligned}
 $$
 
-因此只需要用$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)-\sqrt{\bar{\beta}_t}\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})$$替换$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$即可实现条件控制生成。
+因此只需要用$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)-\sqrt{1-\bar{\alpha}_t}\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})$$替换$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$即可实现条件控制生成。
 
 ### ⚪ 基于事后修改的条件扩散模型
+
+| 模型 | 采样过程 |
+| :---:  |  :---  |
+| [<font color=Blue>Classifier Guidance</font>](https://0809zheng.github.io/2022/06/08/cond_diffusion.html) | $$ \mathbf{x}_{t-1} = \boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)+\sigma_t^2 \gamma \nabla_{\mathbf{x}_t} \log p_{\theta}\left(\mathbf{y} \mid \mathbf{x}_t\right)\|_{\mathbf{x}_t=\boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)}+ \sigma_t \mathbf{z},\mathbf{z} \sim \mathcal{N}\left(\mathbf{0}, \mathbf{I}\right) $$ |
+| [<font color=Blue>Semantic Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/09/sim_diffusion.html) | $$ \mathbf{x}_{t-1} = \boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)+\sigma_t^2 \gamma \nabla_{\mathbf{x}_t} \text{sim}(\mathbf{x}_t,\mathbf{y})\|_{\mathbf{x}_t=\boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)}+ \sigma_t \mathbf{z},\mathbf{z} \sim \mathcal{N}\left(\mathbf{0}, \mathbf{I}\right) $$ |
+
 
 
 ## （2）事前训练 Classifier-Free
@@ -375,5 +455,7 @@ $$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \mathbf{y},\epsilon_t
 - [<font color=Blue>Denoising Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/02/ddpm.html)：(arXiv2006)DDPM：去噪扩散概率模型。
 - [<font color=Blue>Denoising Diffusion Implicit Models</font>](https://0809zheng.github.io/2022/06/04/ddim.html)：(arXiv2010)DDIM：去噪扩散隐式模型。
 - [<font color=Blue>Improved Denoising Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html)：(arXiv2102)改进的去噪扩散概率模型。
+- [<font color=Blue>Diffusion Models Beat GANs on Image Synthesis</font>](https://0809zheng.github.io/2022/06/08/cond_diffusion.html)：(arXiv2105)在图像合成任务上扩散模型超越了生成对抗网络。
+- [<font color=Blue>More Control for Free! Image Synthesis with Semantic Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/09/sim_diffusion.html)：(arXiv2112)基于语义扩散引导的图像合成。
 - [<font color=Blue>Analytic-DPM: an Analytic Estimate of the Optimal Reverse Variance in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/06/analytic.html)：(arXiv2201)Analytic-DPM：扩散概率模型中最优反向方差的分析估计。
 - [<font color=Blue>Estimating the Optimal Covariance with Imperfect Mean in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html)：(arXiv2206)扩散概率模型中具有不准确均值的最优协方差估计。
