@@ -196,25 +196,48 @@ $$
 $$
 
 ```python
-posterior_variance1 = betas # \sigma_t
-posterior_variance2 = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod) # \tilde{\sigma}_t
-posterior_variance = self.v * posterior_variance1 + (1-self.v) * posterior_variance2
-# log calculation clipped because the posterior variance is 0 at the beginning of the diffusion chain
-self.posterior_log_variance_clipped = torch.log(posterior_variance.clamp(min =1e-20))
+pred_noise, var_interp_frac_unnormalized = model_output.chunk(2, dim = 1)
+
+min_log = extract(self.posterior_log_variance_clipped, t, x.shape)
+max_log = extract(torch.log(self.betas), t, x.shape)
+var_interp_frac = (var_interp_frac_unnormalized + 1) * 0.5 # [-1,1] -> [0,1]
+
+# \sigma_{\theta}(x_t,t) = exp(v * log \beta_t + (1-v) * \log \tilde{\beta}_t)
+model_log_variance = var_interp_frac * max_log + (1 - var_interp_frac) * min_log
+model_variance = model_log_variance.exp() 
 ```
 
 
-## （3）简化 $L_t$
+## （3）设置混合损失
 
 原始的损失函数写作：
 
 $$
 \begin{aligned}
-L_t & =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{\left(1-\alpha_t\right)^2}{2 \alpha_t\left(1-\bar{\alpha}_t\right)\left\|\boldsymbol{\Sigma}_\theta\right\|_2^2}\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right]
+L_t & =D_{\mathrm{KL}}\left(q\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}, \mathbf{x}_0\right) \| p_\theta\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}\right)\right)
 \end{aligned}
 $$
 
-在**DDPM**模型中，作者使用了简化损失函数：
+根据之前的讨论，我们有：
+
+$$
+\begin{aligned}
+p_\theta\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t\right)&=\mathcal{N}\left(\mathbf{x}_{t-1} ; \boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right), \boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)\right)\\
+q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t, \mathbf{x}_0\right) & =\mathcal{N}\left(\mathbf{x}_{t-1} ; \frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \epsilon_t\right), \frac{1-\bar{\alpha}_{t-1}}{1-\bar{\alpha}_t} \cdot \beta_t \mathbf{I}\right)
+\end{aligned}
+$$
+
+已知两个正态分布$$\mathcal{N}(\mu_1,\sigma_1^2),\mathcal{N}(\mu_2,\sigma_2^2)$$的**KL**散度计算为$\log \frac{\sigma_2}{\sigma_1}+\frac{\sigma_1^2+(\mu_1-\mu_2)^2}{2\sigma_2^2}-\frac{1}{2}$。因此该损失可以直接计算：
+
+```python
+def normal_kl(mean1, logvar1, mean2, logvar2):
+    """
+    KL divergence between normal distributions parameterized by mean and log-variance.
+    """
+    return 0.5 * (-1.0 + logvar2 - logvar1 + torch.exp(logvar1 - logvar2) + ((mean1 - mean2) ** 2) * torch.exp(-logvar2))
+```
+
+此外在**DDPM**模型中，作者使用了简化损失函数：
 
 $$
 \begin{aligned}
@@ -230,8 +253,50 @@ L_{\text {hybrid }} & =L_t^{\text {simple }} + \lambda L_t,\quad \lambda=0.001
 \end{aligned}
 $$
 
-在训练过程中，停止了损失$L_t$中对于$\mu_{\theta}$的梯度计算，即损失$L_t$只会引导$\Sigma_{\theta}$的学习。实践中$L_t$时很难优化的，因此通过重要性采样构造了$L_t$的时序平滑版本。
+在训练过程中，停止了损失$L_t$中对于$\mu_{\theta}$的梯度计算，即损失$L_t$只会引导$\Sigma_{\theta}$的学习，以增强训练过程的稳定性。
+
+```python
+# 计算损失函数
+def p_losses(self, x_start, t, noise = None, clip_denoised = False):
+    b, c, h, w = x_start.shape
+    noise = torch.randn_like(x_start)
+
+    # 计算 x_t
+    x_t = self.q_sample(x_start = x_start, t = t, noise = noise)
+
+    # 计算输出 [\epsilon(x_t, t), \sigma_{\theta}(x_t, t)]
+    model_output = self.model(x_t, t)
+    
+    # 计算可学习方差的KL损失 N(\mu(x_t, t), \sigma(x_t, t)) || N(\mu_{\theta}(x_t, t), \sigma_{\theta}(x_t, t))
+    true_mean, _, true_log_variance_clipped = self.q_posterior(x_start = x_start, x_t = x_t, t = t)
+    model_mean, _, model_log_variance = self.p_mean_variance(x = x_t, t = t, clip_denoised = clip_denoised, model_output = model_output)
+
+    # 计算KL损失时停止\mu_{\theta}(x_t, t)的梯度，提高训练稳定性
+    detached_model_mean = model_mean.detach()
+    
+    kl = normal_kl(true_mean, true_log_variance_clipped, detached_model_mean, model_log_variance)
+    kl = torch.mean(kl) / math.log(2)
+    
+    # 计算 L_0 = - log p_{\theta}(x_0 | x_1)
+    decoder_nll = -discretized_gaussian_log_likelihood(x_start, means = detached_model_mean, log_scales = 0.5 * model_log_variance)
+    decoder_nll = torch.mean(decoder_nll) / math.log(2)
+    
+    # T = 0时取解码器的负对数似然，否则取KL散度
+    vb_losses = torch.where(t == 0, decoder_nll, kl)
+    
+    # 计算 L_simple
+    pred_noise, _ = model_output.chunk(2, dim = 1)
+    simple_losses = F.l1_loss(pred_noise, noise, reduction = 'none')
+
+    return simple_losses.mean() + vb_losses.mean() * self.vb_loss_weight
+```
+
+
+
+实践中$L_t$时很难优化的，因此通过重要性采样构造了$L_t$的时序平滑版本。
 
 ## （4）加速采样
 
 本文提出了交错采样策略(**strided sampling schedule**)来加速采样过程。该策略每$\lceil T/S \rceil$步进行一次采样更新，从而把总采样次数从$T$次减小为$S$次。
+
+完整的实现代码可参考[denoising_diffusion_pytorch](https://github.com/lucidrains/denoising-diffusion-pytorch/blob/main/denoising_diffusion_pytorch/learned_gaussian_diffusion.py)。
