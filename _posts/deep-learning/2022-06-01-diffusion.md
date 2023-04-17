@@ -22,13 +22,13 @@ tags: 深度学习
 2. 没有编码能力，无法编辑隐空间。
 
 本文目录：
-1. 离散型扩散模型的基本原理
-2. 连续型扩散模型的基本原理
+1. 时间离散型扩散模型的基本原理
+2. 时间连续型扩散模型的基本原理
 3. 条件扩散模型
 
-# 1. 离散型扩散模型的基本原理
+# 1. 时间离散型扩散模型的基本原理
 
-本节介绍离散型扩散模型的基本原理，主要思路如下：
+本节介绍时间离散型扩散模型的基本原理，主要思路如下：
 1. 定义前向扩散过程：$$q\left(\mathbf{x}_t \mid \mathbf{x}_{t-1}\right)$$
 2. 解析地推导：$$q\left(\mathbf{x}_t \mid \mathbf{x}_{0}\right)$$
 3. 解析地推导：$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t,\mathbf{x}_{0}\right)$$
@@ -289,7 +289,7 @@ $$
 \end{aligned}
 $$
 
-## （5）离散型扩散模型的各种变体
+## （5）时间离散型扩散模型的各种变体
 
 | 模型 | 表达式 |
 | :---:  |  :---  |
@@ -300,7 +300,159 @@ $$
 | [<font color=Blue>Extended-Analytic-DPM</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \\& + \sqrt{\sigma_t^2 + \left( \sqrt{\bar{\alpha}_{t-1}} - \sqrt{\frac{\bar{\alpha}_{t}(1-\bar{\alpha}_{t-1}-\sigma_t^2)}{1-\bar{\alpha}_{t}}} \right)^2\hat{\sigma}_t^2}\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \begin{aligned} \sigma_t^2&=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t \\ \hat{\sigma}_t^2&= \frac{1-\bar{\alpha}_t}{\bar{\alpha}_t}\mathop{\arg\min}_{\mathbb{g}(\mathbf{x}_t)}\mathbb{E}_{\mathbf{x}_t ,\mathbf{x}_0 \sim q\left(\mathbf{x}_{t} \mid \mathbf{x}_0\right)q\left(\mathbf{x}_{0}\right)}\left[\left\| \left(\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \right)^2-\mathbb{g}(\mathbf{x}_t)\right\|^2\right] \end{aligned} $$ |
 
 
-# 2. 连续型扩散模型的基本原理
+# 2. 时间连续型扩散模型的基本原理
+
+可以把扩散模型理解为一个在时间上连续的变换过程，并用**随机微分方程（Stochastic Differential Equation，SDE）**来描述。
+
+## （1）前向扩散SDE
+
+前向扩散过程可以用**SDE**描述为：
+
+$$
+d \mathbf{x} = \mathbf{f}_t(\mathbf{x})dt+g_t d\mathbf{w}
+$$
+
+其中$$\mathbf{w}$$是标准维纳过程；$$\mathbf{f}_t(\cdot )$$是一个向量函数，被称为$$\mathbf{x}(t)$$的漂移系数(**drift coefficient**)。$$g(\cdot )$$是一个标量函数，被称为$$\mathbf{x}(t)$$的扩散系数(**diffusion coefficient**)。
+
+前向扩散**SDE**也可以等价地写成以下差分方程的形式：
+
+$$
+\mathbf{x}_{t+\Delta t}-\mathbf{x}_t = \mathbf{f}_t(\mathbf{x}_t)\Delta t + g_t \sqrt{\Delta t} \boldsymbol{\epsilon},\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
+$$
+
+或写作概率模型：
+
+$$
+\begin{aligned}
+p(\mathbf{x}_{t+\Delta t} \mid \mathbf{x}_t) &= \mathcal{N}\left(\mathbf{x}_{t+\Delta t};\mathbf{x}_t+\mathbf{f}_t(\mathbf{x}_t)\Delta t, g_t^2 \Delta t\mathbf{I}\right) \\
+& \propto \exp\left( -\frac{||\mathbf{x}_{t+\Delta t}-\mathbf{x}_t-\mathbf{f}_t(\mathbf{x}_t)\Delta t||^2}{2g_t^2 \Delta t} \right)
+\end{aligned}
+$$
+
+## （2）反向扩散SDE
+
+反向扩散**SDE**旨在求解$$p(\mathbf{x}_{t} \mid \mathbf{x}_{t+\Delta t})$$。根据贝叶斯定理：
+
+$$
+\begin{aligned}
+p(\mathbf{x}_{t} \mid \mathbf{x}_{t+\Delta t}) &= \frac{p(\mathbf{x}_{t+\Delta t} \mid \mathbf{x}_{t})p(\mathbf{x}_{t})}{p(\mathbf{x}_{t+\Delta t})} = p(\mathbf{x}_{t+\Delta t} \mid \mathbf{x}_{t}) \exp \left( \log p(\mathbf{x}_{t}) - \log p(\mathbf{x}_{t+\Delta t}) \right) \\
+&\propto \exp\left( -\frac{||\mathbf{x}_{t+\Delta t}-\mathbf{x}_t-\mathbf{f}_t(\mathbf{x}_t)\Delta t||^2}{2g_t^2 \Delta t} + \log p(\mathbf{x}_{t}) - \log p(\mathbf{x}_{t+\Delta t})\right)
+\end{aligned}
+$$
+
+通常$\Delta t$比较小，因此有泰勒展开：
+
+$$
+\log p(\mathbf{x}_{t+\Delta t}) = \log p(\mathbf{x}_{t}) + (\mathbf{x}_{t+\Delta t}-\mathbf{x}_t) \cdot \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t) + \mathcal{O}(\Delta t) 
+$$
+
+代入上式并配方得：
+
+$$
+\begin{aligned}
+p(\mathbf{x}_{t} \mid \mathbf{x}_{t+\Delta t}) &\propto \exp\left( -\frac{||\mathbf{x}_{t+\Delta t}-\mathbf{x}_t-[\mathbf{f}_t(\mathbf{x}_t)-g_t^2\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t)]\Delta t||^2}{2g_t^2 \Delta t} + \mathcal{O}(\Delta t)\right) \\ 
+& \approx \exp\left( -\frac{||\mathbf{x}_t-\mathbf{x}_{t+\Delta t}+[\mathbf{f}_t(\mathbf{x}_t)-g_t^2\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t)]\Delta t||^2}{2g_t^2 \Delta t}\right)  \\ 
+& \sim \mathcal{N}\left(\mathbf{x}_t;\mathbf{x}_{t+\Delta t}-[\mathbf{f}_t(\mathbf{x}_t)-g_t^2\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t)]\Delta t, g_t^2 \Delta t\mathbf{I}\right)
+\end{aligned}
+$$
+
+上式也可写作差分方程：
+
+$$
+\mathbf{x}_t-\mathbf{x}_{t+\Delta t} = -[\mathbf{f}_{t+\Delta t}(\mathbf{x}_{t+\Delta t})-g_{t+\Delta t}^2\nabla_{\mathbf{x}_{t+\Delta t}} \log p(\mathbf{x}_{t+\Delta t})]\Delta t + g_{t+\Delta t} \sqrt{\Delta t} \boldsymbol{\epsilon},\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
+$$
+
+取$\Delta t \to 0$，得到反向过程对应的**SDE**：
+
+$$
+d \mathbf{x} = [\mathbf{f}_t(\mathbf{x})-g_t^2\nabla_{\mathbf{x}} \log p_t(\mathbf{x})]dt+g_t d\mathbf{w}
+$$
+
+## （3）得分匹配
+
+前向和反向扩散过程的**SDE**：
+
+$$
+\begin{aligned}
+d \mathbf{x} &= \mathbf{f}_t(\mathbf{x})dt+g_t d\mathbf{w} \\ 
+d \mathbf{x} &= [\mathbf{f}_t(\mathbf{x})-g_t^2\nabla_{\mathbf{x}} \log p_t(\mathbf{x})]dt+g_t d\mathbf{w}
+\end{aligned}
+$$
+
+也可以等价地写成差分形式：
+
+$$
+\begin{aligned}
+\mathbf{x}_{t+\Delta t}-\mathbf{x}_t &= \mathbf{f}_t(\mathbf{x}_t)\Delta t + g_t \sqrt{\Delta t} \boldsymbol{\epsilon},\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}) \\
+\mathbf{x}_t-\mathbf{x}_{t+\Delta t} &= -[\mathbf{f}_{t+\Delta t}(\mathbf{x}_{t+\Delta t})-g_{t+\Delta t}^2\nabla_{\mathbf{x}_{t+\Delta t}} \log p(\mathbf{x}_{t+\Delta t})]\Delta t + g_{t+\Delta t} \sqrt{\Delta t} \boldsymbol{\epsilon},\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
+\end{aligned}
+$$
+
+如果进一步知道$$\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t)$$，就可以通过反向**SDE**完成生成过程。
+
+考虑到在离散型的扩散模型中，通常会为$$p(\mathbf{x}_t \mid \mathbf{x}_0)$$设计具有解析解的形式。此时$$\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t)$$表示为：
+
+$$
+\begin{aligned}
+p(\mathbf{x}_t) &= \mathbb{E}_{\mathbf{x}_0} \left[ p(\mathbf{x}_t \mid \mathbf{x}_0)\right] \\
+\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t) &= \frac{\mathbb{E}_{\mathbf{x}_0} \left[ \nabla_{\mathbf{x}_t} p(\mathbf{x}_t \mid \mathbf{x}_0)\right]}{ \mathbb{E}_{\mathbf{x}_0} \left[ p(\mathbf{x}_t \mid \mathbf{x}_0)\right]} \\
+&= \frac{\mathbb{E}_{\mathbf{x}_0} \left[p(\mathbf{x}_t \mid \mathbf{x}_0) \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t \mid \mathbf{x}_0)\right]}{ \mathbb{E}_{\mathbf{x}_0} \left[ p(\mathbf{x}_t \mid \mathbf{x}_0)\right]}
+\end{aligned}
+$$
+
+上式表示$$\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t)$$计算为$$\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t \mid \mathbf{x}_0)$$在分布$$p(\mathbf{x}_t \mid \mathbf{x}_0)$$上的加权平均。
+
+我们希望用神经网络学一个函数$$s_θ(\mathbf{x}_t,t)$$，使得它能够直接计算$$\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t)$$。则$$s_θ(\mathbf{x}_t,t)$$应当也能表示为$$\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t \mid \mathbf{x}_0)$$在分布$$p(\mathbf{x}_t \mid \mathbf{x}_0)$$上的加权平均，或者等价地写成如下损失：
+
+$$
+\begin{aligned}
+& \frac{\mathbb{E}_{\mathbf{x}_0} \left[p(\mathbf{x}_t \mid \mathbf{x}_0)|| s_θ(\mathbf{x}_t,t)- \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t \mid \mathbf{x}_0)||^2\right]}{ \mathbb{E}_{\mathbf{x}_0} \left[ p(\mathbf{x}_t \mid \mathbf{x}_0)\right]} \\
+\propto & \int \mathbb{E}_{\mathbf{x}_0} \left[p(\mathbf{x}_t \mid \mathbf{x}_0)|| s_θ(\mathbf{x}_t,t)- \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t \mid \mathbf{x}_0)||^2\right] d\mathbf{x}_t \\
+= & \mathbb{E}_{\mathbf{x}_0,\mathbf{x}_t \sim p(\mathbf{x}_t \mid \mathbf{x}_0)p(\mathbf{x}_0)} \left[|| s_θ(\mathbf{x}_t,t)- \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t \mid \mathbf{x}_0)||^2\right]
+\end{aligned}
+$$
+
+上式被称为**(条件)得分匹配 (score matching)**损失。
+
+## （4）连续型扩散模型的一般流程
+
+![](https://pic.imgdb.cn/item/642d239da682492fccffe618.jpg)
+
+构造连续型扩散模型的一般流程：
+
+**①** 通过随机微分方程定义前向扩散过程：
+
+$$
+\begin{aligned}
+d \mathbf{x} = \mathbf{f}_t(\mathbf{x})dt+g_t d\mathbf{w}
+\end{aligned}
+$$
+
+**②** 求$$p(\mathbf{x}_t \mid \mathbf{x}_0)$$的表达式；
+
+**③** 通过得分匹配损失训练$$s_θ(\mathbf{x}_t,t)$$：
+
+$$
+\begin{aligned}
+\mathbb{E}_{\mathbf{x}_0,\mathbf{x}_t \sim p(\mathbf{x}_t \mid \mathbf{x}_0)p(\mathbf{x}_0)} \left[|| s_θ(\mathbf{x}_t,t)- \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t \mid \mathbf{x}_0)||^2\right]
+\end{aligned}
+$$
+
+**④** 通过随机微分方程实现反向扩散过程：
+
+$$
+\begin{aligned}
+d \mathbf{x} = [\mathbf{f}_t(\mathbf{x})-g_t^2s_θ(\mathbf{x}_t,t)]dt+g_t d\mathbf{w}
+\end{aligned}
+$$
+
+## （5）时间连续型扩散模型的各种变体
+
+| 模型 | 前向**SDE** |
+| :---:  |  :---  |
+| [<font color=Blue>Variance Exploding SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) | $$ d \mathbf{x} = \sqrt{\frac{d\bar{\beta}_t}{dt}} d\mathbf{w} $$ |
+| [<font color=Blue>Variance Preserving SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) | $$ d \mathbf{x} = -\frac{\bar{\gamma}_t}{2} \mathbf{x}dt+\sqrt{\bar{\gamma}_t} d\mathbf{w}, \bar{\gamma}_t=\bar{\alpha}_t\frac{d}{dt}\left(\frac{\bar{\beta}_t}{\bar{\alpha}_t}\right) $$ |
+| [<font color=Blue>Probability Flow ODE</font>](https://0809zheng.github.io/2022/06/05/score.html) | $$ d \mathbf{x} = \left(\mathbf{f}_t(\mathbf{x}) -\frac{1}{2}g_t^2\nabla_\mathbf{x} \log p_t(\mathbf{x})\right)dt $$ |
 
 
 # 3. 条件扩散模型
@@ -454,6 +606,7 @@ $$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \mathbf{y},\epsilon_t
 - [denoising-diffusion-pytorch](https://lilianweng.github.io/posts/2019-11-10-self-supervised/)(GitHub)：Implementation of Denoising Diffusion Probabilistic Model in Pytorch。
 - [<font color=Blue>Denoising Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/02/ddpm.html)：(arXiv2006)DDPM：去噪扩散概率模型。
 - [<font color=Blue>Denoising Diffusion Implicit Models</font>](https://0809zheng.github.io/2022/06/04/ddim.html)：(arXiv2010)DDIM：去噪扩散隐式模型。
+- [<font color=Blue>Score-Based Generative Modeling through Stochastic Differential Equations</font>](https://0809zheng.github.io/2022/06/05/score.html)：(arXiv2011)基于得分匹配的随机微分方程生成式建模。
 - [<font color=Blue>Improved Denoising Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html)：(arXiv2102)改进的去噪扩散概率模型。
 - [<font color=Blue>Diffusion Models Beat GANs on Image Synthesis</font>](https://0809zheng.github.io/2022/06/08/cond_diffusion.html)：(arXiv2105)在图像合成任务上扩散模型超越了生成对抗网络。
 - [<font color=Blue>More Control for Free! Image Synthesis with Semantic Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/09/sim_diffusion.html)：(arXiv2112)基于语义扩散引导的图像合成。
