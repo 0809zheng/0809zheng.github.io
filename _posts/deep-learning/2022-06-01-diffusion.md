@@ -117,6 +117,22 @@ $$
 \end{aligned}
 $$
 
+### ⚪ 理解扩散模型的反向过程
+
+扩散模型的反向过程是通过多步迭代来逐渐生成逼真的数据，其关键是设计概率分布$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t\right)$$。一般地，有：
+
+$$ q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t\right) = \int q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_0,\mathbf{x}_t\right)q\left(\mathbf{x}_0 \mid \mathbf{x}_t\right)  d\mathbf{x}_0  $$
+
+对$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t\right)$$的基本要求也是便于采样，落脚到$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_0,\mathbf{x}_t\right)$$和$$q\left(\mathbf{x}_0 \mid \mathbf{x}_t\right)$$便于采样。这样一来，就可以通过下述流程完成$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t\right)$$的采样：
+
+$$ \hat{\mathbf{x}}_0 \sim q\left(\mathbf{x}_0 \mid \mathbf{x}_t\right), \quad \mathbf{x}_{t-1} \sim q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_0=\hat{\mathbf{x}}_0,\mathbf{x}_t\right) $$
+
+根据该分解过程，扩散模型每一步的采样$$\mathbf{x}_t \to \mathbf{x}_{t-1}$$实际上包含了两个子步骤：
+1. 预估：由$$q\left(\mathbf{x}_0 \mid \mathbf{x}_t\right)$$对$$\mathbf{x}_0$$做一个简单的估计；
+2. 修正：由$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_0,\mathbf{x}_t\right)$$根据估计结果，将估值进行一定程度的修正。
+
+扩散模型的反向过程就是一个反复的“预估-修正”过程，将原本难以一步到位的生成$$\mathbf{x}_t \to \mathbf{x}_0$$分解成逐步推进的过程，并且每一步都进行了数值修正。
+
 ## （3）目标函数
 
 ![](https://pic.imgdb.cn/item/6422a0f7a682492fcc79189d.jpg)
@@ -293,11 +309,13 @@ $$
 
 | 模型 | 表达式 |
 | :---:  |  :---  |
-| [<font color=Blue>DDPM</font>](https://0809zheng.github.io/2022/06/02/ddpm.html) | 目标函数：$$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right]\end{aligned} $$ <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)+ \sigma_t\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \sigma_t^2=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t $$ |
-| [<font color=Blue>Improved DDPM</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html) | 目标函数：$$ \begin{aligned} & \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \\  & + \lambda \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t} \left[D_{\mathrm{KL}}\left(q\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}, \mathbf{x}_0\right) \|\| p_\theta\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}\right)\right)\right] \end{aligned} $$ <br> 采样过程： 同**DDPM** <br> 部分参数：$$ \boldsymbol{\Sigma}_t=\exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t) $$ |
+| [<font color=Blue>DDPM</font>](https://0809zheng.github.io/2022/06/02/ddpm.html) | 目标函数：$$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|\right\|^2\right]\end{aligned} $$ <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)+ \sigma_t\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \sigma_t^2=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t $$ |
+| [<font color=Blue>Improved DDPM</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html) | 目标函数：$$ \begin{aligned} & \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|\right\|^2\right] \\  & + \lambda \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t} \left[D_{\mathrm{KL}}\left(q\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}, \mathbf{x}_0\right) \|\| p_\theta\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}\right)\right)\right] \end{aligned} $$ <br> 采样过程： 同**DDPM** <br> 部分参数：$$ \boldsymbol{\Sigma}_t=\exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t) $$ |
 | [<font color=Blue>DDIM</font>](https://0809zheng.github.io/2022/06/04/ddim.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)+ \sigma_t \mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \sigma_t^2=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t $$ |
 | [<font color=Blue>Analytic-DPM</font>](https://0809zheng.github.io/2022/06/06/analytic.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \\& + \sqrt{\sigma_t^2 + \left( \sqrt{\bar{\alpha}_{t-1}} - \sqrt{\frac{\bar{\alpha}_{t}(1-\bar{\alpha}_{t-1}-\sigma_t^2)}{1-\bar{\alpha}_{t}}} \right)^2\hat{\sigma}_t^2}\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \begin{aligned} \sigma_t^2&=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t \\ \hat{\sigma}_t^2&= \frac{1-\bar{\alpha}_t}{\bar{\alpha}_t} \left(1-\frac{1}{d}\mathbb{E}_{\mathbf{x}_t \sim q\left(\mathbf{x}_{t}\right)} \left[ \|\|\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \|\|^2 \right] \right) \end{aligned} $$ |
-| [<font color=Blue>Extended-Analytic-DPM</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \\& + \sqrt{\sigma_t^2 + \left( \sqrt{\bar{\alpha}_{t-1}} - \sqrt{\frac{\bar{\alpha}_{t}(1-\bar{\alpha}_{t-1}-\sigma_t^2)}{1-\bar{\alpha}_{t}}} \right)^2\hat{\sigma}_t^2}\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \begin{aligned} \sigma_t^2&=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t \\ \hat{\sigma}_t^2&= \frac{1-\bar{\alpha}_t}{\bar{\alpha}_t}\mathop{\arg\min}_{\mathbb{g}(\mathbf{x}_t)}\mathbb{E}_{\mathbf{x}_t ,\mathbf{x}_0 \sim q\left(\mathbf{x}_{t} \mid \mathbf{x}_0\right)q\left(\mathbf{x}_{0}\right)}\left[\left\| \left(\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \right)^2-\mathbb{g}(\mathbf{x}_t)\right\|^2\right] \end{aligned} $$ |
+| [<font color=Blue>Extended-Analytic-DPM</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \\& + \sqrt{\sigma_t^2 + \left( \sqrt{\bar{\alpha}_{t-1}} - \sqrt{\frac{\bar{\alpha}_{t}(1-\bar{\alpha}_{t-1}-\sigma_t^2)}{1-\bar{\alpha}_{t}}} \right)^2\hat{\sigma}_t^2}\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \begin{aligned} \sigma_t^2&=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t \\ \hat{\sigma}_t^2&= \frac{1-\bar{\alpha}_t}{\bar{\alpha}_t}\mathop{\arg\min}_{\mathbb{g}(\mathbf{x}_t)}\mathbb{E}_{\mathbf{x}_t ,\mathbf{x}_0 \sim q\left(\mathbf{x}_{t} \mid \mathbf{x}_0\right)q\left(\mathbf{x}_{0}\right)}\left[\left\|\left\| \left(\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \right)^2-\mathbb{g}(\mathbf{x}_t)\right\|\right\|^2\right] \end{aligned} $$ |
+| [<font color=Blue>Cold Diffusion</font>](https://0809zheng.github.io/2022/06/17/cold.html)  | 目标函数：$$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0}\left[\left\|\left\|\mathbf{x}_0 - \mathcal{G}_t(\mathcal{F}_t (\mathbf{x}_{0}))\right\|\right\|_1\right]\end{aligned} $$  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \mathbf{x}_t+\mathcal{F}_{t-1} (\mathcal{G}_t(\mathbf{x}_t))   - \mathcal{F}_t (\mathcal{G}_t(\mathbf{x}_t)) \\\mathbf{x}_{t-1} =&  \mathcal{F}_{t-1} (\mathcal{G}_t(\mathbf{x}_t)) \end{aligned} $$ |
+
 
 
 # 2. 时间连续型扩散模型的基本原理
@@ -448,11 +466,12 @@ $$
 
 ## （5）时间连续型扩散模型的各种变体
 
-| 模型 | 前向**SDE** |
+| 模型 | 表达式 |
 | :---:  |  :---  |
-| [<font color=Blue>Variance Exploding SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) | $$ d \mathbf{x} = \sqrt{\frac{d\bar{\beta}_t}{dt}} d\mathbf{w} $$ |
-| [<font color=Blue>Variance Preserving SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) | $$ d \mathbf{x} = -\frac{\bar{\gamma}_t}{2} \mathbf{x}dt+\sqrt{\bar{\gamma}_t} d\mathbf{w}, \bar{\gamma}_t=\bar{\alpha}_t\frac{d}{dt}\left(\frac{\bar{\beta}_t}{\bar{\alpha}_t}\right) $$ |
-| [<font color=Blue>Probability Flow ODE</font>](https://0809zheng.github.io/2022/06/05/score.html) | $$ d \mathbf{x} = \left(\mathbf{f}_t(\mathbf{x}) -\frac{1}{2}g_t^2\nabla_\mathbf{x} \log p_t(\mathbf{x})\right)dt $$ |
+| [<font color=Blue>Variance Exploding SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) | 前向**SDE**：$$ d \mathbf{x} = \sqrt{\frac{d\bar{\beta}_t}{dt}} d\mathbf{w} $$ |
+| [<font color=Blue>Variance Preserving SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) |前向**SDE**： $$ d \mathbf{x} = -\frac{\bar{\gamma}_t}{2} \mathbf{x}dt+\sqrt{\bar{\gamma}_t} d\mathbf{w}, \bar{\gamma}_t=\bar{\alpha}_t\frac{d}{dt}\left(\frac{\bar{\beta}_t}{\bar{\alpha}_t}\right) $$ |
+| [<font color=Blue>Probability Flow ODE</font>](https://0809zheng.github.io/2022/06/05/score.html) | 前向**SDE**：$$ d \mathbf{x} = \left(\mathbf{f}_t(\mathbf{x}) -\frac{1}{2}g_t^2\nabla_\mathbf{x} \log p_t(\mathbf{x})\right)dt $$ |
+| [<font color=Blue>Poisson Flow Generative Models</font>](https://0809zheng.github.io/2022/06/21/pfgm.html) | 前向**SDE**：$$ \mathbf{x} = \mathbf{x}_0 + \|\| \epsilon_x\|\|(1+\tau)^m \mathbf{u}, \quad t=  \|\epsilon_t\|(1+\tau)^m $$ <br> 目标函数：$$ \left\|\left\| s_{\theta}(\mathbf{x},t)+ \text{Norm} \left(\mathbb{E}_{\mathbf{x}_0 \sim p(\mathbf{x}_0)} \left[\frac{(\mathbf{x}-\mathbf{x}_0,t)}{(\left\|\left\|\mathbf{x}-\mathbf{x}_0\right\|\right\|^2 + t^2 )^{(d+1)/2}}\right]\right) \right\|\right\|^2 $$ <br>  反向**SDE**：$$ \frac{d \mathbf{x}}{dt} = \frac{F_\mathbf{x}}{F_t}, s_{\theta}(\mathbf{x},t) = (F_\mathbf{x},F_t) $$|
 
 
 # 3. 条件扩散模型
@@ -612,3 +631,5 @@ $$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \mathbf{y},\epsilon_t
 - [<font color=Blue>More Control for Free! Image Synthesis with Semantic Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/09/sim_diffusion.html)：(arXiv2112)基于语义扩散引导的图像合成。
 - [<font color=Blue>Analytic-DPM: an Analytic Estimate of the Optimal Reverse Variance in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/06/analytic.html)：(arXiv2201)Analytic-DPM：扩散概率模型中最优反向方差的分析估计。
 - [<font color=Blue>Estimating the Optimal Covariance with Imperfect Mean in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html)：(arXiv2206)扩散概率模型中具有不准确均值的最优协方差估计。
+- [<font color=Blue>Cold Diffusion: Inverting Arbitrary Image Transforms Without Noise</font>](https://0809zheng.github.io/2022/06/17/cold.html)：(arXiv2208)Cold Diffusion：反转任意无噪声的图像变换。
+- [<font color=Blue>Poisson Flow Generative Models</font>](https://0809zheng.github.io/2022/06/21/pfgm.html)：(arXiv2209)泊松流生成模型。
