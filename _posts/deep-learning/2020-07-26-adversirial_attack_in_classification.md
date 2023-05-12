@@ -9,7 +9,7 @@ tags: 深度学习
 
 > Adversarial Training: Attack and Defense.
 
-**对抗训练(Adversarial Training)**是指通过构造对抗样本，对模型进行对抗攻击和防御来增强模型的稳健型。对抗样本通常是指具有小扰动的样本，对于人类来说“看起来”几乎一样，但对于模型来说预测结果却完全不一样：
+**对抗训练(Adversarial Training)**是指通过构造对抗样本，对模型进行对抗攻击和防御来增强模型的稳健性。对抗样本通常是指具有小扰动的样本，对于人类来说“看起来”几乎一样，但对于模型来说预测结果却完全不一样：
 
 ![](https://pic2.imgdb.cn/item/645df31c0d2dde5777312330.jpg)
 
@@ -27,6 +27,23 @@ $$
 1. 为输入样本$x$添加对抗扰动$\Delta x$，$\Delta x$的目标是使得损失$$\mathcal{L}(x+\Delta x,y;\theta)$$尽可能增大，即尽可能让现有模型的预测出错；
 2. 对抗扰动$\Delta x$要满足一定的约束，比如模长不超过一个常数$\epsilon$：$$\|\Delta x\| \leq \epsilon$$；
 3. 对每个样本$x$都构造一个对抗样本$x+\Delta x$，用样本对$(x+\Delta x,y)$最小化损失函数训练模型参数$\theta$。
+
+### ⚪ 讨论：对抗扰动$\Delta x$的约束
+
+在对抗训练中，通常期望为输入样本$x$添加的对抗扰动$\Delta x$是微小的：
+
+$$ d(x+\Delta x,x) ≤ ε $$
+
+其中**Constraint**函数$d(\cdot,\cdot)$可以选用：
+- **L2范数**：计算差值图像每个像素的平方和：$$d(x,x')=\mid\mid x-x' \mid\mid_2$$；寻找满足$$d(x+\Delta x,x) ≤ ε$$且与原$x$最接近的$x$。
+- **L-∞范数**：计算差值图像绝对值最大的像素：$$d(x,x')=\mid\mid x-x' \mid\mid_∞$$；把$x$超过$ε$的元素限制到$ε$。
+
+![](https://pic2.imgdb.cn/item/645e1e900d2dde577787faf7.jpg)
+
+在实践中，**L-∞范数**约束的使用频率更高，该约束不允许某个像素值的变化特别大：
+
+![](https://pic2.imgdb.cn/item/645e1ecb0d2dde57778899a5.jpg)
+
 
 ### ⚪ 讨论：对抗训练与梯度惩罚
 
@@ -51,7 +68,9 @@ $$
 
 ## 1. 对抗攻击
 
-对抗攻击旨在为每个输入样本$x$生成对抗扰动$\Delta x$。对抗攻击要求具有**跨模型可转移性（cross-model transferability）**，即对一个模型制作的对抗样本在很大概率下会欺骗其他模型。可转移性使得对抗攻击能够应用于实际，并引发严重的安全问题（自动驾驶、医疗）。
+对于一个已训练好的模型$f_θ$，输入样本$x$会得到正确的预测结果$y^{true}$，对抗攻击旨在为每个输入样本$x$生成微小的对抗扰动$\Delta x$，使得$x' = x+\Delta x$输入网络后将不能得到正确的结果$y^{true}$，甚至得到指定的错误结果$y^{false}$。
+
+对抗攻击要求具有**跨模型可转移性（cross-model transferability）**，即对一个模型制作的对抗样本在很大概率下会欺骗其他模型。可转移性使得对抗攻击能够应用于实际，并引发严重的安全问题（自动驾驶、医疗）。
 
 对抗攻击的分类方法：
 - 按照模型参数是否已知：
@@ -61,10 +80,12 @@ $$
 1. **单步攻击**：仅进行一次更新，容易**underfit**，针对白盒攻击效果差，针对黑盒攻击效果好（转移性强）；
 2. **多步攻击**：迭代地更新，容易**overfit**，针对白盒攻击效果好，针对黑盒攻击效果差（转移性差）。
 - 按照预测类别是否给定：
-1. **无目标攻击**：构造对抗样本时，使模型把样本预测为任意一个错误的类别；
-2. **有目标攻击**：构造对抗样本时，使模型把样本预测为给定的错误类别。
+1. **无目标攻击 (Non-targeted Attack)**：构造对抗样本时，使使预测结果偏离正确结果$y^{true}$: $$\mathcal{\max}_{\Delta x \in \Omega}  \mathcal{L}(x+\Delta x,y^{true};\theta)$$；
+2. **有目标攻击 (Targeted Attack)**：构造对抗样本时，使模型把样本预测为给定的错误类别$y^{false}$: $$\mathcal{\max}_{\Delta x \in \Omega}  \mathcal{L}(x+\Delta x,y^{true};\theta)-\mathcal{L}(x+\Delta x,y^{false};\theta)$$。
 
-常用的对抗攻击方法包括：**FGSM**, **I-FGSM**, **MI-FGSM**, **NI-FGSM**, **DIM**, **TIM**。
+![](https://pic2.imgdb.cn/item/645e1d880d2dde577784d383.jpg)
+
+常用的对抗攻击方法包括：**FGSM**, **I-FGSM**, **MI-FGSM**, **NI-FGSM**, **DIM**, **TIM**, **One Pixel Attack**, **Black-box Attack**。
 
 ### ⚪ FGSM（Fast Gradient Sign Method）
 - paper：[Explaining and Harnessing Adversarial Examples](https://arxiv.org/abs/1412.6572)
@@ -73,6 +94,9 @@ $$
 
 $$ \Delta x={\epsilon} \cdot \text{sign}({\nabla}_x\mathcal{L}(x,y;\theta)) $$
 
+**FGSM**方法相当于使用了无穷大的学习率更新样本后，再使用**L-∞**范数进行约束：
+
+![](https://pic2.imgdb.cn/item/645e1f3f0d2dde577789b211.jpg)
 
 ### ⚪ I-FGSM（Iterative FGSM） 
 
@@ -166,3 +190,58 @@ $$ {\nabla}_x\sum_{i,j} w_{ij}\mathcal{L}(T_{ij}(x_{t}^{adv}),y;\theta) ≈W * \
 - **uniform kernel**：$$W_{ij}=\frac{1}{(2k+1)^2}$$
 - **linear kernel**：$$W_{ij}=\frac{\hat{W}_{ij}}{\sum_{i,j}^{} {\hat{W}_{ij}}},\hat{W}_{ij}=(1-\frac{\mid i \mid}{k+1})\cdot(1-\frac{\mid j \mid}{k+1})$$
 - **Gaussian kernel**：$$W_{ij}=\frac{\hat{W}_{ij}}{\sum_{i,j}^{} {\hat{W}_{ij}}},\hat{W}_{ij}=\frac{1}{2\pi σ^2}\exp(-\frac{i^2+j^2}{2σ^2}), σ=\frac{k}{\sqrt{3}}$$
+
+### ⚪ One Pixel Attack
+- paper：[One pixel attack for fooling deep neural networks](https://arxiv.org/abs/1710.08864)
+
+**One Pixel Attack**只修改图像的一个像素值，即：
+
+$$ d(x,x') = \mid\mid x-x' \mid\mid_0 = 1 $$
+
+其中$L0$范数表示非零元素的个数。对像素值的修改是通过**Differential Evolution**实现的。
+
+该方法的出发点是对于图像分类任务，尤其是类别很多时，攻击不需要使正确的类别得分大幅度降低，只需要让某个错误类别的得分超过正确类别即可。
+
+### ⚪ Black-box Attack
+- paper：[Delving into Transferable Adversarial Examples and Black-box Attacks](https://arxiv.org/abs/1611.02770)
+
+当模型未知时，如果能获得模型的训练数据，用训练数据自行训练一个**proxy network**；在**proxy network**上获得的**attack object**，通常可以对原模型进行攻击。
+
+![](https://pic2.imgdb.cn/item/645e207a0d2dde57778c1012.jpg)
+
+如果没有训练数据，则自己利用原网络构造一些输入-输出对作为训练数据。
+
+## 2. 对抗防御
+
+**Defense**可以分为被动式和主动式：
+- **Passive defense**：不修改模型，找到异常的图像，类似于**异常检测Anomaly Detection**。常用方法包括**Smoothing**, **Feature Squeezing**, **Randomization**。
+- **Proactive defense**：训练模型，使其对对抗攻击具有鲁棒性。
+
+
+### (1) 被动式防御 Passive defense
+
+### ⚪ Smoothing
+
+对输入图像进行平滑滤波：
+
+![](https://pic2.imgdb.cn/item/645e21630d2dde57778e94ae.jpg)
+
+### ⚪ Feature Squeezing
+- paper：[Feature Squeezing: Detecting Adversarial Examples in Deep Neural Networks](https://arxiv.org/abs/1704.01155)
+
+用多个不同的卷积**filter**进行检测：
+
+![](https://pic2.imgdb.cn/item/645e21c70d2dde57778fa01d.jpg)
+
+### ⚪ Randomization
+- paper：[Mitigating Adversarial Effects Through Randomization](https://arxiv.org/abs/1711.01991)
+
+对输入图像做一些随机的**resize**和**padding**：
+
+![](https://pic2.imgdb.cn/item/645e22090d2dde5777904aa9.jpg)
+
+
+### (2) 主动式防御 Proactive defense
+给定训练数据$$X={(x^1,y^1),...,(x^N,y^N)}$$，从$t=1$到$T$进行迭代：每次迭代时对每个样本$x^n$，构造一个对抗攻击的样本$\hat{x}^n$，将其作为新的训练数据；每轮得到新的训练数据$$X'={(\hat{x}^1,y^1),...,(\hat{x}^N,y^N)}$$，更新模型。
+
+**为什么要进行$T$次迭代？**：每次使用对抗攻击的样本更新模型时可能会产生新的漏洞。
