@@ -11,13 +11,13 @@ tags: 深度学习
 
 深度学习所处理的问题包括优化问题和泛化问题。**优化(optimization)**问题是指在已有的数据集上实现最小的训练误差；而**泛化(generalization)**问题是指在未经过训练的数据集(通常假设与训练集同分布)上实现最小的**泛化误差(generalize error)**。通常深度神经网络具有很强的拟合能力，因此训练误差较低，但是容易**过拟合(overfitting)**，导致泛化误差较大。
 
-**正则化(Regularization)**指的是通过限制模型的**复杂度**，从而降低对输入或者参数的敏感性，避免过拟合，提高模型的泛化能力。对模型复杂度的限制包括约束模型参数(或者约束目标函数)、约束网络结构、约束优化过程。
+**正则化(Regularization)**指的是通过**引入噪声**或限制模型的**复杂度**，降低模型对输入或者参数的敏感性，避免过拟合，提高模型的泛化能力。常用的正则化方法包括约束目标函数(等价于约束模型参数)、约束网络结构、约束优化过程。
 
-- 约束**模型参数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化
-- 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**
-- 约束**优化过程**：在优化过程中施加额外步骤，包括**Early Stop**, 
+- 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化, **WEISSI**正则化, 梯度惩罚
+- 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**及其系列方法, 
+- 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, **Early Stop**, 标签平滑, **Flooding**, 
 
-# 1. 约束模型参数
+# 1. 约束目标函数
 
 ## ⚪ L2正则化 L2 Regularization
 
@@ -67,7 +67,11 @@ $$ \begin{aligned} w^{(t+1)} &\leftarrow w^{(t)} - \alpha \nabla_w[L(w)+λ ||w||
 
 上式相当于在参数更新时首先对参数引入一个衰减系数$\alpha \lambda$，因此也称为**权重衰减(Weight Decay)**正则化。
 
-值得一提的是，在**Adam**等自适应梯度更新算法中，使用梯度的二阶矩进行梯度缩放。因此对于具有较大梯度的权重，其**L2**正则化项会被缩小，从而与权重衰减正则化不等价。[AdamW算法](https://0809zheng.github.io/2020/11/28/adamw.html)则将权重衰减从梯度更新过程中解耦，使得所有权重以相同的正则化程度进行衰减：
+值得一提的是，在**Adam**等自适应学习率算法中，使用梯度的二阶矩进行梯度缩放。此时参数更新过程大约是：
+
+$$ \begin{aligned} w^{(t+1)} &\leftarrow w^{(t)} -2\alpha \lambda \text{sign}(w^{(t)}) - \alpha \nabla_w L(w) \end{aligned} $$
+
+因此对于具有较大梯度的权重，其**L2**正则化项会被缩小，从而与权重衰减正则化不等价。此时每个元素的惩罚都很均匀，而不是绝对值更大的元素惩罚更大，这部分抵消了**L2**正则的作用。[AdamW算法](https://0809zheng.github.io/2020/11/28/adamw.html)则将权重衰减从梯度更新过程中解耦，使得所有权重以相同的正则化程度进行衰减：
 
 $$ \begin{aligned} w^{(t+1)} &\leftarrow w^{(t)} - \alpha (\frac{\hat{m}^{(t)}(w)}{\sqrt{\hat{v}^{(t)}(w)}+\epsilon}+λ w^{(t)}) \end{aligned} $$
 
@@ -86,7 +90,7 @@ $$ w^*= \mathop{\arg\min}_w \frac{1}{N} \sum_{n=1}^{N} {L(y_n,f(x_n);w)}+λ ||w|
 
 从贝叶斯角度出发，把参数$w$看作随机变量，假设其先验概率$p(w)$服从拉普拉斯分布：
 
-$$ w \text{~} L(0,σ_0^2) = \frac{1}{2σ_0^2} \exp(-\frac{|w|}{σ_0^2}) $$
+$$ w \sim L(0,σ_0^2) = \frac{1}{2σ_0^2} \exp(-\frac{|w|}{σ_0^2}) $$
 
 由贝叶斯定理可得参数$w$的后验概率$p(w\|x,y)$：
 
@@ -122,6 +126,86 @@ $$ ||W||_2 = \mathop{\max}_{x \neq 0} \frac{||Wx||}{||x||} $$
 
 谱范数$\|\|W\|\|_2$的平方的取值为$W^TW$的最大特征值。
 
+## ⚪ WEISSI正则化 Weight-Scale-Shift-Invariance Regularization
+
+- paper：[<font color=blue>Improve Generalization and Robustness of Neural Networks via Weight Scale Shifting Invariant Regularizations</font>](https://0809zheng.github.io/2020/09/22/weissi.html)
+
+基于**ReLU**族的神经网络通常具有权重尺度偏移不变性 (**Weight-Scale-Shift-Invariance，WEISSI**)。即对网络参数引入偏移$W_l=\gamma_l\tilde{W}_l$，当$$\prod_{l=1}^L \gamma_l=1$$时网络的输出不变：
+
+$$
+\begin{aligned}
+h_L &= f\left(W_Lf\left(W_{L-1}f(\cdots f\left(W_1x\right))\right)\right) \\
+&= \left( \prod_{l=1}^L \gamma_l \right) f\left(\tilde{W}_Lf\left(\tilde{W}_{L-1}f\left(\cdots f\left(\tilde{W}_1x\right)\right)\right)\right) \\
+\end{aligned}
+$$
+
+而**L2**正则化项不具有权重尺度偏移不变性：
+
+$$
+\sum_{l=1}^L || W_l||_2^2 = \sum_{l=1}^L \gamma_l^2|| \tilde{W}_l||_2^2 \neq \sum_{l=1}^L || \tilde{W}_l||_2^2
+$$
+
+此时模型完全可以找到一组新的参数$$\{\tilde{W}_l,\tilde{b}_l\}$$，它跟原来参数$$\{W_l,b_l\}$$完全等价（没有提升泛化性能），但是**L2**正则项更小。
+
+若希望正则项具有尺度偏移不变性，由于优化过程只需要用到正则项的梯度，则应有：
+
+$$
+\frac{d}{dx} f(\gamma x) = \frac{d}{dx} f( x)
+$$
+
+满足上式的一个解是对数函数$f(x) =\log(x)$。因此对应的正则项为：
+
+$$ \mathcal{L}_{reg} = \sum_{l=1}^L \log(||W_l||_2) =  \log(\prod_{l=1}^L||W_l||_2) $$
+
+
+## ⚪ 梯度惩罚 Gradient Penalty
+
+### （1）对参数的梯度惩罚
+
+- paper：[<font color=blue>Implicit Gradient Regularization</font>](https://0809zheng.github.io/2020/09/20/implicit.html)
+
+梯度下降算法是一种一阶近似优化算法，相当于隐式地在损失函数中添加了对参数的梯度惩罚项：
+
+$$
+\begin{aligned}
+\tilde{g}(W) & \approx g(W) + \frac{1}{4}\gamma \nabla_{W} ||g(W)||^2 \\
+& = \nabla_{W} \left( L(W) + \frac{1}{4}\gamma ||\nabla_{W} L(W)||^2 \right)
+\end{aligned}
+$$
+
+梯度惩罚项有助于模型到达更加平缓的区域，有利于提高泛化性能。此外也可以显式地将梯度惩罚加入到损失中：
+
+$$ \mathcal{L}(x,y;W) + \lambda ||\nabla_{W} \mathcal{L}(x,y;W)||^2  $$
+
+
+### （2）对输入的梯度惩罚
+
+在[对抗训练](https://0809zheng.github.io/2020/07/26/adversirial_attack_in_classification.html#-%E8%AE%A8%E8%AE%BA%E5%AF%B9%E6%8A%97%E8%AE%AD%E7%BB%83%E4%B8%8E%E6%A2%AF%E5%BA%A6%E6%83%A9%E7%BD%9A)中，对输入样本施加$$\epsilon \nabla_x \mathcal{L}(x,y;\theta)$$的对抗扰动，等价于向损失函数中加入对输入的梯度惩罚：
+
+$$
+\begin{aligned}
+\mathcal{L}(x+\Delta x,y;W) &\approx \mathcal{L}(x,y;W)+\epsilon ||\nabla_x\mathcal{L}(x,y;W)||^2
+\end{aligned}
+$$
+
+此时梯度惩罚（或对抗训练）使得模型对于较小的输入扰动具有鲁棒性。此外，对输入的梯度惩罚也被用于约束模型的[Lipschitz连续性](https://0809zheng.github.io/2022/10/11/lipschitz.html#2%E6%A2%AF%E5%BA%A6%E6%83%A9%E7%BD%9A-gradient-penalty)。
+
+对输入的梯度惩罚跟**Dirichlet**能量有关，**Dirichlet**能量则可以作为模型复杂度的表征。所以施加对输入的梯度惩罚，会倾向于选择**复杂度比较小**的模型。
+
+### （3）两者的关系
+
+- paper：[<font color=blue>The Geometric Occam's Razor Implicit in Deep Learning</font>](https://0809zheng.github.io/2020/09/21/relation.html)
+
+对参数的梯度惩罚一定程度上包含了输入的梯度惩罚：
+
+$$
+\begin{aligned}
+||\nabla_x f||^2 \left( \frac{||h^{(l)}||^2}{||W^{(l)}||^2||\nabla_x h^{(l)}||^2} \right) &\leq ||\nabla_{W^{(l)}} f||^2 \\
+\end{aligned}
+$$
+
+
+
 # 2. 约束网络结构
 
 ## ⚪ 随机深度 Stochastic Depth
@@ -137,7 +221,18 @@ $$ ||W||_2 = \mathop{\max}_{x \neq 0} \frac{||Wx||}{||x||} $$
 **Dropout**是指在训练深度神经网络时，随机丢弃一部分**神经元**。即对某一层设置概率$p$，对该层的每个神经元以概率$p$判断是否要丢弃。此时每个神经元的丢弃概率遵循概率$p$的伯努利(**Bernoulli**)分布。
 ![](https://pic.downk.cc/item/5e7de4c1504f4bcb04745d05.png)
 
-训练时激活神经元的平均数量是原来的$p$倍；而在测试时所有神经元都被激活，故测试时需将该层神经元的输出乘以$1-p$(被保留的概率)。或者采用**Inverted Dropout**，即在训练时对某一层按概率$p$随机丢弃神经元之后将该层的输出除以$1-p$；测试时不需再做处理。
+训练时激活神经元的平均数量是原来的$1-p$倍；而在测试时所有神经元都被激活，故测试时需将该层神经元的输出乘以$1-p$(被保留的概率)。或者采用**Inverted Dropout**，即在训练时对某一层按概率$p$随机丢弃神经元之后将该层的输出除以$1-p$；测试时不需再做处理。
+
+```python
+def dropout(x, level):
+	if level < 0. or level >= 1:
+	    raise Exception('Dropout level must be in interval [0, 1].')
+	retain_prob = 1. - level
+	sample = np.random.binomial(n=1, p=retain_prob, size=x.shape)
+	x *= sample
+	x /= retain_prob
+	return x
+```
 
 从不同角度理解**Dropout**：
 1. **正则化Regularization**角度：每一次**Dropout**相当于为原网络引入噪声，测试时通过平均抵消掉噪声；每次训练不会过度依赖于个别的神经元的输出，增强网络的泛化能力；
@@ -155,6 +250,7 @@ $$ E_{q(w)}(y)=\int_{q(w)}^{} {f(x;w)q(w)dw} ≈\frac{1}{M}\sum_{m=1}^{M} {f(x;w
 | **Gaussian Dropout** | 每个神经元的丢弃概率遵循概率$p$的高斯分布$N(1,p(1-p))$ | ![](https://pic.imgdb.cn/item/63b042eb2bbf0e79944c33a1.jpg) |
 | [**Standout**](https://proceedings.neurips.cc/paper/2013/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf) <br> (**NeurIPS2013**) | 神经元的丢弃概率$p$通过信念网络建模 | ![](https://pic.imgdb.cn/item/63b034cd2bbf0e79940d3def.jpg) |
 | [**Spatial Dropout**](https://arxiv.org/abs/1411.4280) <br> (**arXiv1411**) | 对卷积特征图的通道维度应用**Dropout** | ![](https://pic.imgdb.cn/item/63b049a12bbf0e799460fd2a.jpg) |
+| [<font color=blue>DropBlock</font>](https://0809zheng.github.io/2020/09/06/dropblock.html) <br> (**arXiv1810**) | 随机丢弃图像特征中的一个连续区域 | ![](https://pic2.imgdb.cn/item/645b6be60d2dde577786b18a.jpg) |
 | [<font color=blue>Weighted Channel Dropout</font>](https://0809zheng.github.io/2020/10/19/wcd.html) <br> (**AAAI2019**) | 根据激活的相对幅度来选择通道 | ![](https://pic.imgdb.cn/item/63b2a4f15d94efb26f1548af.jpg) |
 | [**Max-Pooling Dropout**](https://arxiv.org/abs/1512.00242v1) <br> (**arXiv1512**) | 把**Dropout**应用到最大池化层 | ![](https://pic.imgdb.cn/item/63b0369c2bbf0e799414a262.jpg) |
 | [**Max-Drop**](http://mipal.snu.ac.kr/images/1/16/Dropout_ACCV2016.pdf) <br> (**ACCV2016**) | 把**Gaussian Dropout**应用到最大池化层 | ![](https://pic.imgdb.cn/item/63b045b12bbf0e7994590826.jpg) |
@@ -164,45 +260,44 @@ $$ E_{q(w)}(y)=\int_{q(w)}^{} {f(x;w)q(w)dw} ≈\frac{1}{M}\sum_{m=1}^{M} {f(x;w
 
 # 3. 约束优化过程
 
+## ⚪ 数据增强 Data Augmentation
+
+**数据增强**(**data augmentation**)是指通过对样本集中的样本进行额外的操作（通常是加入随机噪声），增加样本集的数据量，提高训练模型的鲁棒性，减少过拟合的风险。
+
+关于数据增强的更多讨论可参考：[]()。
+
+
 ## ⚪ Early Stopping
 **Early Stop**是指训练时当观察到验证集上的错误不再下降，就停止迭代。具体停止迭代的时机，可参考[Early stopping-but when?](https://link.springer.com/chapter/10.1007/978-3-642-35289-8_5)。
 
 ![](https://pic.imgdb.cn/item/63b0150c2bbf0e799482b565.jpg)
 
-1. Early Stopping
-2. Dropout
-3. Data Augmentation
-4. Label Smoothing
+## ⚪ 标签平滑 Label Smoothing
+
+- paper：[<font color=blue>Rethinking the Inception Architecture for Computer Vision</font>](https://0809zheng.github.io/2021/03/11/labelsmoothing.html)
 
 
+**标签平滑 (Label Smoothing)**是指对样本的标签引入一定的噪声。（对于分类任务）样本的标签一般用**one-hot**向量表示：$y=(0,...,0,1,0,...,0)^T$。这是一种**Hard Target**，若样本标签本身是错误的，会导致严重的过拟合。
 
-
-
-
-
-
-# 8. Data Augmentation
-数据增强（Data Augmentation）通过对样本集的操作增加数据量（相当于对样本集加入随机噪声），提高模型鲁棒性，避免过拟合。
-
-图像数据的增强方法主要有：
-1. 旋转 Rotation
-2. 翻转 Flip
-3. 缩放 Zoom
-4. 平移 Shift
-5. 加噪声 Noise
-
-# 9. 标签平滑 Label Smoothing
-标签平滑（Label Smoothing）首先在[Rethinking the Inception Architecture for Computer Vision](https://arxiv.org/abs/1512.00567)中被提出。
-
-标签平滑是对样本的标签引入一定的噪声。
-
-一个样本的标签一般用one-hot向量表示：
-
-$$ y=(0,...,0,1,0,...,0)^T $$
-
-这是一种Hard Target，若样本标签是错误的，会导致严重的过拟合。引入噪声对标签进行平滑，假设样本以ε的概率为其他类：
+标签平滑技术引入噪声对标签进行平滑，假设样本以$ε$的概率被错误标注为其他类别，则可以把标签修改为一种**Soft Target**：
 
 $$ y'=(\frac{ε}{K-1},...,\frac{ε}{K-1},1-ε,\frac{ε}{K-1},...,\frac{ε}{K-1})^T $$
 
-上述标签是一种Soft Target，但没有考虑标签的相关性。一种更好的做法是按照类别相关性赋予其他标签不同的概率。
+## ⚪ Flooding
 
+- paper：[<font color=Blue>Do We Need Zero Training Loss After Achieving Zero Training Error?</font>](https://0809zheng.github.io/2020/12/28/losszero.html)
+
+过参数化的深度网络能够在训练后实现零训练误差，此时会记忆训练数据，尽管训练损失接近**0**，但测试精度下降。**flooding**正则化方法为损失函数指定一个合理的较小值$b$，使其在优化时在该值附近波动，而不至于损失下降过小。此时尽管训练损失不会下降，但测试损失会进一步下降，从而具有更好的泛化性。
+
+$$
+\tilde{\mathcal{L}}(w) = | \mathcal{L}(w) -b| + b
+$$
+
+![](https://pic.imgdb.cn/item/6227116e5baa1a80ab3c4c54.jpg)
+
+## ⚪ 对抗训练
+
+
+
+
+- [R-Drop: Regularized Dropout for Neural Networks](https://0809zheng.github.io/2021/07/10/rdrop.html)：(arXiv2106)R-Drop：正则化的Dropout方法。
