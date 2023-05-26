@@ -9,7 +9,7 @@ tags: 深度学习
 
 > Position Encoding in Transformer.
 
-**Transformer**中的自注意力机制无法捕捉位置信息，这是因为其计算过程具有置换不变性(**permutation invariant**)，导致打乱输入序列的顺序对输出结果不会产生任何影响。
+**Transformer**中的[自注意力机制](https://0809zheng.github.io/2020/04/24/self-attention.html)无法捕捉位置信息，这是因为其计算过程具有**置换不变性**(**permutation invariant**)，导致打乱输入序列的顺序对输出结果不会产生任何影响。
 
 对于**Transformer**模型$f(\cdot)$，标记输入序列的两个向量$x_m,x_n$，则**Transformer**具有**全对称性**：
 
@@ -21,39 +21,73 @@ $$ \tilde{f}(\cdots, x_m, \cdots, x_n, \cdots)  = f(\cdots, x_m+p_m, \cdots, x_n
 
 对上式进行二阶**Taylor**展开：
 
-$$ \tilde{f} ≈ f + p_m^T \frac{\partial f}{\partial x_m} + p_n^T \frac{\partial f}{\partial x_n} + p_m^T \frac{\partial^2 f}{\partial x_m^2}p_m + p_n^T \frac{\partial^2 f}{\partial x_n}p_n +p_m^T \frac{\partial^2 f}{\partial x_m\partial x_n}p_n $$
+$$ \tilde{f} ≈ f + \underbrace{p_m^T \frac{\partial f}{\partial x_m} + p_n^T \frac{\partial f}{\partial x_n} + p_m^T \frac{\partial^2 f}{\partial x_m^2}p_m + p_n^T \frac{\partial^2 f}{\partial x_n}p_n}_{\text{绝对位置信息}} +\underbrace{p_m^T \frac{\partial^2 f}{\partial x_m\partial x_n}p_n}_{\text{相对位置信息}} $$
 
-在上式中，第2至5项只依赖于单一位置，表示绝对位置信息。第6项包含$m,n$位置的交互项，表示相对位置信息。因此位置编码主要有两种实现形式：
-- **绝对位置编码**：将位置信息加入到输入序列中，相当于引入索引的嵌入。比如**Sinusoidal**, **Learnable**, **FLOATER**, **Complex-order**, **RoPE**
-- **相对位置编码**：通过微调自注意力运算过程使其能分辨不同**token**之间的相对位置。比如**XLNet**, **T5**, **DeBERTa**, **URPE**
+在上式中，第**2**至**5**项只依赖于单一位置，表示绝对位置信息。第**6**项包含$m,n$位置的交互项，表示相对位置信息。因此位置编码主要有两种实现形式：
+- **绝对位置编码 (absolute PE)**：将位置信息加入到输入序列中，相当于引入索引的嵌入。比如**Sinusoidal**, **Learnable**, **FLOATER**, **Complex-order**, **RoPE**
+- **相对位置编码 (relative PE)**：通过微调自注意力运算过程使其能分辨不同**token**之间的相对位置。比如**XLNet**, **T5**, **DeBERTa**, **URPE**
 
-# 1. 绝对位置编码
 
-绝对位置编码是指在输入序列的第$k$个**token**向量$$x_k \in \Bbb{R}^{d}$$中加入位置向量$$p_k  \in \Bbb{R}^{d}$$，其过程等价于向输入引入位置索引$k$的嵌入$x_k+p_k$。
+# 1. 绝对位置编码 Absolute Position Encoding
+
+**绝对位置编码**是指在输入序列经过词嵌入后的第$k$个**token**向量$$x_k \in \Bbb{R}^{d}$$中加入(**add**)位置向量$$p_k  \in \Bbb{R}^{d}$$；其过程等价于首先向输入引入(**concatenate**)位置索引$k$的**one hot**向量$p_k: x_k+p_k$，再进行词嵌入；因此绝对位置编码也被称为**位置嵌入(position embedding)**。
+
+![](https://pic.downk.cc/item/5ea29a5ac2a9a83be55e6d0f.jpg)
 
 ## (1) 三角函数式(Sinusoidal)位置编码
 
-三角函数式(**Sinusoidal**)位置编码是在原**Transformer**模型中使用的一种显式编码：
+三角函数式(**Sinusoidal**)位置编码是在原**Transformer**模型中使用的一种显式编码。以一维三角函数编码为例：
 
-$$ \begin{aligned} &p_{k,2i} = \sin(\frac{k}{10000^{2i/d}})  \\ &p_{k,2i+1} = \cos(\frac{k}{10000^{2i/d}}) \end{aligned} $$
+$$ \begin{aligned} p_{k,2i} &= \sin(\frac{k}{10000^{2i/d}})  \\ p_{k,2i+1} &= \cos(\frac{k}{10000^{2i/d}}) \end{aligned} $$
 
-其中$p_{k,2i},p_{k,2i+1}$分别是位置索引$k$处的编码向量的第$2i,2i+1$个分量。**Sinusoidal**编码的可视化如下：
+其中$p_{k,2i},p_{k,2i+1}$分别是位置索引$k$处的编码向量的第$2i,2i+1$个分量。一个长度为$32$的输入序列（每个输入向量的特征维度是$128$）的**Sinusoidal**编码的可视化如下：
 
 ![](https://pic.imgdb.cn/item/62c2adb75be16ec74a39e29e.jpg)
 
-根据三角函数的性质，位置$\alpha+\beta$处的编码向量可以表示成位置$\alpha$和位置$\beta$的向量的组合，因此可以外推到任意位置：
-
-$$ \begin{aligned} &\sin(\alpha+\beta) = \sin \alpha \cos \beta +  \cos \alpha \sin \beta \\ &\cos(\alpha+\beta) = \cos \alpha \cos \beta -  \sin \alpha \sin \beta \end{aligned} $$
 
 ```python
-def SinusoidalEncoding(seq_len, d_model):
+def SinusoidalEncoding1d(seq_len, d_model):
     pos_table = np.array([
         [pos / np.power(10000, 2 * i / d_model) for i in range(d_model)] 
         for pos in range(seq_len)])
-    pos_table[1:, 0::2] = np.sin(pos_table[1:, 0::2])                
+    pos_table[1:, 0::2] = np.sin(pos_table[1:, 0::2])  # pos_table[0]作用于[CLS]，不需要位置编码
     pos_table[1:, 1::2] = np.cos(pos_table[1:, 1::2])                
     return torch.FloatTensor(pos_table)  
 ```
+
+根据三角函数的性质，位置$\alpha+\beta$处的编码向量可以表示成位置$\alpha$和位置$\beta$的向量的组合，因此可以**外推**到任意位置：
+
+$$ \begin{aligned} \sin(\alpha+\beta) &= \sin \alpha \cos \beta +  \cos \alpha \sin \beta \\ \cos(\alpha+\beta) &= \cos \alpha \cos \beta -  \sin \alpha \sin \beta \end{aligned} $$
+
+在图像领域，常用到二维形式的位置编码。以二维三角函数编码为例，需要分别对高度方向和宽度方向进行编码$p=[p_h,p_w]$：
+
+$$ \begin{aligned} p_{h,2i} &= \sin(\frac{h}{10000^{2i/d}}), \quad  p_{h,2i+1} = \cos(\frac{h}{10000^{2i/d}}) \\ p_{w,2i} &= \sin(\frac{w}{10000^{2i/d}}), \quad  p_{w,2i+1} = \cos(\frac{w}{10000^{2i/d}}) \end{aligned} $$
+
+```python
+def positionalencoding2d(d_model, height, width):
+    """
+    :param d_model: dimension of the model
+    :param height: height of the positions
+    :param width: width of the positions
+    :return: d_model*height*width position matrix
+    """
+    if d_model % 4 != 0:
+        raise ValueError("Cannot use sin/cos positional encoding with "
+                         "odd dimension (got dim={:d})".format(d_model))
+    pe = torch.zeros(d_model, height, width)
+    # Each dimension use half of d_model
+    d_model = int(d_model / 2)
+    div_term = torch.exp(torch.arange(0., d_model, 2) *
+                         -(math.log(10000.0) / d_model))
+    pos_w = torch.arange(0., width).unsqueeze(1)
+    pos_h = torch.arange(0., height).unsqueeze(1)
+    pe[0:d_model:2, :, :] = torch.sin(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, height, 1)
+    pe[1:d_model:2, :, :] = torch.cos(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, height, 1)
+    pe[d_model::2, :, :] = torch.sin(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, width)
+    pe[d_model+1::2, :, :] = torch.cos(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, width)
+    return pe
+```
+
 
 ## (2) 可学习(Learnable)位置编码
 
@@ -109,7 +143,7 @@ $$ q_i=p_i, \quad i=1,2,\cdots,n $$
 $$ u_i = \frac{p_i-\alpha p_1}{1-\alpha} , \quad i=1,2,\cdots,n  $$
 
 
-# 2. 相对位置编码
+# 2. 相对位置编码 Relative Position Encoding
 
 相对位置编码并不是直接建模每个输入**token**的位置信息，而是在计算注意力矩阵时考虑当前向量与待交互向量的位置的相对距离。
 
@@ -140,6 +174,123 @@ $$ \begin{aligned}  \alpha_{ij} &=  \text{softmax}\{ x_iW^Q (W^K)^T x_j^T+x_iW^Q
 在**T5**模型中，移除了值向量的位置编码$p_j$以及注意力计算中的输入-位置注意力项($x_i,p_j$和$p_i,x_j$)，并将位置-位置注意力项($p_i,p_j$)设置为可学习标量$r_{i,j}$：
 
 $$ \begin{aligned}  \alpha_{ij} &=  \text{softmax}\{ x_iW^Q (W^K)^T x_j^T+r_{i,j} \} \\ z_i &= \sum_{j=1}^{n} \alpha_{ij}x_jW^V  \end{aligned} $$
+
+一维形式的**T5**式相对位置编码的实现过程如下：
+
+```python
+class Attention(nn.Module):
+    def __init__(self, dim, seq_len, heads = 8, dim_head = 64, dropout = 0.):
+        super().__init__()
+        inner_dim = dim_head *  heads
+        project_out = not (heads == 1 and dim_head == dim)
+
+        self.heads = heads
+        self.scale = dim_head ** -0.5
+
+        self.attend = nn.Softmax(dim = -1)
+        self.dropout = nn.Dropout(dropout)
+
+        self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
+
+        self.to_out = nn.Sequential(
+            nn.Linear(inner_dim, dim),
+            nn.Dropout(dropout)
+        ) if project_out else nn.Identity()
+
+        # positional bias
+
+        self.pos_bias = nn.Embedding(seq_len, heads)
+
+        q_pos = torch.arange(seq_len)
+        k_pos = torch.arange(seq_len)
+
+        pos_indices = (q_pos[:, None] - k_pos[None, :]).abs()
+
+        self.register_buffer('pos_indices', pos_indices)
+
+    def apply_pos_bias(self, fmap):
+        bias = self.pos_bias(self.pos_indices)
+        bias = rearrange(bias, 'i j h -> () h i j')
+        return fmap + (bias / self.scale)
+
+    def forward(self, x):
+        qkv = self.to_qkv(x).chunk(3, dim = -1)
+        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = self.heads), qkv)
+
+        dots = torch.matmul(q, k.transpose(-1, -2)) * self.scale
+
+        # 引入相对位置编码
+        dots = self.apply_pos_bias(dots)
+
+        attn = self.attend(dots)
+        attn = self.dropout(attn)
+
+        out = torch.matmul(attn, v)
+        out = rearrange(out, 'b h n d -> b n (h d)')
+        return self.to_out(out)
+```
+
+二维形式的**T5**式相对位置编码的实现过程如下：
+
+```python
+class Attention(nn.Module):
+    def __init__(self, dim, fmap_size, heads = 8, dim_head = 64, dropout = 0.):
+        super().__init__()
+        inner_dim = dim_head *  heads
+        project_out = not (heads == 1 and dim_head == dim)
+
+        self.heads = heads
+        self.scale = dim_head ** -0.5
+
+        self.attend = nn.Softmax(dim = -1)
+        self.dropout = nn.Dropout(dropout)
+
+        self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
+
+        self.to_out = nn.Sequential(
+            nn.Linear(inner_dim, dim),
+            nn.Dropout(dropout)
+        ) if project_out else nn.Identity()
+
+        # positional bias
+
+        self.pos_bias = nn.Embedding(fmap_size * fmap_size, heads)
+
+        q_range = torch.arange(fmap_size)
+        k_range = torch.arange(fmap_size)
+
+        q_pos = torch.stack(torch.meshgrid(q_range, q_range, indexing = 'ij'), dim = -1)
+        k_pos = torch.stack(torch.meshgrid(k_range, k_range, indexing = 'ij'), dim = -1)
+
+        q_pos, k_pos = map(lambda t: rearrange(t, 'i j c -> (i j) c'), (q_pos, k_pos))
+        rel_pos = (q_pos[:, None, ...] - k_pos[None, :, ...]).abs()
+
+        x_rel, y_rel = rel_pos.unbind(dim = -1)
+        pos_indices = (x_rel * fmap_size) + y_rel
+
+        self.register_buffer('pos_indices', pos_indices)
+
+    def apply_pos_bias(self, fmap):
+        bias = self.pos_bias(self.pos_indices)
+        bias = rearrange(bias, 'i j h -> () h i j')
+        return fmap + (bias / self.scale)
+
+    def forward(self, x):
+        qkv = self.to_qkv(x).chunk(3, dim = -1)
+        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = self.heads), qkv)
+
+        dots = torch.matmul(q, k.transpose(-1, -2)) * self.scale
+
+        # 引入相对位置编码
+        dots = self.apply_pos_bias(dots)
+
+        attn = self.attend(dots)
+        attn = self.dropout(attn)
+
+        out = torch.matmul(attn, v)
+        out = rearrange(out, 'b h n d -> b n (h d)')
+        return self.to_out(out)
+```
 
 ## (4) [<font color=Blue>DeBERTa式</font>](https://0809zheng.github.io/2021/04/02/deberta.html)
 
