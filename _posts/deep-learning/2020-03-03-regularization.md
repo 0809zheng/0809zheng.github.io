@@ -15,7 +15,7 @@ tags: 深度学习
 
 - 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化, **WEISSI**正则化, 梯度惩罚
 - 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**及其系列方法, 
-- 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, **Early Stop**, 标签平滑, **Flooding**, 
+- 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, **Early Stop**, 标签平滑, **Flooding**, 虚拟对抗训练
 
 # 1. 约束目标函数
 
@@ -295,9 +295,17 @@ $$
 
 ![](https://pic.imgdb.cn/item/6227116e5baa1a80ab3c4c54.jpg)
 
-## ⚪ 对抗训练
+## ⚪ 虚拟对抗训练 Virtual Adversarial Training
 
+- paper：[<font color=Blue>Virtual Adversarial Training: A Regularization Method for Supervised and Semi-Supervised Learning</font>](https://0809zheng.github.io/2020/09/23/vat.html)
 
+**虚拟对抗训练**通过寻找使得损失$l(f(x+\epsilon),f(x))$尽可能大的扰动噪声$\epsilon$，并最小化该损失，从而增强网络对于扰动噪声的鲁棒性。
+
+**VAT**的完整流程如下：
+1. 初始化向量$$u\sim \mathcal{N}(0,1)$$、标量$\epsilon, \xi$；
+2. 迭代$r$次：$$\begin{aligned} u &\leftarrow \frac{u}{\mid\mid u \mid\mid} \\ u &\leftarrow  \nabla_x l(f(x+\xi u),f_{sg}(x))  \end{aligned}$$
+3. $$u \leftarrow \frac{u}{\mid\mid u \mid\mid}$$
+4. 用$l(f(x+\epsilon u),f_{sg}(x))$作为损失函数执行梯度下降。
 
 
 - [R-Drop: Regularized Dropout for Neural Networks](https://0809zheng.github.io/2021/07/10/rdrop.html)：(arXiv2106)R-Drop：正则化的Dropout方法。
