@@ -15,7 +15,7 @@ tags: 深度学习
 
 - 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化, **WEISSI**正则化, 梯度惩罚
 - 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**及其系列方法, 
-- 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, **Early Stop**, 标签平滑, **Flooding**, 虚拟对抗训练
+- 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, **Early Stop**, 标签平滑, 变分信息瓶颈, 虚拟对抗训练, **Flooding**
 
 # 1. 约束目标函数
 
@@ -283,6 +283,38 @@ $$ E_{q(w)}(y)=\int_{q(w)}^{} {f(x;w)q(w)dw} ≈\frac{1}{M}\sum_{m=1}^{M} {f(x;w
 
 $$ y'=(\frac{ε}{K-1},...,\frac{ε}{K-1},1-ε,\frac{ε}{K-1},...,\frac{ε}{K-1})^T $$
 
+## ⚪ 变分信息瓶颈 Variational Information Bottleneck
+
+- paper：[<font color=Blue>Deep Variational Information Bottleneck</font>](https://0809zheng.github.io/2020/09/24/vib.html)
+
+深度学习模型可以被拆分成编码+预测两个步骤。第一步是把$x$编码为一个隐变量$z$，第二步是把隐变量$z$预测为标签$y$。
+
+**变分信息瓶颈**希望能尽可能地减少隐变量$z$包含的信息量，在实现时为损失函数引入互信息$I(x,z)$的变分上界。对于分类任务，引入变分信息瓶颈后的总损失函数表示为：
+
+$$
+\begin{aligned}
+\mathcal{L} &= \mathbb{E}_{p(x)} \left[ \mathbb{E}_{p(z|x)} \left[ -\log p(y|z) \right]  + \lambda  KL\left[ p(z|x) \mid\mid q(z)\right] \right] \\
+\end{aligned}
+$$
+
+相比原始的监督学习任务，变分信息瓶颈的改动是：
+1. 使用编码器$p(z\|x)$编码特征的均值和方差，加入了重参数化操作；
+2. 加入了后验分布$p(z\|x)$与给定的先验分布$q(z)$之间的**KL**散度为额外的损失函数。
+
+
+
+## ⚪ 虚拟对抗训练 Virtual Adversarial Training
+
+- paper：[<font color=Blue>Virtual Adversarial Training: A Regularization Method for Supervised and Semi-Supervised Learning</font>](https://0809zheng.github.io/2020/09/23/vat.html)
+
+**虚拟对抗训练**通过寻找使得损失$l(f(x+\epsilon),f(x))$尽可能大的扰动噪声$\epsilon$，并最小化该损失，从而增强网络对于扰动噪声的鲁棒性。
+
+**VAT**的完整流程如下：
+1. 初始化向量$$u\sim \mathcal{N}(0,1)$$、标量$\epsilon, \xi$；
+2. 迭代$r$次：$$\begin{aligned} u &\leftarrow \frac{u}{\mid\mid u \mid\mid} \\ u &\leftarrow  \nabla_x l(f(x+\xi u),f_{sg}(x))  \end{aligned}$$
+3. $u \leftarrow \frac{u}{\mid\mid u \mid\mid}$
+4. 用$l(f(x+\epsilon u),f_{sg}(x))$作为损失函数执行梯度下降。
+
 ## ⚪ Flooding
 
 - paper：[<font color=Blue>Do We Need Zero Training Loss After Achieving Zero Training Error?</font>](https://0809zheng.github.io/2020/12/28/losszero.html)
@@ -294,18 +326,6 @@ $$
 $$
 
 ![](https://pic.imgdb.cn/item/6227116e5baa1a80ab3c4c54.jpg)
-
-## ⚪ 虚拟对抗训练 Virtual Adversarial Training
-
-- paper：[<font color=Blue>Virtual Adversarial Training: A Regularization Method for Supervised and Semi-Supervised Learning</font>](https://0809zheng.github.io/2020/09/23/vat.html)
-
-**虚拟对抗训练**通过寻找使得损失$l(f(x+\epsilon),f(x))$尽可能大的扰动噪声$\epsilon$，并最小化该损失，从而增强网络对于扰动噪声的鲁棒性。
-
-**VAT**的完整流程如下：
-1. 初始化向量$$u\sim \mathcal{N}(0,1)$$、标量$\epsilon, \xi$；
-2. 迭代$r$次：$$\begin{aligned} u &\leftarrow \frac{u}{\mid\mid u \mid\mid} \\ u &\leftarrow  \nabla_x l(f(x+\xi u),f_{sg}(x))  \end{aligned}$$
-3. $$u \leftarrow \frac{u}{\mid\mid u \mid\mid}$$
-4. 用$l(f(x+\epsilon u),f_{sg}(x))$作为损失函数执行梯度下降。
 
 
 - [R-Drop: Regularized Dropout for Neural Networks](https://0809zheng.github.io/2021/07/10/rdrop.html)：(arXiv2106)R-Drop：正则化的Dropout方法。
