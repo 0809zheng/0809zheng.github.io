@@ -16,16 +16,16 @@ tags: 深度学习
 
 本文目录：
 - **深度神经网络的类型**
-1. **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、轻量级卷积神经网络
+1. **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、卷积神经网络中的注意力机制、轻量级卷积神经网络
 2. **循环神经网络**：循环神经网络的基本概念、序列到序列模型、序列到序列模型中的注意力机制
 3. **自注意力网络**：自注意力机制、**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、预训练语言模型
 4. **深度生成模型**：生成对抗网络、变分自编码器、流模型
 5. **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络
 - **深度学习的基本组件和方法技巧**
 1. **深度学习的基本组件**：激活函数、优化方法
-2. **深度学习的方法技巧**：半监督学习、度量学习、长尾分布、多任务学习、主动学习
+2. **深度学习的方法技巧**：半监督学习、度量学习、长尾分布、多任务学习、主动学习、对抗训练
 - **深度学习的应用**
-1. **计算机视觉**：图像识别、图像超分辨率、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别
+1. **计算机视觉**：图像识别、图像分割、图像超分辨率、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别
 2. **自然语言处理**：
 3. 
 
@@ -51,7 +51,15 @@ tags: 深度学习
 - 通用的池化方法：最大池化, 平均池化, 混合池化, 分数最大池化, 幂平均池化, 随机池化, 随机空间采样池化(**S3Pool**), 细节保留池化(**DPP**), 局部重要性池化(**LIP**), 软池化, 动态优化池化(**DynOPool**)
 - 为下游任务设计的池化方法：全局平均池化(**GAP**), 协方差池化, 空间金字塔池化(**SPP**), 感兴趣区域池化(**RoI Pooling**)
 
-### ⚪ [卷积神经网络中的注意力机制](https://0809zheng.github.io/2020/11/18/AinCNN.html)
+### ⚪ [<font color=Blue>卷积神经网络中的注意力机制(Attention Mechanism)</font>](https://0809zheng.github.io/2020/11/18/AinCNN.html)
+
+卷积神经网络中的**注意力机制**表现为在特征的某个维度上计算相应**统计量**，并根据所计算的统计量对该维度上的每一个元素赋予不同的权重，用以增强网络的特征表达能力。
+
+卷积层的特征维度包括通道维度和空间维度，因此注意力机制可以应用在不同维度上：
+- **通道注意力(Channel Attention)**：**SENet**, **CMPT-SE**, **GENet**, **GSoP**, **SRM**, **SKNet**, **DIA**, **ECA-Net**, **SPANet**, **FcaNet**, **EPSA**, **TSE**, **NAM**
+- **空间注意力(Spatial Attention)**：**Residual Attention Network**, **SGE**, **ULSAM**
+- 通道+空间：(**并联**)**scSE**, **BAM**, **SA-Net**, **Triplet Attention**; (**串联**)**CBAM**; (**融合**)**SCNet**, **Coordinate Attention**, **SimAM** 
+- 其他注意力：**DCANet**, **WE**, **ATAC**, **AFF**, **AW-Convolution**, **BA^2M**, **Interflow**, **CSRA**
 
 
 ### ⚪ [卷积神经网络的可视化](https://0809zheng.github.io/2020/12/16/custom.html)
@@ -164,7 +172,7 @@ $$ \begin{aligned} \mathop{ \min}_{G} \mathop{\max}_{D}  \Bbb{E}_{x \text{~} P_{
 生成对抗网络的设计是集目标函数、网络结构、优化过程于一体的，**GAN**的各种变体也是基于对这些方面的改进：
 - 改进目标函数：基于分布散度(如**f-GAN**, **BGAN**, **Softmax GAN**, **RGAN**, **LSGAN**, **WGAN-div**, **GAN-QP**, **Designing GAN**)、基于积分概率度量(如**WGAN**, **WGAN-GP**, **DRAGAN**, **SN-GAN**, **GN-GAN**, **GraN-GAN**, **c-transform**, **McGAN**, **MMD GAN**, **Fisher GAN**)
 - 改进网络结构：调整神经网络(如**DCGAN**, **SAGAN**, **BigGAN**, **Self-Modulation**, **StyleGAN1,2,3**, **TransGAN**)、引入编码器(如**VAE-GAN**, **BiGAN**, **VQGAN**)、使用能量模型(如**EBGAN**, **LSGAN**, **BEGAN**, **MAGAN**, **MEG**)、由粗到细的生成(如**LAPGAN**, **StackGAN**, **PGGAN**, **SinGAN**)
-- 改进优化过程：**TTUR**, **Dirac-GAN**, **Cascading Rejection**, **ADA**, **Hubness Prior**
+- 改进优化过程：**TTUR**, **Dirac-GAN**, **VDB**, **Cascading Rejection**, **ADA**, **Hubness Prior**
 - 其他应用：条件生成(如**CGAN**, **InfoGAN**, **ACGAN**, **Projection Discriminator**)、[<font color=Blue>图像到图像翻译</font>](https://0809zheng.github.io/2020/05/23/image_translation.html)(有配对数据, 如**Pix2Pix**, **BicycleGAN**, **LPTN**; 无配对数据, 如**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**, **CUT**, **SimDCL**)、超分辨率(如**SRGAN**, **ESRGAN**)、图像修补(如**Context Encoder**, **CCGAN**, **SPADE**)、机器学习应用(如**Semi-Supervised GAN**, **AnoGAN**, **ClusterGAN**)
 
 ### ⚪ [<font color=Blue>变分自编码器 (Variational Autoencoder)</font>](https://0809zheng.github.io/2022/04/01/vae.html)
@@ -240,7 +248,9 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 
 ## (1) 深度学习的基本组件
 ### ⚪ [<font color=Blue>激活函数 (Activation Function)</font>](https://0809zheng.github.io/2020/03/01/activation.html)
-**激活函数**能为神经网络引入非线性，常见的激活函数根据设计思路分类如下：
+**激活函数**能为神经网络引入非线性，在设计激活函数时可以考虑的性质包括：连续可导、计算量小、没有饱和区、没有偏置偏移、具有生物可解释性、提取上下文信息、通用近似性。
+
+常见的激活函数根据设计思路分类如下：
 - **S**型激活函数：形如**S**型曲线的激活函数。包括**Step**，**Sigmoid**，**HardSigmoid**，**Tanh**，**HardTanh**
 - **ReLU**族激活函数：形如**ReLU**的激活函数。包括**ReLU**，**Softplus**, **Squareplus**，**ReLU6**，**LeakyReLU**，**PReLU**，**RReLU**，**ELU**，**GELU**，**CELU**，**SELU**
 - 自动搜索激活函数：通过自动搜索解空间得到的激活函数。包括**Swish**，**HardSwish**，**Elish**，**HardElish**，**Mish**
@@ -254,19 +264,20 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla_{\theta} l(θ_{t-1}) \\ h_t &= f(g_{1},...,g_{t}) \\ θ_t&=θ_{t-1}-\gamma h_t \end{aligned} $$
 
 基于梯度的方法存在一些缺陷，不同的改进思路如下：
-- 更新过程中容易陷入局部极小值或鞍点；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**, **Funnelled SGDM**, **Lion**)。
+- 更新过程中容易陷入局部极小值或鞍点；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**, **Funnelled SGDM**)。
 - 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；常见解决措施是为每个特征设置**自适应**学习率(如**RProp**, **AdaGrad**, **RMSprop**, **AdaDelta**)。
-- 可以结合基于动量的方法和基于自适应学习率的方法，如**Adam**, **AdamW**, **Adamax**, **Nadam**, **AMSGRad**, **Radam**, **AdaX**。这类方法需要同时存储与模型参数具有相同尺寸的动量和方差，通常会占用较多内存，一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
+- 可以结合基于动量的方法和基于自适应学习率的方法，如**Adam**, **AdamW**, **Adamax**, **Nadam**, **AMSGRad**, **Radam**, **AdaX**, **Amos**, **Lion**。这类方法需要同时存储与模型参数具有相同尺寸的动量和方差，通常会占用较多内存，一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
 - 在分布式训练大规模神经网络时，整体批量通常较大，权重更新的次数减少，常见解决措施是通过**层级自适应**实现每一层的梯度归一化(如**LARS**, **LAMB**, **NovoGrad**)。
-- 其他优化方法：随机权重平均、零阶优化、使用前向梯度代替反向传播梯度、**Lookahead**、**Amos**。
+- 其他优化方法：随机权重平均、零阶优化、使用前向梯度代替反向传播梯度、**Lookahead**、**Data Echoing**。
+
+### ⚪ [<font color=Blue>正则化方法 (Regularization)</font>](https://0809zheng.github.io/2020/03/03/regularization.html)
+
+**正则化**指的是通过**引入噪声**或限制模型的**复杂度**，降低模型对输入或者参数的敏感性，避免过拟合，提高模型的泛化能力。常用的正则化方法包括：
+- 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化, 自正交性正则化, **WEISSI**正则化, 梯度惩罚
+- 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**及其系列方法,
+- 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, 梯度裁剪, **Early Stop**, 标签平滑, 变分信息瓶颈, 虚拟对抗训练, **Flooding**
 
 
-
-
-### ⚪ 
-
-
-- [正则化方法](https://0809zheng.github.io/2020/03/03/regularization.html)
 - [标准化方法](https://0809zheng.github.io/2020/03/04/normalization.html)
 - [参数初始化方法](https://0809zheng.github.io/2020/03/05/initialization.html)
 
@@ -318,10 +329,20 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**, **Cluster-Margin**)、判别学习(如**VAAL**, **CAL**, **DAL**)
 - **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BatchBALD**, **BADGS**, **Active DPP**, **VAAL**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
 
-### 
+### ⚪ [<font color=Blue>对抗训练 (Adversarial Training)</font>](https://0809zheng.github.io/2020/07/26/adversirial_attack_in_classification.html)
+
+**对抗训练**是指通过构造对抗样本，对模型进行对抗攻击和防御来增强模型的稳健性。对抗训练的一般形式如下：
+
+$$
+\mathcal{\min}_{\theta} \mathbb{E}_{(x,y)\sim \mathcal{D}} \left[ \mathcal{\max}_{\Delta x \in \Omega}  \mathcal{L}(x+\Delta x,y;\theta) \right]
+$$
+
+- 对抗攻击是指想办法造出更多的对抗样本；常用的对抗攻击方法包括：**FGSM**, **I-FGSM**, **MI-FGSM**, **NI-FGSM**, **DIM**, **TIM**, **One Pixel Attack**, **Black-box Attack**。
+- 对抗防御是指想办法让模型能正确识别更多的对抗样本；常用的对抗防御方法包括**Smoothing**, **Feature Squeezing**, **Randomization**, **Proactive defense**。
+
+
 
 - [深度学习的可解释性](https://0809zheng.github.io/2020/04/28/explainable-DL.html)
-- [对抗攻击](https://0809zheng.github.io/2020/04/30/adversarial-attack.html)：[图像分类中的对抗攻击](https://0809zheng.github.io/2020/07/26/adversirial_attack_in_classification.html)、[目标检测中的对抗攻击](https://0809zheng.github.io/2020/07/25/adversirial_attack_in_object_detection.html)
 
 
 
@@ -343,7 +364,25 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 4. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
 5. 其他结构：**Noisy Student**, **SCAN**, **NFNet**, **ResNet-RS**
 
+### ⚪ [<font color=Blue>图像分割 (Image Segmentation)</font>](https://0809zheng.github.io/2020/05/07/semantic-segmentation.html)
 
+**图像分割**是对图像中的每个像素进行分类，可以细分为：
+- **语义分割**：注重类别之间的区分，而不区分同一类别的不同个体；
+- **实例分割**：注重类别以及同一类别的不同个体之间的区分；
+- **全景分割**：对于可数的对象实例(如行人、汽车)做实例分割，对于不可数的语义区域(如天空、地面)做语义分割。
+
+图像分割模型通常采用**编码器-解码器**结构。编码器从预处理的图像数据中提取特征，解码器把特征解码为分割掩码。图像分割模型的发展趋势可以大致总结为：
+- 全卷积网络：**FCN**, **SegNet**, **RefineNet**, **U-Net**, **V-Net**, **M-Net**, **W-Net**, **Y-Net**, **UNet++**, **Attention U-Net**, **GRUU-Net**, **BiSeNet V1,2**, **DFANet**, **SegNeXt**
+- 上下文模块：**DeepLab v1,2,3,3+**, **PSPNet**, **FPN**, **UPerNet**, **EncNet**, **PSANet**, **APCNet**, **DMNet**, **OCRNet**, **PointRend**, **K-Net**
+- 基于**Transformer**：**SETR**, **TransUNet**, **SegFormer**, **Segmenter**, **MaskFormer**, **SAM**
+- 通用技巧：**Deep Supervision**, **Self-Correction**
+
+图像分割中常用的评估指标包括：**PA**, **CPA**, **MPA**, **IoU**, **MIoU**, **FWIoU**, **Dice Coefficient**。
+
+图像分割的损失函数用于衡量预测分割结果和真实标签之间的差异。根据损失函数的推导方式不同，图像分割任务中常用的损失函数可以划分为：
+- 基于分布的损失：**Cross-Entropy Loss**, **Weighted Cross-Entropy Loss**, **TopK Loss**, **Focal Loss**, **Distance Map Penalized CE Loss**
+- 基于区域的损失：**Sensitivity-Specifity Loss**, **IoU Loss**, **Lovász Loss**, **Dice Loss**, **Tversky Loss**, **Focal Tversky Loss**, **Asymmetric Similarity Loss**, **Generalized Dice Loss**, **Penalty Loss**
+- 基于边界的损失：**Boundary Loss**, **Hausdorff Distance Loss**
 
 ### ⚪ [目标检测](https://0809zheng.github.io/2020/05/31/object-detection.html)
 
@@ -351,8 +390,6 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - [提高非极大值抑制算法的精度](https://0809zheng.github.io/2021/05/12/nms_accuracy.html)
 - [提高非极大值抑制算法的效率](https://0809zheng.github.io/2021/05/11/nms_efficiency.html)
 
-### ⚪ [语义分割](https://0809zheng.github.io/2020/05/07/semantic-segmentation.html)
-- [图像分割的评估指标](https://0809zheng.github.io/2021/09/09/segmenteval.html)：**PA**, **CPA**, **MPA**, **IoU**, **MIoU**, **FWIoU**, **Dice Coefficient**
 
 ### ⚪ [人体姿态估计](https://0809zheng.github.io/2020/05/08/pose-estimation.html)
 

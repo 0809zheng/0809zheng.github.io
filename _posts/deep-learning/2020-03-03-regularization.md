@@ -13,9 +13,9 @@ tags: 深度学习
 
 **正则化(Regularization)**指的是通过**引入噪声**或限制模型的**复杂度**，降低模型对输入或者参数的敏感性，避免过拟合，提高模型的泛化能力。常用的正则化方法包括约束目标函数(等价于约束模型参数)、约束网络结构、约束优化过程。
 
-- 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化, **WEISSI**正则化, 梯度惩罚
-- 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**及其系列方法, 
-- 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, **Early Stop**, 标签平滑, 变分信息瓶颈, 虚拟对抗训练, **Flooding**
+- 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化, 自正交性正则化, **WEISSI**正则化, 梯度惩罚
+- 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**及其系列方法,
+- 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, 梯度裁剪, **Early Stop**, 标签平滑, 变分信息瓶颈, 虚拟对抗训练, **Flooding**
 
 # 1. 约束目标函数
 
@@ -125,6 +125,22 @@ $$ \mathcal{L}(x,y;W) + \lambda ||W||_2^2 $$
 $$ ||W||_2 = \mathop{\max}_{x \neq 0} \frac{||Wx||}{||x||} $$
 
 谱范数$\|\|W\|\|_2$的平方的取值为$W^TW$的最大特征值。
+
+## ⚪ 自正交性正则化 Self-Orthogonality Regularization
+
+- paper：[<font color=blue>Self-Orthogonality Module: A Network Architecture Plug-in for Learning Orthogonal Filters</font>](https://0809zheng.github.io/2020/09/30/som.html)
+
+自正交性正则化不仅能促进模型参数的正交性，而且能带来一定的结果提升。给定两个参数向量$w_i,w_j$，$\theta_{i,j} \in [0, \pi]$是它们的夹角，$$x$$是对应的输入向量，则有：
+
+$$
+\mathcal{V}_{i,j} = \mathbb{E}_{x \sim \mathcal{X}}\left[ \text{sign}\left(x^Tw_i\right)\text{sign}\left(x^Tw_j\right) \right] = 1 - \frac{2\theta}{\pi}
+$$
+
+若参数向量$$w_i,w_j$$正交，则$$\mathcal{V}_{i,j}=0$$。因此可以构造正则项：
+
+$$
+\mathcal{R}_{\mathcal{V}} = \lambda_1 \left(\sum_{i \neq j}\mathcal{V}_{i,j}\right)^2 + \lambda_2 \sum_{i \neq j} \mathcal{V}_{i,j}^2
+$$
 
 ## ⚪ WEISSI正则化 Weight-Scale-Shift-Invariance Regularization
 
@@ -255,6 +271,7 @@ $$ E_{q(w)}(y)=\int_{q(w)}^{} {f(x;w)q(w)dw} ≈\frac{1}{M}\sum_{m=1}^{M} {f(x;w
 | [**Max-Pooling Dropout**](https://arxiv.org/abs/1512.00242v1) <br> (**arXiv1512**) | 把**Dropout**应用到最大池化层 | ![](https://pic.imgdb.cn/item/63b0369c2bbf0e799414a262.jpg) |
 | [**Max-Drop**](http://mipal.snu.ac.kr/images/1/16/Dropout_ACCV2016.pdf) <br> (**ACCV2016**) | 把**Gaussian Dropout**应用到最大池化层 | ![](https://pic.imgdb.cn/item/63b045b12bbf0e7994590826.jpg) |
 | [**MaxDropout**](https://arxiv.org/abs/2007.13723) <br> (**arXiv2007**) | 对输入特征进行归一化，然后把大于给定阈值$p$的特征位置设置为$0$ | ![](https://pic.imgdb.cn/item/63b022162bbf0e7994bdaa88.jpg) |
+| [<font color=blue>R-Drop</font>](https://0809zheng.github.io/2021/07/10/rdrop.html)  <br> (**arXiv2106**) | 通过两次**Dropout**从同一个模型中获取同一个输入样本的两个不同输出向量，使得两次输出的分布足够接近 | ![](https://pic.imgdb.cn/item/647d445e1ddac507cc2ddbf0.jpg) |
 
 
 
@@ -266,6 +283,25 @@ $$ E_{q(w)}(y)=\int_{q(w)}^{} {f(x;w)q(w)dw} ≈\frac{1}{M}\sum_{m=1}^{M} {f(x;w
 
 关于数据增强的更多讨论可参考：[]()。
 
+## ⚪ 梯度裁剪 Gradient Clipping
+
+**梯度裁剪**是根据梯度的模长来对更新量做一个缩放，控制更新量的模长不超过一个常数:
+
+$$
+\theta \leftarrow \theta - \eta \text{clip} \left( \nabla_{\theta}f(\theta) , - maxVal, maxVal \right)
+$$
+
+```python
+losses.backward()
+torch.nn.utils.clip_grad_norm_(model.parameters(), clip_max_norm)
+optimizer.step()
+```
+
+论文[<font color=blue>Why gradient clipping accelerates training: A theoretical justification for adaptivity</font>](https://0809zheng.github.io/2020/09/28/clip.html)指出，梯度裁剪相当于为模型引入$(L_0,L_1)$-**Smooth**约束：
+
+$$
+||\nabla_{\theta}f(\theta+\Delta \theta) - \nabla_{\theta}f(\theta)|| \leq \left(L_0+L_1 ||\nabla_{\theta}f(\theta)||\right) ||\Delta \theta||
+$$
 
 ## ⚪ Early Stopping
 **Early Stop**是指训练时当观察到验证集上的错误不再下降，就停止迭代。具体停止迭代的时机，可参考[Early stopping-but when?](https://link.springer.com/chapter/10.1007/978-3-642-35289-8_5)。
@@ -327,5 +363,3 @@ $$
 
 ![](https://pic.imgdb.cn/item/6227116e5baa1a80ab3c4c54.jpg)
 
-
-- [R-Drop: Regularized Dropout for Neural Networks](https://0809zheng.github.io/2021/07/10/rdrop.html)：(arXiv2106)R-Drop：正则化的Dropout方法。
