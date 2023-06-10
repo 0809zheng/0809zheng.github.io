@@ -22,7 +22,7 @@ tags: 深度学习
 4. **深度生成模型**：生成对抗网络、变分自编码器、流模型
 5. **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络
 - **深度学习的基本组件和方法技巧**
-1. **深度学习的基本组件**：激活函数、优化方法
+1. **深度学习的基本组件**：激活函数、优化方法、正则化方法
 2. **深度学习的方法技巧**：半监督学习、度量学习、长尾分布、多任务学习、主动学习、对抗训练
 - **深度学习的应用**
 1. **计算机视觉**：图像识别、图像分割、图像超分辨率、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别
@@ -445,7 +445,13 @@ $$
 - [音乐生成](https://0809zheng.github.io/2020/10/26/musicgen.html)
 
 
-## (3) 自然语言处理
+## (3) AI for Science
+
+- [Fourier Neural Operator for Parametric Partial Differential Equations](https://0809zheng.github.io/2021/06/28/fno.html)：(arXiv2010)为偏微分方程设计的傅里叶神经算子。
+- [Advancing mathematics by guiding human intuition with AI](https://0809zheng.github.io/2022/01/08/mathai.html)：(Nature 2021.12)用人工智能引导人类直觉推进数学发展。
+- [Noether Networks: Meta-Learning Useful Conserved Quantities](https://0809zheng.github.io/2022/06/19/noether.html)：(arXiv2112)Noether网络：通过元学习学习有用的守恒量。
+- [Discovering faster matrix multiplication algorithms with reinforcement learning](https://0809zheng.github.io/2022/11/21/alphatensor.html)：(Nature 2022.10)AlphaTensor：通过强化学习发现更快的矩阵乘法算法。
+- [Faster sorting algorithms discovered using deep reinforcement learning](https://0809zheng.github.io/2023/06/07/alphadev.html)：(Nature 2023.06)AlphaDev：通过深度强化学习发现更快的排序算法。
 
 
 
