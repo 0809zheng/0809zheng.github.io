@@ -3,7 +3,7 @@ layout: post
 title: '目标检测(Object Detection)'
 date: 2020-05-08
 author: 郑之杰
-cover: ''
+cover: 'https://pic.imgdb.cn/item/64899e3d1ddac507ccb6d5cb.jpg'
 tags: 深度学习
 ---
 
@@ -16,6 +16,7 @@ tags: 深度学习
 2. 基于深度学习的目标检测算法
 3. 目标检测的评估指标
 4. 非极大值抑制算法
+5. 目标检测中的回归损失函数
 
 # 1. 传统的目标检测算法
 
@@ -190,9 +191,9 @@ $$
 单阶段的目标检测模型直接在最后的特征映射上进行预测；而两阶段的方法先在特征映射上生成若干候选区域，再对候选区域进行预测。由此可以看出单阶段的方法所处理的候选区域是**密集**的；而两阶段的方法由于预先筛选了候选区域，最终处理的候选区域相对来说是**稀疏**的。
 
 下面介绍一些常用的目标检测模型：
-- 两阶段的目标检测模型：
+- 两阶段的目标检测模型：**R-CNN**, **Fast RCNN**, **Faster RCNN**, **SPP-Net**, **FPN**, **Cascade RCNN**, 
 - 单阶段的目标检测模型：**OverFeat**
-- 基于Transformer的目标检测模型
+- 基于**Transformer**的目标检测模型：**DETR**
 
 ## （1）两阶段的目标检测模型
 
@@ -221,34 +222,34 @@ $$
 
 ![](https://pic.imgdb.cn/item/6486c8f51ddac507cc862f79.jpg)
 
+### ⚪ SPP-Net
+
+- paper：[Spatial Pyramid Pooling in Deep Convolutional Networks for Visual Recognition](http://arxiv.org/abs/1406.4729)
+
+在目标检测模型中需要把尺寸和形状各异的**proposal**调整到固定的尺寸以进行后续的分类和边界框回归任务。**SPP-Net**提出了一种**空间金字塔池化(Spatial Pyramid Pooling, SPP)**层，能够把任意不同尺寸和不同长宽比的图像特征转换为固定尺寸大小的输出特征向量。在实现时分别把特征划分成$k_i \times k_i$的栅格，然后应用最大池化操作构造长度为$\sum_i k_i^2c$的输出特征。
+
+![](https://pic.imgdb.cn/item/63abf68f08b6830163947507.jpg)
 
 
-### 2. SPPNet
+### ⚪ FPN
 
-![](https://pic.downk.cc/item/5facf6701cd1bbb86b4ef017.jpg)
+- paper：[Feature Pyramid Networks for Object Detection](https://arxiv.org/abs/1612.03144)
 
-由于预测的卷积网络需要固定尺寸的输入，**R-CNN**处理的方法是直接对特征映射进行各向异性的缩放，这一过程会引入失真和畸变，损失了图像的部分文本信息。
+卷积网络不同层输出的特征映射具有不同的感受野和分辨率，适合检测不同尺度的目标：浅层特征具有较高的分辨率，适合检测小目标；深层特征具有范围较大的感受野，适合检测大目标。
 
-**SPPNet**提出了一种**空间金字塔池化(Spatial Pyramid Pooling)**层，对于任意大小的输入尺寸，均可形成相同长度的输出特征向量，且这个长度是预先定义的，与输入图像的尺寸无关。当给定一个输入特征映射时，把这个映射划分成$s×s$个子区域，如果不能整除就做近似。对每一个子区域应用最大池化可以得到一个标量，那么最终就能把输入转化成一个向量。当选择的$s$不同时，所得向量的长度也不同。在这篇文章中$s$取$1$、$2$、$4$，最终得到$21$维的向量。
+**特征金字塔网络 (Feature Pyramid Network, FPN)**通过转置卷积和特征融合生成不同尺度的特征，并在这些空间信息和语义信息都很丰富的特征映射上同时执行目标检测任务。
 
+![](https://pic.imgdb.cn/item/648a798e1ddac507cc9f9cb3.jpg)
 
+### ⚪ Cascade R-CNN
+- paper：[<font color=blue>Cascade R-CNN: Delving into High Quality Object Detection</font>](https://0809zheng.github.io/2021/03/10/cascadercnn.html)
 
+在**Faster R-CNN**等网络中，在训练时会为**RPN**网络设置**IoU**阈值，以区分**proposal**是否包含目标，进而只对**positive proposal**进行边界框回归；通常该阈值设置越高，生成的**proposal**越准确，但是正样本的数量降低，容易过拟合。而在推理时所有**proposal**都用于边界框回归。这导致这导致了在训练和测试阶段中，**proposal**的分布不匹配问题。
 
-### 5. FPN
+为了提高检测精度，产生更高质量的**proposal**，**Cascade R-CNN**使用不同**IoU**阈值（$0.5$、$0.6$、$0.7$）训练多个级联的检测器，通过串联的学习获得较高的目标检测精度。
 
-![](https://pic.downk.cc/item/5facf8ae1cd1bbb86b4f97df.jpg)
+![](https://pic.imgdb.cn/item/648a6d5a1ddac507cc8cd09c.jpg)
 
-之前的几个网络都是将图像喂入网络得到对应的特征向量。卷积网络的浅层映射特征通常具有较强的空间信息，据具有较高的分辨率，适合检测小目标；而深层的特征映射具有较强的语义信息，具有范围较大的感受野，适合检测较大的目标。
-
-**特征金字塔网络(Feature Pyramid Network, FPN)**就是将卷积网络的浅层映射和深层映射结合起来，首先通过前向传播得到由浅入深的特征映射，再将深层的特征映射通过转置卷积增加尺寸，并结合每一层特征映射的信息，最终可以得到一个空间信息和语义信息都很丰富的特征映射。将该特征映射用于下游的任务，最终能够提高目标检测的准确率。
-
-### 6. Cascade R-CNN
-
-![](https://pic.downk.cc/item/5facf96f1cd1bbb86b4fcd81.jpg)
-
-网络在检测目标时会设置一个**交并比阈值(IoU Threshold)**，当预测的边界框和真实目标框的交并比超过该阈值时，才认为边界框检测到了目标。通常该阈值设置越高，能够检测出的边界框越准确，但是由于提高了阈值，导致正样本的数量呈指数级降低，容易过拟合。在预测时，该阈值选取得不同会导致候选区域的样本分布发生变化，从而影响最终的结果。
-
-**Cascade R-CNN**是一种串联的两阶段目标检测算法，串联网络的思想是使用不同交并比的阈值训练多个级联的检测器，在原文中作者使用了四个网络，第一个网络提取特征映射，之后分别使用阈值为$0.5$、$0.6$、$0.7$的检测网络，通过这样一种串联的学习获得了较高的目标检测精度。
 
 ## （2）单阶段的目标检测模型
 
@@ -270,142 +271,68 @@ $$
 
 ![](https://pic.imgdb.cn/item/648672f01ddac507cccfcec2.jpg)
 
+### ⚪ YOLO
+- paper：[<font color=blue>You Only Look Once: Unified, Real-Time Object Detection</font>](https://0809zheng.github.io/2021/03/16/yolo.html)
+
+**YOLO**模型把图像划分成$S\times S$个网格（对应尺寸为$S\times S$的特征映射），每个网格预测$B$个边界框的坐标和置信度得分，以及当边界框中存在目标时的$K$个类别概率。网络的输出特征尺寸为$S\times S \times (5B+K)$。
+
+![](https://pic.imgdb.cn/item/648ab13b1ddac507cc26b9d9.jpg)
+
+### ⚪ YOLOv2/YOLO9000
+- paper：[<font color=blue>YOLO9000: Better, Faster, Stronger</font>](https://0809zheng.github.io/2021/03/17/yolov2.html)
+
+**YOLOv2**相比于**YOLO**进行以下改进：
+- 网络结构的改进：增加**BatchNorm**、引入跳跃连接、轻量级网络
+- 检测方式的改进：引入**anchor**、通过**k-means**设置**anchor**
+- 训练过程的改进：增大图像分辨率、多尺度训练
+
+**YOLO9000**结合小型目标检测数据集（**COCO**的$80$类）与大型图像分类数据集（**ImageNet**的前$9000$类）联合训练目标检测模型。如果输入图像来自分类数据集，则只会计算分类损失。
+
+### ⚪ YOLOv3
+- paper：[<font color=blue>YOLOv3: An Incremental Improvement</font>](https://0809zheng.github.io/2021/03/19/yolov3.html)
+
+**YOLOv3**相比于**YOLOv2**进行以下改进：
+- 网络结构的改进：特征提取网络为**DarkNet53**、使用多层映射进行多尺度检测、构造特征金字塔网络增强特征
+- 损失函数的改进：边界框回归损失采用**GIoU**损失、置信度分类与类别分类损失采用逻辑回归（二元交叉熵）
 
 
+### ⚪ SSD
+- paper：[<font color=blue>SSD: Single Shot MultiBox Detector</font>](https://0809zheng.github.io/2021/03/20/ssd.html)
 
-### 1. YOLO系列
+**SSD**模型提取包含不同尺度的图像的特征金字塔表示，并在每个尺度上执行目标检测。在每一层特征映射上，**SSD**设置不同尺寸的**anchor**来检测不同尺度的目标。对于每一个特征位置，模型对$k=6$个**anchor**分别预测$4$个边界框位置偏移量与$c$个类别概率。则对于$m\times n$的特征图，模型输出特征尺寸为$m\times n\times k(c+4)$。
 
-![](https://pic.downk.cc/item/5facfa001cd1bbb86b50019d.jpg)
+![](https://pic.imgdb.cn/item/648acd401ddac507cc7a016f.jpg)
 
-**YOLO**算法可能是目前最知名的单阶段目标检测算法，它的基本思想是用卷积网络实现滑动窗口。
 
-当一张图像喂入卷积网络后，可以得到尺寸缩小的特征映射，比如$7×7$的映射。映射的每一个子区域都能对应到原图像中的一个子区域，假设原图像的这个子区域内含有目标，则通过网络把相关信息编码到特征映射的对应区域上。
+### ⚪ RetinaNet
+- paper：[<font color=blue>Focal Loss for Dense Object Detection</font>](https://0809zheng.github.io/2021/03/21/retinanet.html)
 
-在原始的网络中，每一个子区域预设一些边界框用来检测该区域可能出现的目标，由此可以看出，单阶段的检测方法在每个子区域都会预测很多边界框，因此所处理的候选区域是非常密集的，所以会出现大量的负样本，造成目标检测中正负样本的比例极其不均衡，这也是影响单阶段目标检测算法的主要问题。
+**RetinaNet**的两个关键组成部分是**Focal Loss**和特征图像金字塔。**Focal Loss**用于缓解边界框的正负样本类别不平衡问题；特征图像金字塔通过**FPN**构造多尺度特征进行预测。
 
-**YOLOv2**相比于**YOLO**进行了很多改进，包括引入了**BatchNorm**、新的网络结构和**anchor**机制。作者还引入了许多提高检测精度的训练和测试方法。后来的**YOLOv3**等也主要是使用了大量同时期的模型训练技巧，通过对照和消融实现选择能够最大程度提升检测性能的一些方法。
+![](https://pic.imgdb.cn/item/648d115a1ddac507ccc3c57e.jpg)
 
-### 2. SSD
-
-![](https://pic.downk.cc/item/5facfa9c1cd1bbb86b503ae1.jpg)
-
-**SSD**网络也是一种单阶段的目标检测器。之前提到卷积网络的不同层次的特征映射具有不同的空间和语义信息，**SSD**网络考虑使用网络中的多层特征映射，在每一层映射上设置不同尺寸的**anchor**用来检测不同尺度的目标，取得了很好的检测效果。
 
 ## （3） 基于Transformer的目标检测模型
 
-# 目标检测领域的论文清单
 
-## 综述 Survey
 
-### Deep Learning for Generic Object Detection: A Survey
-- arXiv:[https://arxiv.org/abs/1809.02165](https://arxiv.org/abs/1809.02165)
-
-### Recent Advances in Object Detection in the Age of Deep Convolutional Neural Networks
-- arXiv:[https://arxiv.org/abs/1809.03193](https://arxiv.org/abs/1809.03193)
-
-### Object Detection in 20 Years: A Survey
-- arXiv:[https://arxiv.org/abs/1905.05055](https://arxiv.org/abs/1905.05055)
-
-### A Survey of Deep Learning-based Object Detection
-- arXiv:[https://arxiv.org/abs/1907.09408](https://arxiv.org/abs/1907.09408)
-
-### Recent Advances in Deep Learning for Object Detection
-- arXiv:[https://arxiv.org/abs/1908.03673](https://arxiv.org/abs/1908.03673)
-
-### Imbalance Problems in Object Detection: A Review
-- arXiv:[https://arxiv.org/abs/1909.00169](https://arxiv.org/abs/1909.00169)
-
-## 传统检测方法 Traditional CV Methods
-
-### Selective Search for Object Recognition
-- intro:Selective Search
-- paper:[https://ivi.fnwi.uva.nl/isis/publications/bibtexbrowser.php?key=UijlingsIJCV2013&bib=all.bib](https://ivi.fnwi.uva.nl/isis/publications/bibtexbrowser.php?key=UijlingsIJCV2013&bib=all.bib)
-
-### Discriminatively Trained Deformable Part Models
-- intro:DPM
-- paper:[http://www.computervisiononline.com/software/discriminatively-trained-deformable-part-models](http://www.computervisiononline.com/software/discriminatively-trained-deformable-part-models)
 
 ## 两阶段的检测器 Two-Stage Detectors
 
-### Rich feature hierarchies for accurate object detection and semantic segmentation
-- intro:R-CNN
-- arXiv:[http://arxiv.org/abs/1311.2524](http://arxiv.org/abs/1311.2524)
-- github(official):[https://github.com/rbgirshick/rcnn](https://github.com/rbgirshick/rcnn)
-
-### Spatial Pyramid Pooling in Deep Convolutional Networks for Visual Recognition
-- intro:SPP-net
-- arXiv:[http://arxiv.org/abs/1406.4729](http://arxiv.org/abs/1406.4729)
-- github(official):[https://github.com/ShaoqingRen/SPP_net](https://github.com/ShaoqingRen/SPP_net)
-
-### Fast R-CNN
-- intro:Fast R-CNN
-- arXiv:[http://arxiv.org/abs/1504.08083](http://arxiv.org/abs/1504.08083)
-- github(official):[https://github.com/rbgirshick/fast-rcnn](https://github.com/rbgirshick/fast-rcnn)
-
-### Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks
-- intro:Faster R-CNN
-- arXiv:[http://arxiv.org/abs/1506.01497](http://arxiv.org/abs/1506.01497)
-- github(official, Matlab):[https://github.com/ShaoqingRen/faster_rcnn](https://github.com/ShaoqingRen/faster_rcnn)
 
 ### R-FCN: Object Detection via Region-based Fully Convolutional Networks
 - intro:R-FCN
 - arXiv:[http://arxiv.org/abs/1605.06409](http://arxiv.org/abs/1605.06409)
 
-### Feature Pyramid Networks for Object Detection
-- intro:FPN
-- arXiv:[https://arxiv.org/abs/1612.03144](https://arxiv.org/abs/1612.03144)
+
 
 ### Mask R-CNN
 - intro:Mask R-CNN
 - arXiv:[http://arxiv.org/abs/1703.06870](http://arxiv.org/abs/1703.06870)
 
-### A-Fast-RCNN: Hard Positive Generation via Adversary for Object Detection
-- intro:
-- arXiv:[https://arxiv.org/abs/1704.03414](https://arxiv.org/abs/1704.03414)
-
-### Light-Head R-CNN: In Defense of Two-Stage Object Detector
-- intro:Light-Head R-CNN
-- arXiv:[https://arxiv.org/abs/1711.07264](https://arxiv.org/abs/1711.07264)
-- github(official):[https://github.com/zengarden/light_head_rcnn](https://github.com/zengarden/light_head_rcnn)
-
-### Cascade R-CNN: Delving into High Quality Object Detection
-- intro:Cascade R-CNN
-- arXiv:[https://arxiv.org/abs/1712.00726](https://arxiv.org/abs/1712.00726)
 
 ## 单阶段的检测器 One-Stage Detectors
 
-### Scalable Object Detection using Deep Neural Networks
-- intro:MultiBox
-- arXiv:[https://arxiv.org/abs/1312.2249](https://arxiv.org/abs/1312.2249)
-
-
-
-### You Only Look Once: Unified, Real-Time Object Detection
-- intro:YOLO
-- arXiv:[http://arxiv.org/abs/1506.02640](http://arxiv.org/abs/1506.02640)
-- code:[https://pjreddie.com/darknet/yolov1/](https://pjreddie.com/darknet/yolov1/)
-
-### SSD: Single Shot MultiBox Detector
-- intro:SSD
-- arXiv:[http://arxiv.org/abs/1512.02325](http://arxiv.org/abs/1512.02325)
-- github(official):[https://github.com/weiliu89/caffe/tree/ssd](https://github.com/weiliu89/caffe/tree/ssd)
-
-### YOLO9000: Better, Faster, Stronger
-- intro:YOLOv2
-- arXiv:[https://arxiv.org/abs/1612.08242](https://arxiv.org/abs/1612.08242)
-- code:[https://pjreddie.com/darknet/yolov2/](https://pjreddie.com/darknet/yolov2/)
-
-### DSSD : Deconvolutional Single Shot Detector
-- intro:DSSD
-- arXiv:[https://arxiv.org/abs/1701.06659](https://arxiv.org/abs/1701.06659)
-
-### DSOD: Learning Deeply Supervised Object Detectors from Scratch
-- intro:DSOD
-- arXiv:[https://arxiv.org/abs/1708.01241](https://arxiv.org/abs/1708.01241)
-
-### Focal Loss for Dense Object Detection
-- intro:RetinaNet
-- arXiv:[https://arxiv.org/abs/1708.02002](https://arxiv.org/abs/1708.02002)
 
 ### Single-Shot Refinement Neural Network for Object Detection
 - intro:RefineNet
@@ -423,38 +350,20 @@ $$
 - intro:ESSD
 - arXiv:[https://arxiv.org/abs/1801.05918](https://arxiv.org/abs/1801.05918)
 
-### YOLOv3: An Incremental Improvement
-- intro:YOLOv3
-- arXiv:[https://arxiv.org/abs/1804.02767](https://arxiv.org/abs/1804.02767)
-- github(official):[https://github.com/pjreddie/darknet](https://github.com/pjreddie/darknet)
-
 ### DetNet: A Backbone network for Object Detection
 - intro:DetNet
 - arXiv:[https://arxiv.org/abs/1804.06215](https://arxiv.org/abs/1804.06215)
 
-### Pelee: A Real-Time Object Detection System on Mobile Devices
-- intro:Pelee
-- arXiv:[https://arxiv.org/abs/1804.06882](https://arxiv.org/abs/1804.06882)
-
-### MDSSD: Multi-scale Deconvolutional Single Shot Detector for small objects
-- intro:MDSSD
-- arXiv:[https://arxiv.org/abs/1805.07009](https://arxiv.org/abs/1805.07009)
 
 ### You Only Look Twice: Rapid Multi-Scale Object Detection In Satellite Imagery
 - intro:YOLT
 - arXiv:[https://arxiv.org/abs/1805.09512](https://arxiv.org/abs/1805.09512)
 
-### Fire SSD: Wide Fire Modules based Single Shot Detector on Edge Device
-- intro:Fire SSD
-- arXiv:[https://arxiv.org/abs/1806.05363](https://arxiv.org/abs/1806.05363)
 
 ### CornerNet: Detecting Objects as Paired Keypoints
 - intro:CornerNet
 - arXiv:[https://arxiv.org/abs/1808.01244](https://arxiv.org/abs/1808.01244)
 
-### M2Det: A Single-Shot Object Detector based on Multi-Level Feature Pyramid Network
-- intro:M2Det
-- arXiv:[https://arxiv.org/abs/1811.04533](https://arxiv.org/abs/1811.04533)
 
 ### EfficientDet: Scalable and Efficient Object Detection
 - intro:EfficientDet
@@ -597,3 +506,253 @@ $$
 ### ⚪ 类别平均准确率 mean Average Precision (mAP)
 
 **类别平均准确率**是指计算所有类别的**AP**值的平均值。
+
+# 4. 非极大值抑制算法
+
+**非极大值抑制 (non-maximum suppression,NMS)**算法是目标检测等任务中常用的后处理方法，能够过滤掉多余的检测边界框。本文介绍**NMS**算法及其计算效率较低的原因，并介绍一些能够提高**NMS**算法效率的算法。目录如下：
+
+1. **NMS**算法
+2. **CUDA NMS**
+3. **Fast NMS**
+4. **Cluster NMS**
+5. **Matrix NMS**
+
+# 1. NMS算法
+**NMS**算法的流程如下：
+- 输入边界框集合$$\mathcal{B}=\{(B_n,c_n)\}_{n=1,...,N}$$，其中$c_n$是边界框$B_n$的置信度；
+- 选中集合$$\mathcal{B}$$中置信度最大的边界框$B_i$，将其从集合$$\mathcal{B}$$移动至输出边界框集合$$\mathcal{O}$$中；
+- 遍历集合$$\mathcal{B}$$中的其余所有边界框$B_j$，计算边界框$B_i$和边界框$B_j$的交并比$\text{IoU}(B_i,B_j)$。若$\text{IoU}(B_i,B_j)≥\text{threshold}$，则删除边界框$B_j$；
+- 重复上述步骤，直至集合$$\mathcal{B}$$为空集。
+
+**NMS**算法及其计算效率较低的原因，上述算法存在一些问题，如下：
+1. 算法采用顺序处理的模式，运算效率低；
+2. 根据阈值删除边界框的机制缺乏灵活性；
+3. 阈值通常是人工根据经验选定的；
+4. 评价标准是交并比**IoU**，只考虑两框的重叠面积。
+
+## （1）提高NMS算法的效率
+
+# 2. CUDA NMS
+**CUDA NMS**是**NMS**的**GPU**版本，旨在将**IoU**的计算并行化，并通过矩阵运算加速。
+
+**NMS**中的**IoU**计算是顺序处理的。假设图像中一共有$N$个检测框，每一个框都需要和其余所有框计算一次**IoU**，则计算复杂度是$O(\frac{N(N-1)}{2})=O(N^2)$。
+
+若将边界框集合$$\mathcal{B}$$按照置信度得分从高到低排序，即$B_1$是得分最高的框，$B_N$是得分最低的框；则可以计算**IoU**矩阵：
+
+$$ X=\text{IoU}(B,B)= \begin{pmatrix} x_{11} & x_{12} & ... & x_{1N} \\ x_{21} & x_{22} & ... & x_{2N} \\ ... & ... & ... & ... \\ x_{N1} & x_{N2} & ... & x_{NN} \\ \end{pmatrix} , \quad x_{ij}=\text{IoU}(B_i,B_j) $$
+
+通过**GPU**的并行加速能力，可以一次性得到**IoU**矩阵的全部计算结果。
+
+下面是**CUDA NMS**计算**IoU**矩阵的一种简单实现。许多深度学习框架也已将**CUDA NMS**作为基本函数使用，如**Pytorch**在**torchvision 0.3**版本中正式集成了**CUDA NMS**。
+
+```
+def box_iou(boxes1, boxes2):
+    """
+    Return intersection-over-union (Jaccard index) of boxes.
+    Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+    Arguments:
+        boxes1 (Tensor[N, 4])
+        boxes2 (Tensor[M, 4])
+    Returns:
+        iou (Tensor[N, M]): the NxM matrix containing the pairwise
+            IoU values for every element in boxes1 and boxes2
+    """
+
+    def box_area(box):
+        # box = 4xn
+        return (box[2] - box[0]) * (box[3] - box[1])
+
+    area1 = box_area(boxes1.t())
+    area2 = box_area(boxes2.t())
+
+    lt = torch.max(boxes1[:, None, :2], boxes2[:, :2])  # [N,M,2]
+    rb = torch.min(boxes1[:, None, 2:], boxes2[:, 2:])  # [N,M,2]
+
+    inter = (rb - lt).clamp(min=0).prod(2)  # [N,M]
+    return inter / (area1[:, None] + area2 - inter)  # iou = inter / (area1 + area2 - inter)
+```
+
+计算得到**IoU**矩阵后，需要利用它抑制冗余框。可以采用矩阵查询的方法（仍然需要顺序处理，但计算**IoU**本身已经被并行加速）；也可以使用下面提出的一些算法。
+
+# 3. Fast NMS
+- paper：[YOLACT: Real-time Instance Segmentation](https://arxiv.org/abs/1904.02689)
+
+根据**IoU**矩阵的计算规则可以得出$\text{IoU}(B_i,B_j)=\text{IoU}(B_j,B_i)$，且计算$\text{IoU}(B_i,B_i)$是没有意义的。因此**IoU**矩阵$X$是对称矩阵。**Fast NMS**算法首先对矩阵$X$使用**pytorch**提供的`triu`函数进行上三角化，得到上三角矩阵：
+
+$$ X=\text{IoU}(B,B)= \begin{pmatrix} 0 & x_{12} & ... & x_{1N} \\ 0 & 0 & ... & x_{2N} \\ ... & ... & ... & ... \\ 0 & 0 & ... & 0 \\ \end{pmatrix} $$
+
+若按照**NMS**的规则，应该按行依次遍历矩阵$X$，如果某行$i$中元素$x_{ij}=\text{IoU}(B_i,B_j),j＞i$超过阈值，则应剔除边界框$B_j$，且不再考虑$j$所对应的行与列。
+
+**Fast NMS**则对上述规则进行了化简。对矩阵$X$执行按列取最大值的操作，得到一维向量$b=\[b_1,b_2,...,b_N\]$，$b_n$代表矩阵$X$的第$n$列中元素的最大值。然后使用阈值二值化，$b$中元素小于阈值对应保留的边界框，$b$中元素大于阈值对应冗余框。
+
+**Fast NMS**的思路是只要边界框$B_j$与任意边界框$B_i$重合度较大(超过阈值)，则认为其是冗余框，将其剔除。这样做容易删除更多边界框，因为假如边界框$B_j$与边界框$B_i$重合度较大，但边界框$B_i$已经被剔除，则边界框$B_j$还是有可能会被保留的。一个简单的例子如下，注意到边界框$B_4$被错误地剔除了。
+
+$$ X= \begin{pmatrix} 0 & 0.6 & 0.1 & 0.3 & 0.8 \\   & 0 & 0.2 & 0.72 & 0.1 \\   &   & 0 & 0.45 & 0.12 \\   &   &   & 0 & 0.28 \\   &   &   &   & 0 \\ \end{pmatrix} \\ (\text{按列取最大值}) \\ b = [0,0.6,0.2,0.72,0.8] \\ (\text{选定阈值为0.5}) \\ b = [1,0,1,0,0] \\ (\text{保留边界框1和边界框3}) $$
+
+使用**pytorch**实现**Fast NMS**算法如下：
+
+```
+def fast_nms(self, boxes, scores, NMS_threshold:float=0.5):
+    '''
+    Arguments:
+        boxes (Tensor[N, 4])
+        scores (Tensor[N, 1])
+    Returns:
+        Fast NMS results
+    '''
+    scores, idx = scores.sort(1, descending=True)
+    boxes = boxes[idx]   # 对框按得分降序排列
+    iou = box_iou(boxes, boxes)  # IoU矩阵
+    iou.triu_(diagonal=1)  # 上三角化
+    keep = iou.max(dim=0)[0] < NMS_threshold  # 列最大值向量，二值化
+
+    return boxes[keep], scores[keep]
+```
+
+**Fast NMS**算法比**NMS**算法运算速度更快，但由于其会抑制更多边界框，会导致性能略微下降。
+
+# 4. Cluster NMS
+- paper：[Enhancing Geometric Factors in Model Learning and Inference for Object Detection and Instance Segmentation](https://arxiv.org/abs/2005.03572)
+
+**Cluster NMS**算法旨在弥补**Fast NMS**算法性能下降的问题，同时保持较快的运算速度。
+
+定义边界框的**cluster**，若边界框$B_i$属于该**cluster**，则边界框$B_i$与集合内任意边界框$B_j$的交并比$\text{IoU}(B_i,B_j)$均超过阈值，且边界框$B_i$与不属于该集合的任意边界框$B_k$的交并比$\text{IoU}(B_i,B_k)$均不低于阈值。通过定义**cluster**将边界框分成不同的簇，如下图可以把边界框分成三组**cluster**：
+
+![](https://pic.imgdb.cn/item/609b797bd1a9ae528fb1bd9f.jpg)
+
+**Cluster NMS**算法本质上是**Fast NMS**算法的迭代式。算法前半部分与**Fast NMS**算法相同，都是按降序排列边界框、计算**IoU**矩阵、矩阵上三角化、按列取最大值、阈值二值化得到一维向量$b$。不同于**Fast NMS**算法直接根据向量$b$输出结果，**Cluster NMS**算法将向量$b$按对角线展开为对角矩阵，将其左乘**IoU**矩阵。然后再对新的矩阵按列取最大值、阈值二值化，得到新的向量$b$，再将其按对角线展开后左乘**IoU**矩阵，直至两次迭代中向量$b$不再变化。
+
+![](https://pic.imgdb.cn/item/609b7a55d1a9ae528fb87c53.jpg)
+
+矩阵左乘相当于进行**行变换**。向量$b$的对角矩阵左乘**IoU**矩阵，若$b$的第$n$项为$0$，代表对应的边界框$B_n$是冗余框，则不应考虑该框对其他框产生的影响，因此将**IoU**矩阵的第$n$行置零；反之若$b$的第$n$项为$1$，代表对应的边界框$B_n$不是冗余框，因此保留**IoU**矩阵的第$n$行。由数学归纳法可证，**Cluster NMS**算法的收敛结果与**NMS**算法相同。
+
+使用**pytorch**实现**Cluster NMS**算法如下：
+
+```
+def cluster_nms(self, boxes, scores, NMS_threshold:float=0.5, epochs:int=200):
+    '''
+    Arguments:
+        boxes (Tensor[N, 4])
+        scores (Tensor[N, 1])
+    Returns:
+        Fast NMS results
+    '''
+    scores, idx = scores.sort(1, descending=True)
+    boxes = boxes[idx]   # 对框按得分降序排列
+    iou = box_iou(boxes, boxes).triu_(diagonal=1)  # IoU矩阵，上三角化
+    C = iou
+    for i in range(epochs):    
+        A=C
+        maxA = A.max(dim=0)[0]   # 列最大值向量
+        E = (maxA < NMS_threshold).float().unsqueeze(1).expand_as(A)   # 对角矩阵E的替代
+        C = iou.mul(E)     # 按元素相乘
+        if A.equal(C)==True:     # 终止条件
+            break
+    keep = maxA < NMS_threshold  # 列最大值向量，二值化
+
+    return boxes[keep], scores[keep]
+```
+
+**NMS**算法顺序处理每一个边界框，会在所有**cluster**上迭代，在计算时重复计算了不同**cluster**之间的边界框。**Cluster NMS**算法通过行变换使得迭代进行在拥有框数量最多的**cluster**上，其迭代次数不超过图像中最大**cluster**所拥有的**边界框个数**。因此**Cluster NMS**算法适合图像中有很多**cluster**的场合。
+
+实践中又提出了一些**Cluster NMS**的变体：
+
+### (1) 引入得分惩罚机制
+**得分惩罚机制(score penalty mechanism, SPM)**是指每次迭代后根据计算得到的**IoU**矩阵对边界框的置信度得分进行惩罚，即与该边界框重合度高的框越多，该边界框的置信度越低：
+
+$$ c_j = c_j \cdot \prod_{i}^{} e^{-\frac{x_{ij}^2}{\sigma}} $$
+
+每轮迭代后，需要根据置信度得分对边界框顺序进行重排，使用**pytorch**实现如下：
+
+```
+def SPM_cluster_nms(self, boxes, scores, NMS_threshold:float=0.5, epochs:int=200):
+    '''
+    Arguments:
+        boxes (Tensor[N, 4])
+        scores (Tensor[N, 1])
+    Returns:
+        Fast NMS results
+    '''
+    scores, idx = scores.sort(1, descending=True)
+    boxes = boxes[idx]   # 对框按得分降序排列
+    iou = box_iou(boxes, boxes).triu_(diagonal=1)  # IoU矩阵，上三角化
+    C = iou
+    for i in range(epochs):    
+        A=C
+        maxA = A.max(dim=0)[0]   # 列最大值向量
+        E = (maxA < NMS_threshold).float().unsqueeze(1).expand_as(A)   # 对角矩阵E的替代
+        C = iou.mul(E)     # 按元素相乘
+        if A.equal(C)==True:     # 终止条件
+            break
+    scores = torch.prod(torch.exp(-C**2/0.2),0)*scores    #惩罚得分
+    keep = scores > 0.01    #得分阈值筛选
+    return boxes[keep], scores[keep]
+```
+
+### (2) 引入中心点距离
+将交并比**IoU**替换成**DIoU**，即在**IoU**的基础上加上中心点的归一化距离，能够更好的表达两框的距离，计算如下：
+
+$$ \text{DIoU} = \text{IoU} - R_{DIoU} $$
+
+其中惩罚项$R_{DIoU}$设置为：
+
+$$ R_{DIoU} = \frac{ρ^2(b_{pred},b_{gt})}{c^2} $$
+
+其中$b_{pred}$,$b_{gt}$表示边界框的中心点，$ρ$是欧式距离，$c$表示最小外接矩形的对角线距离，如下图所示：
+
+![](https://img.imgdb.cn/item/6017d99c3ffa7d37b3ec6a3e.jpg)
+
+将计算**IoU**矩阵替换为**DIoU**矩阵，并对得分惩罚机制进行修改：
+
+$$ c_j = c_j \cdot \prod_{i}^{} \mathop{\min} \{ e^{-\frac{x_{ij}^2}{\sigma}} + (1-\text{DIoU})^{\beta}, 1 \} $$
+
+上式中$\beta$用于控制中心点距离惩罚的程度，$min$避免惩罚因子超过$1$。
+
+### (3) 加权平均法（weighted NMS）
+在计算**IoU**矩阵时考虑边界框置信度得分的影响，即每次迭代时将**IoU**矩阵与边界框的置信度得分向量按列相乘。
+
+使用**pytorch**实现如下：
+
+```
+def Weighted_cluster_nms(self, boxes, scores, NMS_threshold:float=0.5, epochs:int=200):
+    '''
+    Arguments:
+        boxes (Tensor[N, 4])
+        scores (Tensor[N, 1])
+    Returns:
+        Fast NMS results
+    '''
+    scores, idx = scores.sort(1, descending=True)
+    n = scores.shape[0]
+    boxes = boxes[idx]   # 对框按得分降序排列
+    iou = box_iou(boxes, boxes).triu_(diagonal=1)  # IoU矩阵，上三角化
+    C = iou
+    for i in range(epochs):    
+        A=C
+        maxA = A.max(dim=0)[0]   # 列最大值向量
+        E = (maxA < NMS_threshold).float().unsqueeze(1).expand_as(A)   # 对角矩阵E的替代
+        C = iou.mul(E)     # 按元素相乘
+        if A.equal(C)==True:     # 终止条件
+            break
+    keep = maxA < NMS_threshold  # 列最大值向量，二值化
+    weights = (C*(C>0.8).float() + torch.eye(n).cuda()) * (scores.reshape((1,n)))
+    xx1 = boxes[:,0].expand(n,n)
+    yy1 = boxes[:,1].expand(n,n)
+    xx2 = boxes[:,2].expand(n,n)
+    yy2 = boxes[:,3].expand(n,n)
+
+    weightsum=weights.sum(dim=1)         # 坐标加权平均
+    xx1 = (xx1*weights).sum(dim=1)/(weightsum)
+    yy1 = (yy1*weights).sum(dim=1)/(weightsum)
+    xx2 = (xx2*weights).sum(dim=1)/(weightsum)
+    yy2 = (yy2*weights).sum(dim=1)/(weightsum)
+    boxes = torch.stack([xx1, yy1, xx2, yy2], 1)
+    return boxes[keep], scores[keep]
+```
+
+# 5. Matrix NMS
+- paper：[SOLOv2: Dynamic and Fast Instance Segmentation](https://arxiv.org/abs/2003.10152)
+
+**Matrix NMS**算法与**Fast NMS**算法的思想是一样的，不同之处在于前者针对的是图像分割中的**mask IoU**。其伪代码如下：
+
+![](https://pic.imgdb.cn/item/609b8b94d1a9ae528f3b9f42.jpg)
