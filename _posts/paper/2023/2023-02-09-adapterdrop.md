@@ -3,7 +3,7 @@ layout: post
 title: 'AdapterDrop: On the Efficiency of Adapters in Transformers'
 date: 2023-02-09
 author: 郑之杰
-cover: 'https://pic.imgdb.cn/item/648e5fec1ddac507cc0db899.jpg'
+cover: 'https://pic.imgdb.cn/item/648ee7f51ddac507cccafe28.jpg'
 tags: 论文阅读
 ---
 
