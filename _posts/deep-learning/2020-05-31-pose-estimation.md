@@ -28,15 +28,13 @@ tags: 深度学习
 
 # 1. 2D单人姿态估计 2D Single Human Pose Estimation
 
-**2D**单人人体姿态估计通常是从已完成定位的人体图像中计算人体关节点的位置，并进一步生成**2D**人体骨架。
-
-**2D**单人人体姿态估计可以分为**基于回归(regression-based)**的方法与**基于检测(detection-based)**的方法。
-- 基于回归的方法：直接将输入图像映射为人体关节的**坐标**或人体模型的**参数**。这类方法可以端到端的训练，但由于映射是高度非线性的，学习较为困难，且缺乏鲁棒性。
-- 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标。这类方法鲁棒性更好，但从中估计关节点坐标的准确性较差，并且阻碍了端到端的训练。
+**2D**单人人体姿态估计通常是从已完成定位的人体图像中计算人体关节点的位置，并进一步生成**2D**人体骨架。这些方法可以进一步分为**基于回归(regression-based)**的方法与**基于检测(detection-based)**的方法。
+- 基于回归的方法：直接将输入图像映射为人体关节的**坐标**或人体模型的**参数**，如**DeepPose**。
+- 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标；如**CPM**, **Hourglass**, **Chained**, **MCA**, **FPM**。
 
 ## （1）基于回归的2D单人姿态估计 Regression-based 2D SHPE
 
-基于回归的方法直接预测人体各关节点的**联合坐标**。
+基于回归的方法直接预测人体各关节点的**联合坐标**。这类方法可以端到端的训练，速度更快，并且可以得到子像素级(**sub-pixel**)的精度；但由于映射是高度非线性的，学习较为困难，且缺乏鲁棒性。
 
 ### ⚪ DeepPose
 
@@ -53,6 +51,9 @@ tags: 深度学习
 基于检测的方法使用**热图**来指示关节的真实位置。如下图所示，每个关键点占据一个热图通道，表示为以目标关节位置为中心的二维高斯分布。
 
 ![](https://pic.downk.cc/item/5fb37ddeb18d62711306f2a6.jpg)
+
+由于热图能够保存空间位置信息，这类方法鲁棒性更好；但从中估计关节点坐标的准确性较差（热图大小往往是原图的等比例缩放，通过在输出热图上按通道找最大的响应位置，精度是**pixel**级别），并且阻碍了端到端的训练。
+
 
 ### ⚪ Convolutional Pose Machine (CPM)
 
@@ -73,26 +74,60 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/649a44321ddac507cc4e7389.jpg)
 
+### ⚪ Chained Prediction
 
+- paper：[<font color=blue>Chained Predictions Using Convolutional Neural Networks</font>](https://0809zheng.github.io/2021/04/05/chain.html)
+
+**Chained Prediction**是指按照关节链模型的顺序输出关节热图，每一步的输出取决于输入图像和先前预测的热图。
+
+![](https://pic.imgdb.cn/item/649b8a9a1ddac507cc19d7e9.jpg)
+
+### ⚪ Multi-Context Attention (MCA)
+
+- paper：[<font color=blue>Multi-Context Attention for Human Pose Estimation</font>](https://0809zheng.github.io/2021/04/06/multicontext.html)
+
+本文为堆叠沙漏网络引入了沙漏残差单元(**HRUs**)以学习不同尺度的特征，并在浅层引入多分辨率注意力，在深层引入由粗到细的部位注意力。
+
+![](https://pic.imgdb.cn/item/649b95661ddac507cc2a4b4f.jpg)
+
+### ⚪ Feature Pyramid Module (FPM)
+
+- paper：[<font color=blue>Learning Feature Pyramids for Human Pose Estimation</font>](https://0809zheng.github.io/2021/04/07/prm.html)
+
+特征金字塔模块能够提取不同尺度的特征，可以替换**Hourglass**中的残差模块。
+
+![](https://pic.imgdb.cn/item/649ba4961ddac507cc44f04b.jpg)
 
 # 2. 2D多人姿态估计 2D Multiple Human Pose Estimation
 
 与单人姿态估计相比，多人姿态估计需要同时完成**检测**和**估计**任务。根据完成任务的顺序不同，多人姿态估计方法分为**自上而下(top-down)**的方法和**自下而上(bottom-up)**的方法。
-- 自上而下的方法先做**检测**再做**估计**。即先通过人体检测器在输入图像中检测出不同的人体，再使用单人姿态估计方法对每个人进行姿态估计。这类方法的精度依赖于人体检测的精度，当检测人数增加时运行时间成倍地增加。
-- 自下而上的方法先做**估计**再做**检测**。即先在图像中估计出所有人体关节关键点，再将它们组合成不同的人体姿态。这类方法的关键在于正确组合关节点，当不同人体之间有较大遮挡时，估计效果会下降。
+- 自上而下的方法先做**检测**再做**估计**。即先通过目标检测的方法在输入图像中检测出不同的人体，再使用单人姿态估计方法对每个人进行姿态估计。
+- 自下而上的方法先做**估计**再做**检测**。即先在图像中估计出所有人体关节点，再将属于不同人的关节点进行关联和组合。
+
+![](https://pic.imgdb.cn/item/649bd8b31ddac507cc9c3cc5.jpg)
 
 ## （1）自上而下的2D多人姿态估计 Top-down 2D MHPE
 
 自上而下的方法中两个最重要的组成部分是**人体区域检测器**和**单人姿态估计器**。大多数研究基于现有的人体目标检测器进行估计，如**Faster R-CNN**、**Mask R-CNN**和**FPN**。
 
-通过将现有的人体检测网络和单人姿态估计网络结合起来，可以轻松实现自上而下的多人姿态估计。这类方法几乎在所有**Benchmarks**上取得了最先进的表现，但这种方法的处理速度受到检测人数的限制。
+通过将现有的人体检测网络和单人姿态估计网络结合起来，可以轻松实现自上而下的多人姿态估计。这类方法几乎在所有**Benchmarks**上取得了最先进的表现，但这种方法的处理速度受到检测人数的限制，当检测人数增加时运行时间成倍地增加。
 
 ## （2）自下而上的2D多人姿态估计 Bottom-up 2D MHPE
 
 自下而上的人体姿态估计方法的主要组成部分包括**人体关节检测**和**候选关节分组**。大多数算法分别处理这两个组件，也可以在**单阶段**进行预测。
 
-目前，自下而上的方法处理速度非常快，有些方法可以实时运行。但是性能会受到复杂背景和人为遮挡的影响。
+这类方法的关键在于正确组合关节点，速度不受图像中人数变化影响，实时性好；但是性能会受到复杂背景和人为遮挡的影响，精度相对低，当不同人体之间有较大遮挡时，估计效果会进一步下降。
 
+
+### ⚪ OpenPose
+
+- paper：[<font color=blue>Realtime Multi-Person 2D Pose Estimation using Part Affinity Fields</font>](https://0809zheng.github.io/2021/04/08/openpose.html)
+
+**OpenPose**使用卷积神经网络从输入图像中提取部位置信图(**PCM**)与部位亲和场(**PAF**)：部位置信图是指人体关节点的热力图，用于表征人体关节点的位置；部位亲和场是用于编码肢体支撑区域的位置和方向信息的**2D**向量场。然后通过二分匹配（边权基于**PAF**计算）进行关节分组。
+
+
+
+![](https://pic.imgdb.cn/item/649bde451ddac507cca66b23.jpg)
 
 # 3. 3D单人姿态估计 3D Single Human Pose Estimation
 
@@ -115,21 +150,9 @@ $3D$多人姿态估计方法基于$3D$单人姿态估计方法。
 
 
 
-人体姿态估计可以分为：
-- **单人姿态估计（single person pose estimation， SPPE）**
-- **多人姿态估计（multi person pose estimation， MPPE）**
-
 
 # 3. 多人姿态估计
-多人姿态估计的方法：
-- **Top-Down方法**：先用目标检测的方法检测图像中的人，再用单人姿态估计对每个人进行姿态估计。
-1. 优点：精度高，容易实现；
-2. 缺点：依赖于目标检测，速度随场景中人数增加而变慢，无法解决遮挡问题。
-- **Bottom-Up方法**：首先检测出图像中所有关键点位置，再将属于不同人的关键点进行关联和组合。
-1. 优点：速度不受图像中人数变化影响，实时性好；
-2. 缺点：精度相对低，无法解决遮挡问题。
 
-![](https://pic.downk.cc/item/5ebaa9c2101ccd402bc250e9.jpg)
 
 ### Alpha Pose
 - paper：[RMPE: Regional Multi-person Pose Estimation](https://arxiv.org/abs/1612.00137v3)

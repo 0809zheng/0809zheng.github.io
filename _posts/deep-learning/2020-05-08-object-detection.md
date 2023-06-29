@@ -192,8 +192,12 @@ $$
 
 下面介绍一些常用的目标检测模型：
 - 两阶段的目标检测模型：**R-CNN**, **Fast RCNN**, **Faster RCNN**, **SPP-Net**, **FPN**, **Cascade RCNN**, 
-- 单阶段的目标检测模型：**OverFeat**, **YOLOv1-3**, **SSD**, **RetinaNet**, 
+- 单阶段的目标检测模型：**OverFeat**, **YOLOv1-3**, **SSD**, **RetinaNet**, **YOLT**, 
+- **Anchor-Free**的目标检测模型：
 - 基于**Transformer**的目标检测模型：**DETR**
+
+### ⭐ 扩展阅读
+- [<font color=blue>Recent Advances in Deep Learning for Object Detection</font>](https://0809zheng.github.io/2020/05/17/paper-recent.html)：(arXiv1908)深度学习中目标检测最近的进展综述。
 
 ## （1）两阶段的目标检测模型
 
@@ -311,8 +315,17 @@ $$
 
 ![](https://pic.imgdb.cn/item/648d115a1ddac507ccc3c57e.jpg)
 
+### ⚪ YOLT
+- paper：[<font color=blue>You Only Look Twice: Rapid Multi-Scale Object Detection In Satellite Imagery</font>](https://0809zheng.github.io/2020/10/12/yolt.html)
 
-## （3） 基于Transformer的目标检测模型
+对于高分辨率大尺寸图像（如遥感图像）中的目标检测问题，**YOLT**提出了一种两阶段的检测框架：首先把输入图像划分成重叠的子图像，对每张子图像分别进行检测；再通过全局的非极大值抑制算法获得最终的检测结果。
+
+![](https://pic.imgdb.cn/item/649bce1c1ddac507cc8a1d4f.jpg)
+
+## （3） Anchor-Free的目标检测方法
+
+
+## （4） 基于Transformer的目标检测模型
 
 
 
@@ -355,11 +368,6 @@ $$
 - arXiv:[https://arxiv.org/abs/1804.06215](https://arxiv.org/abs/1804.06215)
 
 
-### You Only Look Twice: Rapid Multi-Scale Object Detection In Satellite Imagery
-- intro:YOLT
-- arXiv:[https://arxiv.org/abs/1805.09512](https://arxiv.org/abs/1805.09512)
-
-
 ### CornerNet: Detecting Objects as Paired Keypoints
 - intro:CornerNet
 - arXiv:[https://arxiv.org/abs/1808.01244](https://arxiv.org/abs/1808.01244)
@@ -373,19 +381,14 @@ $$
 
 ## ⚪ 目标检测
 
-- [You Only Look Twice: Rapid Multi-Scale Object Detection In Satellite Imagery](https://0809zheng.github.io/2020/10/12/yolt.html)：(arXiv1805)YOLT：高分辨率大尺寸卫星图像的目标检测。
 
 - [CornerNet: Detecting Objects as Paired Keypoints Learning](https://0809zheng.github.io/2020/07/20/cornernet.html)：(arXiv1808)CornerNet：检测目标框的左上角和右下角位置。
 
 - [MMDetection: Open MMLab Detection Toolbox and Benchmark](https://0809zheng.github.io/2020/04/03/mmdetection.html)：(arXiv1906)商汤科技和香港中文大学开源的基于Pytorch实现的深度学习目标检测工具箱。
 
-- [Recent Advances in Deep Learning for Object Detection](https://0809zheng.github.io/2020/05/17/paper-recent.html)：(arXiv1908)深度学习中目标检测最近的进展综述。
-
 - [YOLOv4: Optimal Speed and Accuracy of Object Detection](https://0809zheng.github.io/2020/06/13/yolov4.html)：(arXiv2004)YOLO的第四个版本。
 
-- [Cross-Regional Oil Palm Tree Detection](https://0809zheng.github.io/2021/05/14/oilpalm.html)：(CVPR2020)跨区域的油棕树检测。
 
-- [Cross-regional oil palm tree counting and detection via a multi-level attention domain adaptation network](https://0809zheng.github.io/2021/05/15/oilpalmv2.html)：(arXiv2008)通过多层次注意力域自适应网络进行跨区域的油棕树计数和检测。
 
 - [OneNet: Towards End-to-End One-Stage Object Detection](https://0809zheng.github.io/2020/12/26/onenet.html)：(arXiv2012)OneNet：无需**NMS**的**One-stage**端到端目标检测方法。
 
@@ -1159,10 +1162,13 @@ def DIoULoss(b1, b2): # [n, 4]  format: xywh
     enclose_maxes   = torch.max(b1_maxes, b2_maxes)
     enclose_wh      = torch.max(enclose_maxes - enclose_mins, torch.zeros_like(intersect_maxes))
     
+    #   计算中心的距离
+    center_wh       = b1_xy - b2_xy
+    center_distance     = torch.sum(torch.pow(center_wh, 2), axis=-1)
+    #   计算对角线距离
+    enclose_diagonal    = torch.sum(torch.pow(enclose_wh, 2), axis=-1)
     #   计算DIoU
-    enclose_squared_diag = enclose_wh[..., 0] ** 2 + enclose_wh[..., 1] ** 2
-    center_squared_diag  = (b1_xy[..., 0] - b2_xy[..., 0]) ** 2 + (b1_xy[..., 1] - b2_xy[..., 1]) ** 2
-    diou                 = iou - center_squared_diag / enclose_squared_diag
+    diou                = iou - 1.0 * (center_distance) / torch.clamp(enclose_diagonal, min = 1e-6)
     return 1-diou
 ```
 
@@ -1219,12 +1225,16 @@ def CIoULoss(b1, b2): # [n, 4]  format: xywh
     enclose_maxes   = torch.max(b1_maxes, b2_maxes)
     enclose_wh      = torch.max(enclose_maxes - enclose_mins, torch.zeros_like(intersect_maxes))
     
-    #   计算CIoU
-    enclose_squared_diag = enclose_wh[..., 0] ** 2 + enclose_wh[..., 1] ** 2
-    center_squared_diag  = (b1_xy[..., 0] - b2_xy[..., 0]) ** 2 + (b1_xy[..., 1] - b2_xy[..., 1]) ** 2
-    v = 4 / torch.pi * (torch.arctan(b2_wh[..., 0] / b2_wh[..., 1]) - torch.arctan(b1_wh[..., 0] / b1_wh[..., 1])) ** 2
-    alpha = v / (1 - iou + v)
-    ciou                 = iou - center_squared_diag / enclose_squared_diag - alpha * v
+    #   计算中心的距离
+    center_wh       = b1_xy - b2_xy
+    center_distance     = torch.sum(torch.pow(center_wh, 2), axis=-1)
+    #   计算对角线距离
+    enclose_diagonal    = torch.sum(torch.pow(enclose_wh, 2), axis=-1)
+    diou                = iou - 1.0 * (center_distance) / torch.clamp(enclose_diagonal, min = 1e-6)
+
+    v       = (4 / (math.pi ** 2)) * torch.pow((torch.atan(b1_wh[..., 0] / torch.clamp(b1_wh[..., 1],min = 1e-6)) - torch.atan(b2_wh[..., 0] / torch.clamp(b2_wh[..., 1], min = 1e-6))), 2)
+    alpha   = v / torch.clamp((1.0 - iou + v), min = 1e-6)
+    ciou     = diou - alpha * v
     return 1-ciou
 ```
 
