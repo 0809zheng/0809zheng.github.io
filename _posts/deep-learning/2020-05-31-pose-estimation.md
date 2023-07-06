@@ -19,6 +19,7 @@ tags: 深度学习
 1. **2D**单人姿态估计
 2. **2D**多人姿态估计
 3. **3D**人体姿态估计
+4. 人体姿态估计的技巧
 5. 人体姿态估计的评估指标
 6. 人体姿态估计数据集
 
@@ -206,13 +207,13 @@ $$
 - 缺少大型的室外数据集和特殊姿态数据集：**3D**姿态数据集是依靠适合室内环境的动作捕捉（**MOCAP**）系统构建的，而**MOCAP**系统需要佩戴有多个传感器的复杂装置，在室外环境使用是不切实际的。因此数据集大多是在实验室环境下建立的，模型的泛化能力也比较差。
 
 **3D**人体姿态估计方法可以分为：
-- 直接回归的方法：直接把图像映射为**3D**关节点，如**DconvMP**
-- **2D→3D**的方法：从**2D**姿态估计结果中估计深度信息，如
-- 基于模型的方法：引入人体模型，如
+- 直接回归的方法：直接把图像映射为**3D**关节点，如**DconvMP**, **VNect**, **ORPM**, **Volumetric Prediction**, **3DMPPE**。
+- **2D→3D**的方法：从**2D**姿态估计结果中估计深度信息，如**2D+Matching**, **SimpleBasline-3D**。
+- 基于模型的方法：引入人体模型，如**SMPLify**, **SMPLify-X**。
 
 ## （1）直接回归的3D人体姿态估计 Regression-based 3D HPE
 
-直接回归的**3D**人体姿态估计直接把图像映射成**3D**关节点，这通常是严重的欠定问题，因此需要引入额外的约束条件。
+直接回归的**3D**人体姿态估计直接把图像映射成**3D**关节点，这通常是严重的[欠定问题](https://0809zheng.github.io/2020/08/16/ill-posed-problem.html)，因此需要引入额外的约束条件。
 
 ### ⚪ DconvMP
 
@@ -222,25 +223,84 @@ $$
 
 ![](https://pic.imgdb.cn/item/64a531751ddac507cc6d7c6d.jpg)
 
+### ⚪ VNect
+
+- paper：[<font color=blue>VNect: Real-time 3D Human Pose Estimation with a Single RGB Camera</font>](https://0809zheng.github.io/2021/04/16/vnect.html)
+
+**VNect**预测一个热图及位置图。位置图存储关节点相对于根关节的三维坐标。找到关键点的过程为从热图中寻找关节的最大值，在对应的$X, Y, Z$位置图中找到对应位置的点组成相对根节点的**3D**坐标。
+
+![](https://pic.imgdb.cn/item/64a62c581ddac507cc313aea.jpg)
+
+### ⚪ ORPM
+
+- paper：[<font color=blue>Single-Shot Multi-Person 3D Pose Estimation From Monocular RGB</font>](https://0809zheng.github.io/2022/04/06/ssmp.html)
+
+遮挡鲁棒的姿态图**ORPM**将场景中所有人的**3D**关节位置编码为固定数量的位置图，并使用身体部位关联推断任意数量的人体目标。
+
+![](https://pic.imgdb.cn/item/627f7f1e0947543129b63bac.jpg)
+
+### ⚪ Volumetric Prediction
+
+- paper：[<font color=blue>Coarse-to-Fine Volumetric Prediction for Single-Image 3D Human Pose</font>](https://0809zheng.github.io/2021/04/17/volumetric.html)
+
+本文提出了一种端到端的单图像**3D**姿态估计方法，从**2D**图像中直接得到体素（**Volumetric**）表示，并取最大值的位置作为每个关节点的输出。
+
+![](https://pic.imgdb.cn/item/64a661d61ddac507cc9c9a5e.jpg)
+
+### ⚪ 3DMPPE
+
+- paper：[<font color=blue>Camera Distance-aware Top-down Approach for 3D Multi-person Pose Estimation from a Single RGB Image</font>](https://0809zheng.github.io/2021/04/18/3dmppe.html)
+
+本文提出了一种自顶向下的多人**3D**姿态估计方法：边界框检测网络**DetectNet**检测每个目标的边界框；根节点定位网络**RootNet**定位根节点位置；相对根节点的**3D**单人姿态估计网络**PoseNet**估计相对根节点的3D姿态。
+
+![](https://pic.imgdb.cn/item/64a680581ddac507cce9a714.jpg)
+
 
 ## （2）2D→3D的3D人体姿态估计 2D→3D 3D HPE
 
 **2D→3D**的**3D**人体姿态估计从**2D**姿态估计的结果中估计深度信息，再生成**3D**姿态估计，这类方法可以很容易地利用**2D**姿态数据集，并且具有**2D**姿态估计的优点。
 
+### ⚪ 2D + Matching
 
-- [A simple yet effective baseline for 3d human pose estimation](https://0809zheng.github.io/2020/11/19/3dpose.html)：(arXiv1705)通过回归2D关节坐标进行3D人体姿态估计。
+- paper：[<font color=blue>3D Human Pose Estimation = 2D Pose Estimation + Matching</font>](https://0809zheng.github.io/2021/04/19/2dmatch.html)
 
-- [Single-Shot Multi-Person 3D Pose Estimation From Monocular RGB](https://0809zheng.github.io/2022/04/06/ssmp.html)：(arXiv1712)使用遮挡鲁棒姿态图从单目相机中重构三维姿态。
+给定**2D**图像，通过**CPM**预测**2D**姿态，并从大型的**2D-3D**姿态对库中通过**kNN**搜索最相似的**2D-3D**姿态对，配对的**3D**姿态被选为**3D**姿态估计结果。
+
+![](https://pic.imgdb.cn/item/64a684421ddac507ccf4c1c5.jpg)
+
+### ⚪ SimpleBasline-3D
+
+- paper：[<font color=blue>A simple yet effective baseline for 3d human pose estimation</font>](https://0809zheng.github.io/2020/11/19/3dpose.html)
+
+将 **3D** 姿态估计解耦为**2D** 姿态估计和从**2D** 到 **3D** 姿态估计（即**3D**姿态估计 = **2D**姿态估计 **+ (2D->3D)**）。**(2D->3D)**通过全连接网络直接回归坐标。
+
+![](https://pic.downk.cc/item/5fb5f62db18d62711392b0c5.jpg)
+
 
 
 ## （3）基于模型的3D人体姿态估计 Model-based 3D HPE
 
-基于模型的方法通常采用**人体参数模型**从图像中估计人的姿态和形状。一些工作采用了**SMPL**人体模型，从图像中估计三维参数。**运动学模型(kinematic model)**广泛应用于$3D$人体姿态估计中。
+基于模型的方法通常采用**人体参数模型 (human body model)**或**运动学模型(kinematic model)**从图像中估计人体的姿态和形状。
 
+[<font color=blue>SMPL(Skinned Multi-Person Linear Model)</font>](https://0809zheng.github.io/2021/01/07/3dhuman.html)是最常用的参数控制的三维人体统计模型之一，它将人体编码为两类参数：**Pose**参数$\theta$和**Shape**参数$\beta$。
+- **Pose**参数$\theta$：具有$24 \times 3$个标量值的姿态向量(定义$K=24$个关节点，并建立一组关节点树)，该参数代表每个关节点相对于其父节点的局部旋转向量的轴角式表达，用于控制人体**姿态**变化；
+- **Shape**参数$\beta$：具有$10$个标量值的形状向量，其每一维度都可看做人体形状的某个指标，用于控制人体**形状**变化。
 
-- [Keep it SMPL: Automatic Estimation of 3D Human Pose and Shape from a Single Image](https://0809zheng.github.io/2021/01/13/openpose.html)：(arXiv1607)SMPLify：从单张图像中建立三维SMPL模型。
+![](https://khanhha.github.io/assets/images/smpl/shape_pose.png)
 
-- [Expressive Body Capture: 3D Hands, Face, and Body from a Single Image](https://0809zheng.github.io/2021/02/02/smplifyx.html)：(arXiv1904)SMPLify-X：从单张图像重建3D人体、手部和表情。
+### ⚪ SMPLify
+
+- paper：[<font color=blue>Keep it SMPL: Automatic Estimation of 3D Human Pose and Shape from a Single Image</font>](https://0809zheng.github.io/2021/01/13/smplify.html)
+
+给定一个图像，使用基于 **CNN** 的方法来预测 **2D** 关节位置。然后将 **3D** 身体模型**SMPL**拟合到此，以估计 **3D** 身体形状和姿势。
+
+![](https://img.imgdb.cn/item/5ffe48f63ffa7d37b386d39d.jpg)
+
+### ⚪ SMPLify-X
+
+- paper：[<font color=blue>Expressive Body Capture: 3D Hands, Face, and Body from a Single Image</font>](https://0809zheng.github.io/2021/02/02/smplifyx.html)
+
+本文提出了**SMPL**三维人体模型的改进版本：**SMPL-X (eXpressive)**，在原有人体姿态的基础上增加了手部姿势和面部表情。为从单张图像中学习三维人体姿态，作者提出了**SMPLify**模型的改进版本：**SMPLify-X**；后者具有更好的姿态先验、更多细节的碰撞惩罚、性别检测和更快的**PyTorch**实现。
 
 
 # 4. 姿态估计数据集
