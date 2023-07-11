@@ -123,7 +123,7 @@ tags: 深度学习
 # 2. 2D多人姿态估计 2D Multiple Human Pose Estimation
 
 与单人姿态估计相比，多人姿态估计需要同时完成**检测**和**估计**任务。根据完成任务的顺序不同，多人姿态估计方法分为**自上而下(top-down)**的方法和**自下而上(bottom-up)**的方法。
-- 自上而下的方法先做**检测**再做**估计**。即先通过目标检测的方法在输入图像中检测出不同的人体，再使用单人姿态估计方法对每个人进行姿态估计；如**CPN**, 。
+- 自上而下的方法先做**检测**再做**估计**。即先通过目标检测的方法在输入图像中检测出不同的人体，再使用单人姿态估计方法对每个人进行姿态估计；如**RMPE**, **CPN**, **MSPN**。
 - 自下而上的方法先做**估计**再做**检测**。即先在图像中估计出所有人体关节点，再将属于不同人的关节点进行关联和组合；如**DeepCut**, **DeeperCut**, **Associative Embedding**, **OpenPose**。
 
 ![](https://pic.imgdb.cn/item/649bd8b31ddac507cc9c3cc5.jpg)
@@ -133,6 +133,14 @@ tags: 深度学习
 自上而下的方法中两个最重要的组成部分是**人体区域检测器**和**单人姿态估计器**。大多数研究基于现有的人体目标检测器进行估计，如**Faster R-CNN**、**Mask R-CNN**和**FPN**。
 
 通过将现有的人体检测网络和单人姿态估计网络结合起来，可以轻松实现自上而下的多人姿态估计。这类方法检测人体目标的召回率较高，关节点的定位精度较高，几乎在所有**Benchmarks**上取得了最先进的表现，但这种方法的处理速度受到检测人数的限制，当检测人数增加时运行时间成倍地增加。
+
+### ⚪ RMPE
+
+- paper：[<font color=blue>RMPE: Regional Multi-person Pose Estimation</font>](https://0809zheng.github.io/2021/04/09/alphapose.html)
+
+**RMPE**框架包含三部分：对称空间变换网络**SSTN**用于在不准确的人体检测框中提取准确的单人区域；参数化姿态的非极大值抑制**p-pose NMS**用于解决人体检测框冗余问题；姿态引导区域框生成器**PGPG**用于数据增强。
+
+![](https://pic.imgdb.cn/item/64a7651d1ddac507cc964064.jpg)
 
 ### ⚪ CPN
 
@@ -195,8 +203,6 @@ $$
 - paper：[<font color=blue>Realtime Multi-Person 2D Pose Estimation using Part Affinity Fields</font>](https://0809zheng.github.io/2021/04/08/openpose.html)
 
 **OpenPose**使用卷积神经网络从输入图像中提取部位置信图(**PCM**)与部位亲和场(**PAF**)：部位置信图是指人体关节点的热力图，用于表征人体关节点的位置；部位亲和场是用于编码肢体支撑区域的位置和方向信息的**2D**向量场。然后通过二分匹配（边权基于**PAF**计算）进行关节分组。
-
-
 
 ![](https://pic.imgdb.cn/item/649bde451ddac507cca66b23.jpg)
 
@@ -302,43 +308,192 @@ $$
 
 本文提出了**SMPL**三维人体模型的改进版本：**SMPL-X (eXpressive)**，在原有人体姿态的基础上增加了手部姿势和面部表情。为从单张图像中学习三维人体姿态，作者提出了**SMPLify**模型的改进版本：**SMPLify-X**；后者具有更好的姿态先验、更多细节的碰撞惩罚、性别检测和更快的**PyTorch**实现。
 
+# 4. 人体姿态估计的技巧 Bag of Tricks
 
-# 4. 姿态估计数据集
+## （1）数据增强
 
-### (1)LSP
-- 地址：[http://sam.johnson.io/research/lsp.html](http://sam.johnson.io/research/lsp.html)
-- 样本数：2000
-- 关节点个数：14
-- 全身，单人
+### ⚪ Augmentation by Information Dropping (AID)
+- paper：[<font color=blue>AID: Pushing the Performance Boundary of Human Pose Estimation with Information Dropping Augmentation</font>](https://0809zheng.github.io/2021/04/20/poseaug.html)
 
-### (2)FLIC
-- 地址：[https://bensapp.github.io/flic-dataset.html](https://bensapp.github.io/flic-dataset.html)
-- 样本数：20000
-- 关节点个数：9
-- 全身，单人
+模型在定位图像中的人体关键点时通常会使用两种信息：**外观**信息和**约束**信息。外观信息是定位关键点的基础，而约束信息主要包含人体关键点之间固有的相互约束关系以及人体和环境交互形成的约束关系。
 
-### (3)MPII
-- 地址：[http://human-pose.mpi-inf.mpg.de/](http://human-pose.mpi-inf.mpg.de/)
-- 样本数：25000
-- 关节点个数：16
-- 全身，单人/多人，40000人，410种人类活动
+本文引入信息丢弃的正则化手段，通过在训练过程中以一定的概率丢弃关键点的外观信息，以此避免训练过程过拟合外观信息而忽视约束信息。
 
-### (4)MSCOCO
-- 地址：[http://cocodataset.org/#download](http://cocodataset.org/#download)
-- 样本数：300000
-- 关节点个数：18
-- 全身，多人，100000人
+![](https://pic.imgdb.cn/item/64acf9411ddac507cc3a3a0c.jpg)
 
-![](https://pic.downk.cc/item/5ebaa357101ccd402bb8c7c6.jpg)
+### ⚪ PoseAug
+- paper：[<font color=blue>PoseAug: A Differentiable Pose Augmentation Framework for 3D Human Pose Estimation</font>](https://0809zheng.github.io/2021/04/20/poseaug.html)
 
-### (5)AI Challenge
-- 地址：[https://challenger.ai/competition/keypoint/subject](https://challenger.ai/competition/keypoint/subject)
-- 样本数：210000训练集，30000验证集，30000测试集
-- 关节点个数：14
-- 全身，多人，380000人
+本文针对**2D**坐标到**3D**坐标成对标注信息的姿态估计任务，对**3D**数据进行增强。对数据进行三个方面的变换：骨骼角度、骨骼长度、旋转和变形；并用判别器来评估生成的数据的合理性。
+
+![](https://pic.imgdb.cn/item/64abcd831ddac507cce3abea.jpg)
 
 
 
-- [AMASS: Archive of Motion Capture as Surface Shapes](https://0809zheng.github.io/2021/03/29/amass.html)：(arXiv1904)AMASS：经过SMPL参数标准化的三维人体动作捕捉数据集合。
+# 5. 人体姿态估计的评估指标 Pose Estimation Evaluation
+
+二维人体姿态估计中常用的评估指标包括**PCK**, **OKS**, **AP**, **mAP**。三维人体姿态估计中常用的评估指标包括**MPJPE**。
+
+### ⚪ PCK：Percentage of Correct Keypoints
+**PCK**指标衡量正确估计出的关键点比例，这是比较老的人体姿态估计指标，在$2017$年比较广泛使用，现在基本不再使用。但是在工程项目中，使用该指标评价训练模型的好坏还是蛮方便的。
+
+第$i$个关键点的**PCK**指标计算如下：
+
+$$ PCK_{i}^{k} = \frac{\sum_{p}^{} {\delta (\frac{d_{pi}}{d_{p}^{def}} ≤ T_k)}}{\sum_{p}^{} {1}} $$
+
+其中：
+- $p$表示第$p$个人
+- $T_k$表示人工设定的阈值，$T_k \in \[0:0.01:0.1\]$
+- $k$表示第$k$个阈值
+- $d_{pi}$表示第$p$个人的第$i$个关键点预测值与人工标注值之间的欧氏距离
+- $d_{p}^{def}$表示第$p$个人的尺度因子，不同数据集中此因子的计算方法不一样。**FLIC**数据集是以当前人的躯干直径作为尺度因子，即左肩到右臀的欧式距离或者右肩到左臀的欧式距离；**MPII**数据集是以当前人的头部直径作为尺度因子，即头部左上点与右下点的欧式距离，使用此尺度因子的姿态估计指标也称**PCKh**。
+- $\delta$表示如果条件成立则为$1$，否则为$0$
+
+算法的**PCK**指标是对所有关键点计算取平均：
+
+$$ PCK_{mean}^{k} = \frac{\sum_{p}^{} {\sum_{i}^{} {\delta (\frac{d_{pi}}{d_{p}^{def}}} ≤ T_k)}}{\sum_{p}^{} {\sum_{i}^{} {1}}} $$
+
+**PCK**指标计算参考代码：
+
+```python
+def compute_pck_pckh(dt_kpts,gt_kpts,refer_kpts):
+    """
+    :param dt_kpts:算法检测输出的估计结果,shape=[n,h,k]=[行人数，２，关键点个数]
+    :param gt_kpts: groundtruth人工标记结果,shape=[n,h,k]
+    :param refer_kpts: 计算尺度因子的关键点，用于预测点与groundtruth的欧式距离的scale。
+    　　　　　　　　　　　pck指标：躯干直径，左肩点－右臀点的欧式距离；
+    　　　　　　　　　　　pckh指标：头部长度，头部对角线的欧式距离；
+    :return: 相关指标
+    """
+    dt=np.array(dt_kpts)
+    gt=np.array(gt_kpts)
+    assert(len(refer_kpts)==2)
+    assert(dt.shape[0]==gt.shape[0])
+    ranges=np.arange(0.0,0.1,0.01)
+    kpts_num=gt.shape[2]
+    ped_num=gt.shape[0]
+	
+    # compute dist
+    scale=np.sqrt(np.sum(np.square(gt[:,:,refer_kpts[0]]-gt[:,:,refer_kpts[1]]),1))
+    dist=np.sqrt(np.sum(np.square(dt-gt),1))/np.tile(scale,(gt.shape[2],1)).T
+	
+    # compute pck
+    pck = np.zeros([ranges.shape[0], gt.shape[2]+1])
+    for idh,trh in enumerate(list(ranges)):
+        for kpt_idx in range(kpts_num):
+            pck[idh,kpt_idx] = 100*np.mean(dist[:,kpt_idx] <= trh)
+        # compute average pck
+        pck[idh,-1] = 100*np.mean(dist <= trh)
+    return pck
+```
+
+### ⚪ OKS：Object Keypoint Similarity
+**OKS**是目前常用的人体骨骼关键点检测算法的评估指标，该指标受目标检测中的**IoU**指标启发，目的是计算关键点预测值和标注真值的相似度。
+
+第$p$个人的**OKS**指标计算如下：
+
+$$ OKS_p = \frac{\sum_{i}^{} {\exp\{-d_{pi}^{2}/2S_{p}^{2} \sigma_{i}^{2}\} \delta (v_{pi} > 0)}}{\sum_{i}^{} {\delta (v_{pi} > 0)}} $$
+
+其中：
+- $i$表示第$i$个关键点
+- $d_{pi}$表示第$p$个人的第$i$个关键点预测值与人工标注值之间的欧氏距离
+- $S_{p}$表示第$p$个人的尺度因子，其值为行人检测框面积的平方根$S_{p}=\sqrt{wh}$，$w$、$h$为检测框的宽和高
+- $\sigma_{i}$表示第$i$个关键点的归一化因子，该因子是通过对所有的样本集中关键点由人工标注与真实值存在的标准差，$\sigma$越大表示此类型的关键点越难标注。对**COCO**数据集中的$5000$个样本统计出$17$类关键点的归一化因子，取值为：{**鼻子：0.026，眼睛：0.025，耳朵：0.035，肩膀：0.079，手肘：0.072，手腕：0.062，臀部：0.107，膝盖：0.087，脚踝：0.089**}，此值可以看作常数，如果使用的关键点类型不在此当中，则需要统计方法计算
+- $v_{pi}$表示第$p$个人的第$i$个关键点的可见性，对于人工标注值，$v_{pi}=0$表示关键点未标记（图中不存在或不确定在哪里），$v_{pi}=1$表示关键点无遮挡且已标注，$v_{pi}=2$关键点有遮挡但已标注。对于预测关键点，$v_{pi}'=0$表示没有预测出，$v_{pi}'=1$表示预测出
+- $\delta$表示如果条件成立则为$1$，否则为$0$
+
+**OKS**指标计算参考代码：
+
+```python
+sigmas = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62,.62, 1.07, 1.07, .87, .87, .89, .89])/10.0
+variances = (sigmas * 2)**2
+def compute_kpts_oks(dt_kpts, gt_kpts, area):
+    """
+    :param dt_kpts: 关键点检测结果　dt_kpts.shape=[3,k],dt_kpts[0]表示横坐标值，dt_kpts[1]表示纵坐标值，dt_kpts[2]表示可见性，
+    :param gt_kpts:　关键点标记结果　gt_kpts.shape=[3,k],gt_kpts[0]表示横坐标值，gt_kpts[1]表示纵坐标值，gt_kpts[2]表示可见性，
+    :param area:　groundtruth中当前一组关键点所在人检测框的面积
+    :return:　两组关键点的相似度oks
+    """
+    g = np.array(gt_kpts)
+    xg = g[0::3]
+    yg = g[1::3]
+    vg = g[2::3]
+    assert(np.count_nonzero(vg > 0) > 0)
+    d = np.array(dt_kpts)
+    xd = d[0::3]
+    yd = d[1::3]
+    dx = xd - xg
+    dy = yd - yg
+    e = (dx**2 + dy**2) /variances/ (area+np.spacing(1)) / 2　#加入np.spacing()防止面积为零
+    e=e[vg > 0]
+    return np.sum(np.exp(-e)) / e.shape[0]
+```
+
+### ⚪ AP：Average Precision
+
+对于**单人姿态估计**，首先计算**OKS**指标，然后人为给定一个阈值$T$，通过所有图像计算**AP**指标：
+
+$$ AP = \frac{\sum_{p}^{} {\delta (OKS_p) > T}}{\sum_{p}^{} {1}} $$
+
+对于**多人姿态估计**，如果采用的检测方法是**自顶向下**，先把所有的人找出来再检测关键点，那么其**AP**计算方法同上；
+
+如果采用的检测方法是**自底向上**，先把所有的关键点找出来再组成人，假设一张图片中共有$M$个人，预测出$N$个人，由于不知道预测出的$N$个人与标记的$M$个人之间的对应关系，因此需要计算标记的每个人与预测的$N$个人的**OKS**指标，得到一个大小为${M}\times{N}$的矩阵，矩阵的每一行为标记的一个人与预测结果的$N$个人的**OKS**指标，然后找出每一行中**OKS**指标最大的值作为当前标记人的**OKS**指标。最后每一个标记人都有一个**OKS**指标，然后人为给定一个阈值$T$，通过所有图像计算**AP**指标：
+
+$$ AP = \frac{\sum_{m}^{} \sum_{p}^{} {\delta (OKS_p) > T}}{\sum_{m}^{} \sum_{p}^{} {1}} $$
+
+### ⚪ mAP：mean Average Precision
+**mAP**是给**AP**指标中的人工阈值$T$设定不同的值，对这些阈值下得到的**AP**求平均得到的结果。
+
+$$ T \in [0.5:0.05:0.95] $$
+
+### ⚪ MPJPE：Mean Per Joint Position Error
+
+**MPJPE**衡量各个关节位置误差的平均值。关节位置误差是指真实关节点与预测关节点之间的欧几里得距离。**MPJPE**的计算公式为:
+
+$$
+MPJPE = 
+\frac{1}{N_J} \sum_{j=l}^{N_J}\sqrt{\sum_i (p_{i,j}-\hat{p}_{i,j})^2}
+$$
+
+其中，$N_J$是关节数，$p_{i,j}$是第$j$个关节的真实位置的第$i$个维度，$\hat{p}_{i,j}$是第$j$个关节的预测位置的第$i$个维度。
 
 
+
+# 6. 姿态估计数据集
+
+## （1）2D姿态估计数据集
+
+常用的二维人体姿态估计数据集包括：
+- [LSP](http://sam.johnson.io/research/lsp.html)：样本数$2000$，关节点个数$14$，单人
+- [FLIC](https://bensapp.github.io/flic-dataset.html)：样本数$20000$，关节点个数$9$，单人
+- [MPII](http://human-pose.mpi-inf.mpg.de/)：样本数$25000$，关节点个数$16$，单人/多人，$40000$人，$410$种人类活动
+- [MS COCO](http://cocodataset.org/#download)：样本数$300000$，关节点个数$18$，多人，$100000$人![](https://pic.downk.cc/item/5ebaa357101ccd402bb8c7c6.jpg)
+- [AI Challenge](https://challenger.ai/competition/keypoint/subject)：$210000$训练集，$30000$验证集，$30000$测试集，关节点个数$14$，多人，$380000$人
+
+## （2）3D姿态估计数据集
+
+由于 **3D** 关键点标注难度较大，目前的数据集基本上都借助于**MoCap**和可穿戴**IMU**设备来完成数据标注，也正因为此，大多数数据集都局限于室内场景。
+
+常用的三维人体姿态估计数据集包括：
+
+### ⚪ Human3.6M
+
+- paper：[Human3.6M: Large Scale Datasets and Predictive Methods for 3D Human Sensing in Natural Environments](https://ieeexplore.ieee.org/document/6682899?arnumber=6682899)
+
+**Human3.6M** 是目前 **3D HPE** 任务最为常用的数据集之一，包含了**360**万帧图像和对应的 **2D/3D** 人体姿态。该数据集在实验室环境下采集，通过**4**个高清相机同步记录**4**个视角下的场景，并通过 **MoCap** 系统获取精确的人体三维关键点坐标及关节角。如图所示，Human3.6M 包含了多样化的表演者、动作和视角。
+
+### ⚪ MPI-INF-3DHP
+
+**Human3.6M** 尽管数据量大，但场景单一。为了解决这一问题，**MPI-INF-3DHP** 在数据集中加入了针对前景和背景的数据增强处理。具体来说，其训练集的采集是借助于多目相机在室内绿幕场景下完成的，对于原始的采集数据，先对人体、背景等进行分割，然后用不同的纹理替换背景和前景，从而达到数据增强的目的。测试集则涵盖了三种不同的场景，包括室内绿幕场景、普通室内场景和室外场景。因此，**MPI-INF-3DHP** 更有助于评估算法的泛化能力。
+
+### ⚪ CMU Panoptic
+
+- paper：[Panoptic Studio: A Massively Multiview System for Social Motion Capture](https://ieeexplore.ieee.org/document/7410738)
+
+**CMU Panoptic**是一个大型的多目图像数据集，提供了**31**个不同视角的高清图像以及**10**个不同视角的 **Kinect** 数据，包含了**65**段视频（总时长**5.5 h**），**3D skeleton** 总数超过**150**万。该数据集还包含了多个多人场景，因此也成为了多人 **3D HPE** 的 **benchmark** 之一。
+
+### ⚪ AMASS
+
+- paper：[<font color=blue>AMASS: Archive of Motion Capture as Surface Shapes</font>](https://0809zheng.github.io/2021/03/29/amass.html)
+
+**AMASS**是一个经过**SMPL**参数标准化的三维人体动作捕捉数据集合。现有的人体**mocap**数据集使用不同的人体参数，很难将其集成到单个数据集中共同使用，作者将这些数据集使用**SMPL**模型进行统一参数化，将其整合成一个新的数据集。所整合的数据集包括**CMU、MPI-HDM05、MPIPose Limits、KIT、BioMotion Lab、TCD**和**ACCAD**数据集中的样本。

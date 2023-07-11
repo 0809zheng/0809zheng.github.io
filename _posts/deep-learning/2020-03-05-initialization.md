@@ -62,10 +62,10 @@ model = Model()
 weights_init(model)
 ```
 
-本文介绍一些常见的初始化方法，包括零初始化、随机初始化、恒等初始化、**Xavier**初始化、**Kaiming**初始化、正交初始化、稀疏初始化。
+本文介绍一些常见的初始化方法，包括零初始化、随机初始化、稀疏初始化、**Xavier**初始化、**Kaiming**初始化、正交初始化、恒等初始化、**ZerO**初始化、模仿初始化。
 
 
-# 1. 零初始化 Zero Initialization
+# ⚪ 零初始化 Zero Initialization
 在传统的机器学习算法（比如感知机和**Logistic**回归）中，一般将参数全部初始化为$0$。但是这在神经网络的训练中会存在一些问题。
 
 如果参数都为$0$，在第一遍前向计算时，所有的隐藏层神经元的激活值都相同（不一定为$0$，取决于激活函数在$0$处的值）；在反向传播时，所有权重的更新也都相同，这样会导致隐藏层神经元没有区分性。这种现象称为**对称权重**。
@@ -83,12 +83,16 @@ torch.nn.init.constant_(tensor, val) # 初始化为常数val
 
 对于神经网络的权重（**Weight**）矩阵，选用一些随机的初始化方法**打破对称性(Symmetry breaking)**。
 
-# 2. 随机初始化 Random Initialization
-**随机初始化**是指从一个固定均值（通常为$0$）和方差$σ^2$的分布中随机采样来生成参数的初始值。
+# ⚪ 随机初始化 Random Initialization
+**随机初始化**是指从一个固定均值$\mu$（通常为$0$）和方差$σ^2$的分布中随机采样来生成参数的初始值。
 
-### (1) 高斯分布初始化
+随机初始化的关键是设置方差$σ^2$的大小。
+- 如果方差过小，会导致神经元的输出过小，经过多层之后信号慢慢消失了；还会使**Sigmoid**型激活函数丢失非线性能力；
+- 如果方差过大，会导致神经元的输出过大，还会使**Sigmoid**型激活函数进入饱和区，产生**vanishing gradient**。
 
-使用高斯分布$N(0,σ^2)$对参数进行随机初始化。
+### (1) 正态分布初始化
+
+使用正态分布$N(0,σ^2)$对参数进行随机初始化。
 
 ```python
 torch.nn.init.normal_(tensor, mean=0.0, std=1.0)
@@ -96,43 +100,69 @@ torch.nn.init.normal_(tensor, mean=0.0, std=1.0)
 
 ### (2) 均匀分布初始化
 
-使用均匀分布$U(a,b)$对参数进行随机初始化，且方差$σ^2$满足：
+使用均匀分布$U(a,b)$对参数进行随机初始化，其中均值$\mu$和方差$σ^2$满足：
 
-$$ σ^2 = \frac{(b-a)^2}{12} $$
+$$
+\begin{aligned}
+\mu &= \frac{a+b}{2}\\
+σ^2 &= \frac{(b-a)^2}{12}
+\end{aligned}
+$$
+
+因此指定均值$\mu$和方差$σ^2$，对应均匀分布$U(\mu-\sqrt{3}\sigma,\mu+\sqrt{3}\sigma)$。
 
 ```python
 torch.nn.init.uniform_(tensor, a=0.0, b=1.0)
 ```
 
-随机初始化的关键是设置方差$σ^2$的大小。
-- 如果方差过小，会导致神经元的输出过小，经过多层之后信号慢慢消失了；还会使**Sigmoid**型激活函数丢失非线性能力；
-- 如果方差过大，会导致神经元的输出过大，还会使**Sigmoid**型激活函数进入饱和区，产生**vanishing gradient**。
 
-### (3) 截断的高斯分布初始化
+### (3) 截尾正态分布初始化
 
-使用高斯分布$N(\mu,σ^2)$对参数进行随机初始化，并将数值截断在$[a,b]之间$。
+一般来说，正态分布的随机采样结果更加多样化，但它理论上是无界的，如果采样到绝对值过大的结果可能不利于优化；相反均匀分布是有界的，但采样结果通常更单一。
 
-```python
-torch.nn.init.trunc_normal_(tensor, mean=0.0, std=1.0, a=- 2.0, b=2.0)
-```
-
-# 3. 恒等初始化 Identity Initialization
-
-**恒等初始化**是指通过把参数设置为恒等变换，使得网络层的输出值与输出值相等。
-
-对于二维参数（如全连接层的权重参数），通过单位矩阵进行恒等初始化：
+**截尾正态分布 (Truncated Normal)**结合两者优点，使用正态分布$N(\mu,σ^2)$对参数进行随机初始化，并将数值截断在$[a,b]之间$。
 
 ```python
-torch.nn.init.eye_(tensor)
+torch.nn.init.trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0)
 ```
 
-对于高维参数（如卷积层的权重矩阵），通过**Dirac-delta**函数进行恒等初始化：
+### ⭐ 讨论：随机初始化与正交变换
+
+从一个固定均值$\mu$和方差$σ^2$的分布$p(x)$中随机采样$x=(x_1,...,x_n), y=(y_1,...,y_n)$，则有：
+
+$$
+\begin{aligned}
+<x,y> &= \sum_{i=1}^nx_iy_i = n\times \frac{1}{n}\sum_{i=1}^nx_iy_i\\
+&\approx n\times\mathbb{E}_{x\sim p(x),y\sim p(x)} \left[ xy \right] \\
+&= n\times\mathbb{E}_{x\sim p(x)} \left[ x \right]\mathbb{E}_{y\sim p(x)} \left[ y \right]\\
+&= n\mu^2 \\
+||x||^2 &= \sum_{i=1}^nx_i^2 = n\times \frac{1}{n}\sum_{i=1}^nx_i^2 \\
+&\approx n\times\mathbb{E}_{x\sim p(x)} \left[ x^2 \right] \\
+& = n\times (\mu^2+\sigma^2)
+\end{aligned}
+$$
+
+当设置$\mu=0,\sigma^2=1/n$时，从分布$p(x)$中随机采样的任意两个向量都是接近正交且归一化的，此时采样构造的矩阵接近正交矩阵，相当于把参数矩阵初始化为正交变换，在变换过程中保持输入向量的模长不变。该结论事实上也导出了后续的**Xavier**初始化策略。
+
+
+
+# ⚪ 稀疏初始化 Sparse Initialization
+
+稀疏初始化是指将权重矩阵中的大部分元素设置为零，从而实现稀疏性。稀疏初始化的公式为：
+
+$$
+W_{ij} \sim \mathcal{N}(0, \sigma^2) * \textbf{B}
+$$
+
+其中$W_{ij}$是连接第$i$个输入神经元和第$j$个输出神经元的权重，$$\mathcal{N}(0, \sigma^2)$$表示均值为$0$, 方差为$\sigma^2$的高斯分布，$$\textbf{B}$$是大小为$m \times n$的二元矩阵，其中$m$是输入神经元的数量，$n$是输出神经元的数量。$$\textbf{B}$$中的每个元素都是$0$或$1$，其中$1$的数量为$\rho mn$，$\rho$是一个控制稀疏度的参数。
 
 ```python
-torch.nn.init.dirac_(tensor, groups=1)
+torch.nn.init.sparse_(tensor, sparsity, std=0.01)
 ```
 
-# 4. Xavier初始化 Xavier Initialization
+在实践中，通常将$\rho$设置为$0.1$或$0.01$，从而将权重矩阵中的大部分元素设置为零。这种稀疏性可以减少神经网络中的冗余性和过拟合，提高网络的泛化能力和性能。
+
+# ⚪ Xavier初始化 Xavier Initialization
 
 - paper：[Understanding the difficulty of training deep feedforward neural networks](https://www.researchgate.net/publication/215616968_Understanding_the_difficulty_of_training_deep_feedforward_neural_networks)
 
@@ -167,7 +197,7 @@ $$
 
 即输入信号的方差在经过该神经元后被缩放了$d_{l-1}Var[w_i^{(l)}]$倍。
 
-为了使得在经过多层网络后，信号不被过分放大或过分减弱，尽可能保持每个神经元的输入和输出的方差一致，则有：
+为了使得在前向传播经过多层网络后，信号不被过分放大或过分减弱，尽可能保持每个神经元的输入和输出的方差一致，则有：
 
 $$ Var[w_i^{(l)}] = \frac{1}{d_{l-1}} $$
 
@@ -180,6 +210,7 @@ $$ Var[w_i^{(l)}] = \frac{1}{d_{l}} $$
 $$ Var[w_i^{(l)}] = \frac{2}{d_{l-1}+d_{l}} $$
 
 因此把参数初始化为均值为$0$、方差为$\frac{2}{d_{l-1}+d_{l}}$，其中$d_{l-1}$和$d_l$分别为前一层和当前层神经元的数量。
+
 
 ## （2）有激活函数
 
@@ -233,7 +264,7 @@ gain = nn.init.calculate_gain('leaky_relu', 0.2)  # leaky_relu with negative_slo
 
 $$ Var[w_i^{(l)}] =  16 \times \frac{2}{d_{l-1}+d_{l}} $$
 
-### ⚪ 高斯分布的Xavier初始化
+### ⭐ 高斯分布的Xavier初始化
 
 若采用高斯分布$N(0,σ^2)$对参数进行**Xavier**初始化，则有：
 
@@ -245,7 +276,7 @@ $$
 torch.nn.init.xavier_normal_(tensor, gain=1.0)
 ```
 
-### ⚪ 均匀分布的Xavier初始化
+### ⭐ 均匀分布的Xavier初始化
 
 若采用均匀分布$U(-a,a)$对参数进行**Xavier**初始化，则有：
 
@@ -259,7 +290,7 @@ $$
 torch.nn.init.xavier_uniform_(tensor, gain=1.0)
 ```
 
-# 5. Kaiming初始化 Kaiming Initialization
+# ⚪ Kaiming初始化 Kaiming Initialization
 
 - paper：[Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification](https://arxiv.org/abs/1502.01852)
 
@@ -360,7 +391,7 @@ $$
 
 $$ Var[w_i^{(l)}] = \frac{2}{(\alpha^2+1)d_{l-1}} $$
 
-# 6. 正交初始化 Orthogonal Initialization
+# ⚪ 正交初始化 Orthogonal Initialization
 
 - paper：[Exact solutions to the nonlinear dynamics of learning in deep linear neural networks](https://arxiv.org/abs/1312.6120)
 
@@ -384,19 +415,61 @@ $$ \mid\mid δ^{(l-1)} \mid\mid^2 = \mid\mid {W^{(l)}}^T δ^{(l)} \mid\mid^2 = \
 
 正交初始化通常用在循环神经网络中循环边上的权重矩阵上。
 
-# 7. 稀疏初始化 Sparse Initialization
+# ⚪ 恒等初始化 Identity Initialization
 
-稀疏初始化是指将权重矩阵中的大部分元素设置为零，从而实现稀疏性。稀疏初始化的公式为：
+在参数初始化时，如果让各层之间的权重完全相等，并且使得上一层的输入“完整”的传入下一层，则神经网络各层参数之间的方差不会发生变化。**恒等初始化**是指通过把神经网络的权重层初始化为一个单位矩阵（恒等变换），使得网络层的输出值与输出值相等。
 
-$$
-W_{ij} \sim \mathcal{N}(0, \sigma^2) * \textbf{B}
-$$
-
-其中$W_{ij}$是连接第$i$个输入神经元和第$j$个输出神经元的权重，$$\mathcal{N}(0, \sigma^2)$$表示均值为$0$, 方差为$\sigma^2$的高斯分布，$$\textbf{B}$$是大小为$m \times n$的二元矩阵，其中$m$是输入神经元的数量，$n$是输出神经元的数量。$$\textbf{B}$$中的每个元素都是$0$或$1$，其中$1$的数量为$\rho mn$，$\rho$是一个控制稀疏度的参数。
+对于二维参数（如全连接层的权重参数），通过单位矩阵进行恒等初始化：
 
 ```python
-torch.nn.init.sparse_(tensor, sparsity, std=0.01)
+torch.nn.init.eye_(tensor)
 ```
 
-在实践中，通常将$\rho$设置为$0.1$或$0.01$，从而将权重矩阵中的大部分元素设置为零。这种稀疏性可以减少神经网络中的冗余性和过拟合，提高网络的泛化能力和性能。
+对于高维参数（如卷积层的权重矩阵），通过**Dirac-delta**函数进行恒等初始化：
+
+```python
+torch.nn.init.dirac_(tensor, groups=1)
+```
+
+恒等初始化具有**动力等距(Dynamical Isometry)**性质，使得神经网络具有稳定的信号传播以及梯度下降的行为。然而恒等初始化建立在各层的维度是相等的假设之上，在实际中这种假设有些过强。
+
+当各层的输入输出维度不相等时，可以把参数矩阵（非方阵）初始化为**部分单位矩阵 (Partial Identity Matrix)**，对于行列中“超出”的部分补零即可：
+
+$$
+\mathbf{I}^* = \begin{cases}
+[\mathbf{I}, \mathbf{0}], & \mathbf{I} \in \mathbb{R}^{m\times m},\mathbf{0} \in \mathbb{R}^{m\times n-m},m < n \\
+[\mathbf{I}, \mathbf{0}]^T, & \mathbf{I} \in \mathbb{R}^{n\times n},\mathbf{0} \in \mathbb{R}^{m-n\times n},m > n \\
+\mathbf{I}, & \text{otherwise}
+\end{cases}
+$$
+
+然而当使用部分单位矩阵在训练神经网络时，会出现**训练衰减 (Training Degeneracy)**现象，即无论隐藏层维度$N_h$有多高，$N_h>N_x$部分的输入在激活函数阶段无法生效，导致神经网络的维度仅仅依赖于输入数据的维度$N_x$，从而极大的限制了神经网络的表达能力。
+
+# ⚪ ZerO初始化
+
+- paper：[<font color=blue>ZerO Initialization: Initializing Neural Networks with only Zeros and Ones</font>](https://0809zheng.github.io/2021/10/28/zero.html)
+
+为了避免直接使用部分单位矩阵作为初始权重参数进行训练而出现的训练衰减问题，**ZerO**初始化针对部分单位矩阵应用哈达玛变换（即使用哈达玛矩阵$H$进行的线性变换）。哈达玛矩阵是均由$+1$与$-1$的元素构成，且满足$H_nH_n^T=nI_n$，哈达玛矩阵可以递归地构造：
+
+$$
+H_m = \begin{pmatrix}
+H_{m-1} & H_{m-1}\\
+H_{m-1} & -H_{m-1}\\
+\end{pmatrix}
+$$
+
+哈达玛变换通过将部分单位矩阵的基向量“旋转”，打破了在传递过程中零元素的对称性，从而解决了训练衰减的问题。此外由于部分单位矩阵与哈达玛矩阵都是确定性的，因此也使得使用**ZerO**方式训练出的模型更具可复现性。
+
+# ⚪ 模仿初始化 Mimetic Initialization
+
+- paper：[<font color=blue>Mimetic Initialization of Self-Attention Layers</font>](https://0809zheng.github.io/2023/05/16/miminit.html)
+
+作者观察到在预训练的视觉**Transformer**中，自注意力层中的权重近似满足$W_QW_K^T\propto I+\epsilon,W_VW_{proj}\propto \epsilon-I$。根据上述观察的结论，可以在初始化时把$W_QW_K^T$以及$W_VW_{proj}$模仿为：
+
+$$
+\begin{aligned}
+W_QW_K^T \approx & \alpha_1Z_1+\beta_1 I, Z_1 \sim N(0, I/k)\\
+W_VW_{proj} \approx & \alpha_2Z_2-\beta_2 I, Z_2 \sim N(0, I/d)
+\end{aligned}
+$$
 
