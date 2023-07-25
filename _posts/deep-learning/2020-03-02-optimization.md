@@ -98,7 +98,7 @@ $$ \dot θ =-g+\sigma \xi $$
 
 该系统用随机微分方程**SDE**描述，称为**朗之万方程**。该方程的解可以用平衡状态下的概率分布描述：
 
-$$ P(\theta) \text{ ~ } \exp(-\frac{l(\theta)}{\sigma^2}) $$
+$$ P(\theta) \sim \exp(-\frac{l(\theta)}{\sigma^2}) $$
 
 从上式中可以看出，当$\sigma^2$越大时，$P(\theta)$越接近均匀分布，此时参数$\theta$可能的取值范围也越大，允许探索更大比例的参数空间。当$\sigma^2$越小时，$P(\theta)$的极大值点(对应$l(\theta)$的极小值点)附近的区域越突出，则参数$\theta$落入极值点附近。在实践中，**batch size**越小，则参数$\sigma^2$越大。
 
@@ -116,7 +116,7 @@ $$ g(x) = f(x_n) + f'(x_n)(x-x_n) + \frac{1}{2h}(x-x_n)^2 $$
 
 该抛物线$g(x)$具有如下特点：
 1. $g(x)$与原曲线$f(x)$在$x_n$处具有一阶近似，即具有相同的数值和一阶导数。
-2. $g(x)$具有容易求得的极小值点$x_n + hf'(x_n)$。
+2. $g(x)$具有容易求得的极小值点$x_n - hf'(x_n)$。
 
 使用$g(x)$的极小值点近似替代原函数$f(x)$的极小值点，即为梯度下降算法的基本形式：
 
@@ -129,7 +129,7 @@ $$ p(\Delta \theta | \theta) =\frac{e^{-[l(\theta+\Delta \theta)-l(\theta)] / \a
 
 式中$Z(\theta)$是归一化因子。参数$\alpha>0$调整分布的形状；当$\alpha \to ∞$时，$p(\Delta \theta \| \theta)$趋近于均匀分布，参数可以向任意方向变化；当$\alpha \to 0$时，只有使得$l(\theta+\Delta \theta)$最小的$\Delta \theta$对应的概率$p(\Delta \theta \| \theta)$不为$0$，因此$\Delta \theta$将选择损失下降最快的方向。
 
-下一步的实际更新量可以选择上式的期望：
+参数的实际更新量可以选择上式的期望：
 
 $$ \Delta \theta^* = \Bbb{E}_{\Delta \theta\text{~}p(\Delta \theta | \theta)}[\Delta \theta] = \int_{}^{} p(\Delta \theta | \theta) \Delta \theta d (\Delta \theta) $$
 
@@ -158,9 +158,9 @@ $$ \Delta \theta^* = -\nabla_g \ln Z(||g||) = -\frac{Z'(||g||)}{Z(||g||)} \nabla
 # 3. 常用的梯度下降算法
 
 标准的批量梯度下降方法存在一些缺陷：
-- 更新过程中容易陷入局部极小值或鞍点(这些点处的梯度也为$0$)；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**, **Funnelled SGDM**, **Lion**)。
+- 更新过程中容易陷入局部极小值或鞍点(这些点处的梯度也为$0$)；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**, **Funnelled SGDM**)。
 - 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；损失函数的**条件数(Condition number**，指损失函数的**Hessian**矩阵最大奇异值与最小奇异值之比)越大，这一现象越严重。常见解决措施是为每个特征设置**自适应**学习率(如**RProp**, **AdaGrad**, **RMSprop**, **AdaDelta**)。这类算法的缺点是改变了梯度更新的方向，一定程度上造成精度损失。![](https://pic.downk.cc/item/5e902a62504f4bcb04758232.jpg)
-- 可以结合基于动量的方法和基于自适应学习率的方法，如**Adam**, **AdamW**, **Adamax**, **Nadam**, **AMSGRad**, **Radam**, **AdaX**。这类方法需要同时存储与模型参数具有相同尺寸的动量和方差，通常会占用较多内存，一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
+- 可以结合基于动量的方法和基于自适应学习率的方法，如**Adam**, **AdamW**, **Adamax**, **Nadam**, **AMSGRad**, **Radam**, **AdaX**, **Amos**, **Lion**。这类方法需要同时存储与模型参数具有相同尺寸的动量和方差，通常会占用较多内存，一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
 - 批量大小难以选择。批量较小时，引入较大的梯度噪声；批量较大时，内存负担较大。在分布式训练大规模神经网络时，整体批量通常较大，训练的模型精度会剧烈降低。这是因为总训练轮数保持不变时，批量增大意味着权重更新的次数减少。常见解决措施是通过**层级自适应**实现每一层的梯度归一化(如**LARS**, **LAMB**, **NovoGrad**)，从而使得更新步长依赖于参数的数值大小而不是梯度的大小。
 
 在实际应用梯度下降算法时，可以根据截止到当前步$t$的历史梯度信息$$\{g_{1},...,g_{t}\}$$计算修正的参数更新量$h_t$（比如累积动量、累积二阶矩校正学习率等），从而弥补上述缺陷。因此梯度下降算法的一般形式可以表示为：
@@ -172,7 +172,7 @@ $$ \begin{align} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla
 | 优化算法 | 参数定义(缺省值/初始值) |  更新形式 |
 | ---- | ---- |   ---- |
 | SGD | $$g_t\text{: 梯度} \\ \gamma\text{: 学习率}$$ | $$\begin{align} g_t&=\nabla_{\theta} l(θ_{t-1}) \\ θ_t&=θ_{t-1}-\gamma g_t \end{align}$$   |
-| [<font color=Blue>RProp</font>](https://0809zheng.github.io/2020/12/07/rprop.html)：根据梯度符号更新参数 | $$\eta_t\text{: 弹性步长} \\ \eta_+\text{: 步长增加值}(1.2) \\ \eta_{\_}\text{: 步长减小值}(0.5) \\ \Gamma_{max} \text{: 最大步长} \\ \Gamma_{min} \text{: 最小步长}$$ | $$\begin{align} \eta_t &= \begin{cases} \min(\eta_{t-1}\eta_+,\Gamma_{max}) & \text{if }g_{t-1}g_t>0 \\ \max(\eta_{t-1}\eta_{\_},\Gamma_{min}) & \text{if }g_{t-1}g_t<0  \\ \eta_{t-1}& \text{else} \end{cases} \\θ_{t} &= θ_{t-1} -\eta_t \text{sign}(g_t) \end{align}$$   |
+| [<font color=Blue>RProp</font>](https://0809zheng.github.io/2020/12/07/rprop.html)：根据梯度符号更新参数 | $$\eta_t\text{: 弹性步长} \\ \eta_+\text{: 步长增加值}(1.2) \\ \eta_{\_}\text{: 步长减小值}(0.5) \\ \Gamma_{max} \text{: 最大步长} \\ \Gamma_{min} \text{: 最小步长}$$ | $$\begin{align} \eta_t &= \begin{cases} \min(\eta_{t-1}\eta_+,\Gamma_{max}) & g_{t-1}g_t>0 \\ \max(\eta_{t-1}\eta_{\_},\Gamma_{min}) & g_{t-1}g_t<0  \\ \eta_{t-1}& g_{t-1}g_t=0  \end{cases} \\θ_{t} &= θ_{t-1} -\eta_t \text{sign}(g_t) \end{align}$$   |
 | momentum：引入动量(梯度累计值) | $$m_t\text{: 动量}(0) \\ \gamma\text{: 学习率} \\ \mu \text{: 衰减率}(0.9)$$ | $$\begin{align} m_t &= \mu m_{t-1} + g_t \\ θ_t&=θ_{t-1}-\gamma m_t \end{align}$$   |
 | [<font color=Blue>NAG</font>](https://0809zheng.github.io/2020/12/08/nesterov.html)：引入Nesterov动量 | $$m_t\text{: 动量}(0) \\ \gamma\text{: 学习率} \\ \mu \text{: 衰减率}(0.9)$$ | $$\begin{align}  m_t &= \mu m_{t-1} + \nabla_{\theta} l(θ_{t-1}-\mu m_{t-1}) \\ θ_t&=θ_{t-1}-\gamma m_t \\-&-------------\\ m_t & = \mu m_{t-1} +  g_t \\ θ_t & =θ_{t-1}-\gamma(\mu m_t + g_t) \end{align}$$   |
 | [AdaGrad](http://jmlr.org/papers/v12/duchi11a.html)：使用平方梯度累计调整学习率 | $$v_t\text{: 平方梯度}(0) \\ \gamma\text{: 学习率} \\ \epsilon \text{: 小值}(1e-10)$$ | $$\begin{align} v_t &=  v_{t-1} + g_t^2 \\ θ_{t} &= θ_{t-1} -\gamma \frac{g_t}{\sqrt{v_t}+\epsilon} \end{align}$$   |
@@ -191,7 +191,9 @@ $$ \begin{align} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla
 | [<font color=Blue>LARS</font>](https://0809zheng.github.io/2020/12/15/lars.html)：层级自适应学习率+momentum | $$m_t\text{: 动量}(0) \\ \gamma\text{: 全局学习率} \\ \mu \text{: 衰减率}(0.9) \\ L \text{: 网络层数}$$ | $$\begin{align}  m_t &= \mu m_{t-1} + g_t \\ θ_t^{(i)}&=θ_{t-1}^{(i)}-\gamma \frac{\| θ_{t-1}^{(i)} \|}{\| m_t^{(i)} \|} m_t^{(i)}, \text{for all }i \in [L] \end{align}$$   |
 | [<font color=Blue>LAMB</font>](https://0809zheng.github.io/2020/12/17/lamb.html)：层级自适应学习率+Adam | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 全局学习率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.999) \\ \epsilon \text{: 小值}(1e-8) \\ L \text{: 网络层数}$$ | $$\begin{align} m_t &= β_1m_{t-1} + (1-β_1)g_t \\ v_t &= β_2v_{t-1} + (1-β_2)g_t^2 \\\hat{m}_t &= \frac{m_t}{1-β_1^t} \\ \hat{v}_t &= \frac{v_t}{1-β_2^t} \\ θ_t^{(i)}&=θ_{t-1}^{(i)}-\gamma \frac{\| θ_{t-1}^{(i)} \|}{\|\frac{\hat{m}_t^{(i)}}{\sqrt{\hat{v}_t^{(i)}}+ε}\|} \frac{\hat{m}_t^{(i)}}{\sqrt{\hat{v}_t^{(i)}}+ε} , \text{for all }i \in [L]  \end{align}$$   |
 | [<font color=Blue>NovoGrad</font>](https://0809zheng.github.io/2020/12/19/novograd.html)：使用层级自适应二阶矩进行梯度归一化 | $$m_t\text{: 动量}(0) \\ v_t\text{: 平方梯度}(0) \\ \gamma\text{: 全局学习率} \\ \lambda\text{: 权重衰减率} \\ \beta_1 \text{: 衰减率}(0.9)  \\ \beta_2 \text{: 衰减率}(0.25) \\ \epsilon \text{: 小值}(1e-8) \\ L \text{: 网络层数}$$ | $$\begin{align} v_1^{(i)}&=\|g_1^{(i)}\|^2, m_1^{(i)}=\frac{g_1^{(i)}}{\sqrt{v_1^{(i)}}}+\lambda w_1^l \\ v_t^{(i)} &= \beta_2 \cdot v_{t-1}^{(i)} + (1-\beta_2) \cdot \|g_t^{(i)}\|^2 \\  m_t^{(i)} &= \beta_1 \cdot m_{t-1}^{(i)} + (\frac{g_t^{(i)}}{\sqrt{v_t^{(i)}}+\epsilon}+\lambda \theta_t^{(i)})  \\ θ_t^{(i)}&=θ_{t-1}^{(i)}-\gamma m_t^{(i)} , \text{for all }i \in [L] \end{align}$$   |
+| [<font color=Blue>Amos</font>](https://0809zheng.github.io/2022/12/02/amos.html)：自适应设置学习率和权重衰减项 | $$h_t\text{: 参数更新量} \\ \alpha_t\text{: 自适应学习率} \\ \rho_t \text{: 自适应权重衰减率}$$ | $$\begin{align} \theta_{t+1} &= \theta_t - (\alpha_th_t+\rho_t\theta_t) \\ \alpha_t &\approx  \frac{\alpha_0 \|\|\epsilon_0\|\|}{\|\|h_t\|\|} \frac{1}{2 \alpha_0 p_0 t+1} \\ \rho_t  &\approx  \frac{\alpha_0^2}{2q} \frac{1}{2 \alpha_0 p_0 t+1} \end{align}$$   |
 | [<font color=Blue>Lion</font>](https://0809zheng.github.io/2023/02/21/lion.html)：自动搜索优化器 | $$m_t\text{: 动量}(0) \\ \gamma\text{: 学习率} \\ \lambda \text{: 权重衰减率}(1.0) \\ \beta_1 \text{: 衰减率}(0.9)\\ \beta_2 \text{: 衰减率}(0.99)$$ | $$\begin{align} u_t &= \text{sign}( \beta_1m_{t-1}+(1-\beta_1)g_t ) + \lambda\theta_{t} \\ θ_t&=θ_{t-1}-\gamma u_t \\ m_t &= \beta_2m_{t-1}+(1-\beta_2)g_t \end{align}$$   |
+
 
 
 # 4. 其他优化算法
@@ -280,17 +282,13 @@ $$ \begin{aligned} h_t &= f(g_{1},...,g_{t}) \\ θ_t&=θ_{t-1}-\gamma h_t \\ \te
 
 **lookahead**算法相比于直接使用优化器更新$k$次，运算操作数变为$O(\frac{k+1}{k})$倍。当快权重沿低曲率方向进行更新时，慢权重通过参数插值平滑振荡，实现快速收敛。当快权重在极小值附近探索时，慢权重更新将推向一个测试精度更高的区域。
 
-### ⚪ [<font color=Blue>Amos</font>](https://0809zheng.github.io/2022/12/02/amos.html)
+### ⚪ [<font color=Blue>Data Echoing</font>](https://0809zheng.github.io/2020/07/06/dataecho.html): 通过buffer加速模型训练
 
-带权重衰减的梯度下降公式可写作：
+在深度学习模型流水线中，通常上游任务（数据预处理）是在**CPU**上进行的，而下游任务（深度学习任务）是在**GPU**上进行的；模型对一批数据进行预处理的时间要长于使用数据进行学习的时间；
 
-$$ \theta_{t+1} = \theta_t - (\alpha_tu_t+\rho_t\theta_t) $$
+**data echoing**将预处理的数据放入一个**buffer**中，使用数据更新参数时从这个**buffer**直接或再进行一些处理来获得一个批量的数据；不断从**buffer**中采样直到**upstream**处理好了一批新的数据，更新**buffer**。
 
-**Amos**提出了一种自适应地设置学习率$\alpha_t$和权重衰减项$\rho_t$的方法：
-
-$$ \begin{aligned} \alpha_t &\approx  \frac{\alpha_0 ||\epsilon_0||}{||u_t||} \frac{1}{2 \alpha_0 p_0 t+1} \\ \rho_t  &\approx  \frac{\alpha_0^2}{2q} \frac{1}{2 \alpha_0 p_0 t+1} \end{aligned} $$
-
-其中$\alpha_0$代表了每一步的相对更新幅度（全局学习率），一般取$1e−3$，任务简单也可以取到$1e−2$；$q=1$；参数初始化误差$\|\|\epsilon_0\|\|^2 \approx k\sigma^2$
+![](https://pic.downk.cc/item/5f02b93e14195aa594dc3048.jpg)
 
 
 
@@ -311,6 +309,7 @@ $$ \begin{aligned} \alpha_t &\approx  \frac{\alpha_0 ||\epsilon_0||}{||u_t||} \f
 - [<font color=Blue>Large Batch Optimization for Deep Learning: Training BERT in 76 minutes</font>](https://0809zheng.github.io/2020/12/17/lamb.html)：(arXiv1904)LAMB：结合层级自适应学习率与Adam。
 - [<font color=Blue>Stochastic Gradient Methods with Layer-wise Adaptive Moments for Training of Deep Networks</font>](https://0809zheng.github.io/2020/12/19/novograd.html)：(arXiv1905)NovoGrad：使用层级自适应二阶矩进行梯度归一化。
 - [<font color=Blue>Lookahead Optimizer: k steps forward, 1 step back</font>](https://0809zheng.github.io/2020/12/14/lookahead.html)：(arXiv1907)Lookahead：快权重更新k次，慢权重更新1次。
+- [<font color=Blue>Faster Neural Network Training with Data Echoing</font>](https://0809zheng.github.io/2020/07/06/dataecho.html)：(arXiv1907)Data Echoing：一种加速模型训练的方法。
 - [<font color=Blue>On the Variance of the Adaptive Learning Rate and Beyond</font>](https://0809zheng.github.io/2020/12/13/radam.html)：(arXiv1908)Radam：修正Adam算法中自适应学习率的早期方差。
 - [<font color=Blue>Gradientless Descent: High-Dimensional Zeroth-Order Optimization</font>](https://0809zheng.github.io/2022/03/09/gradientless.html)：(arXiv1911)高维参数空间中的零阶优化方法。
 - [<font color=Blue>Deep Ensembles: A Loss Landscape Perspective</font>](https://0809zheng.github.io/2020/07/12/deep-ensemble.html)：(arXiv1912)探讨深度集成学习的损失曲面。

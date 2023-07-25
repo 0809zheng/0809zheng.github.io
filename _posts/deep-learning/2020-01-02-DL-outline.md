@@ -18,16 +18,17 @@ tags: 深度学习
 - **深度神经网络的类型**
 1. **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、卷积神经网络中的注意力机制、轻量级卷积神经网络
 2. **循环神经网络**：循环神经网络的基本概念、序列到序列模型、序列到序列模型中的注意力机制
-3. **自注意力网络**：自注意力机制、**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、预训练语言模型
+3. **自注意力网络**：自注意力机制、**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、预训练语言模型、
 4. **深度生成模型**：生成对抗网络、变分自编码器、流模型
 5. **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络
 - **深度学习的基本组件和方法技巧**
-1. **深度学习的基本组件**：激活函数、优化方法、正则化方法
-2. **深度学习的方法技巧**：半监督学习、度量学习、长尾分布、多任务学习、主动学习、对抗训练
+1. **深度学习的基本组件**：激活函数、优化方法、正则化方法、归一化方法、参数初始化方法
+2. **深度学习的方法**：半监督学习、度量学习、多任务学习、主动学习
+3. **深度学习的技巧**：长尾分布、对抗训练、大模型的参数高效微调
 - **深度学习的应用**
-1. **计算机视觉**：图像识别、图像分割、图像超分辨率、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别
+1. **计算机视觉**：图像识别、图像分割、图像超分辨率、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别、点云分类
 2. **自然语言处理**：
-3. 
+3. **AI for Science**
 
 # 1. 深度神经网络的类型
 
@@ -49,7 +50,7 @@ tags: 深度学习
 
 **池化层**可以对特征图进行降采样，从而减小网络的计算成本，降低过拟合的风险。卷积神经网络中的池化方法包括：
 - 通用的池化方法：最大池化, 平均池化, 混合池化, 分数最大池化, 幂平均池化, 随机池化, 随机空间采样池化(**S3Pool**), 细节保留池化(**DPP**), 局部重要性池化(**LIP**), 软池化, 动态优化池化(**DynOPool**)
-- 为下游任务设计的池化方法：全局平均池化(**GAP**), 协方差池化, 空间金字塔池化(**SPP**), 感兴趣区域池化(**RoI Pooling**)
+- 为下游任务设计的池化方法：全局平均池化(**GAP**), 协方差池化, 空间金字塔池化(**SPP**), 感兴趣区域池化(**RoI Pooling**), 双线性池化
 
 ### ⚪ [<font color=Blue>卷积神经网络中的注意力机制(Attention Mechanism)</font>](https://0809zheng.github.io/2020/11/18/AinCNN.html)
 
@@ -273,17 +274,27 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 ### ⚪ [<font color=Blue>正则化方法 (Regularization)</font>](https://0809zheng.github.io/2020/03/03/regularization.html)
 
 **正则化**指的是通过**引入噪声**或限制模型的**复杂度**，降低模型对输入或者参数的敏感性，避免过拟合，提高模型的泛化能力。常用的正则化方法包括：
-- 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化, 自正交性正则化, **WEISSI**正则化, 梯度惩罚
+- 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, **L0**正则化, 弹性网络正则化, 谱正则化, 自正交性正则化, **WEISSI**正则化, 梯度惩罚
 - 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**及其系列方法,
 - 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, 梯度裁剪, **Early Stop**, 标签平滑, 变分信息瓶颈, 虚拟对抗训练, **Flooding**
 
 
-- [标准化方法](https://0809zheng.github.io/2020/03/04/normalization.html)
-- [参数初始化方法](https://0809zheng.github.io/2020/03/05/initialization.html)
+### ⚪ [<font color=Blue>归一化方法 (Normalization)</font>](https://0809zheng.github.io/2020/03/04/normalization.html)
 
 
+输入数据的特征通常具有不同的量纲和取值范围，使得不同特征的**尺度**差异很大。**归一化**泛指把数据特征的不同维度转换到相同尺度的方法。深度学习中常用的归一化方法包括：
+1. 基础归一化方法：最小-最大值归一化、标准化、白化、逐层归一化
+2. 深度学习中的特征归一化：局部响应归一化**LRN**、批归一化**BN**、层归一化**LN**、实例归一化**IN**、组归一化**GN**、切换归一化**SN**
+3. 改进特征归一化：（改进**BN**）**Batch Renormalization**, **AdaBN**, **L1-Norm BN**, **GBN**, **SPADE**；（改进**LN**）**RMS Norm**；（改进**IN**）**FRN**, **AdaIN**
+4. 深度学习中的参数归一化：权重归一化**WN**、余弦归一化**CN**、谱归一化**SN**
 
-## (2) 深度学习的方法技巧
+### ⚪ [<font color=Blue>参数初始化方法 (Parameter Initialization)</font>](https://0809zheng.github.io/2020/03/05/initialization.html)
+
+对神经网络进行训练时，需要对神经网络的参数进行初始化。糟糕的初始化不仅会使模型效果变差，还有可能使得模型根本训练不动或者不收敛。
+
+常见的初始化方法包括零初始化、随机初始化、稀疏初始化、**Xavier**初始化、**Kaiming**初始化、正交初始化、恒等初始化、**ZerO**初始化、模仿初始化。
+
+## (2) 深度学习的方法
 
 ### ⚪ [<font color=Blue>半监督学习 (Semi-Supervised Learning)</font>](https://0809zheng.github.io/2022/09/01/semi.html)
 
@@ -301,14 +312,6 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 度量学习的目标在于最小化相似样本(正样本对)之间的距离，最大化不相似样本(负样本对)之间的距离。深度度量损失包括：
 - 基于**对(pair)**的度量损失：考虑一个批次样本中样本对之间的关系，最小化正样本对$(x,x^+)$之间的距离，最大化负样本对$(x,x^-)$之间的距离。如**Contrastive Loss**, **Binomial Deviance Loss**, **Triplet Loss**, **Improved Triplet Loss**, **Batch Hard Triplet Loss**, **Hierarchical Triplet Loss**, **Angular Loss**, **Quadruplet Loss**, **N-pair Loss**, **Lift Structured Loss**, **Histogram Loss**, **Ranked List Loss**, **Soft Nearest Neighbor Loss**, **Multi-Similarity Loss**, **Circle Loss**。
 - 基于**代理(proxy)**的度量损失：为每个类别赋予一个代理样本，拉近每个类别的样本和该类别对应的代理样本之间的距离，拉远与其他类别对应的代理样本之间的距离。如**Magnet Loss**, **Clustering Loss**, **Proxy-NCA**, **ProxyNCA++**, **Proxy-Anchor**。
-
-### ⚪ [<font color=Blue>长尾分布 (Long-Tailed)</font>](https://0809zheng.github.io/2020/03/02/optimization.html)
-
-实际应用中的数据集大多服从**长尾分布**，即少数类别(**head class**)占据绝大多数样本，多数类别(**tail class**)仅有少量样本。解决长尾分布问题的方法包括：
-- 重采样 **Re-sampling**：通过对**head class**进行欠采样或对**tail class**进行过采样，人为地构造类别均衡的数据集。包括**Random under/over-sampling**, **Class-balanced sampling**, **Meta Sampler**等。
-- 重加权 **Re-weighting**：在损失函数中对不同类别样本的损失设置不同的权重，通常是对**tail class**对应的损失设置更大的权重。其中在$\log$运算之外调整损失函数的本质是在调节样本权重或者类别权重(如**Inverse Class Frequency Weighting**, **Cost-Sensitive Cross-Entropy Loss**, **Focal Loss**, **Class-Balanced Loss**)。在$\log$运算之内调整损失函数的本质是调整**logits**得分$z$，从而缓解对**tail**类别的负梯度(如**Equalization Loss**, **Equalization Loss v2**, **Logit Adjustment Loss**, **Balanced Softmax Loss**, **Seesaw Loss**)。
-- 其他方法：一些方法将长尾分布问题解耦为特征的表示学习和特征的分类。一些方法按照不同类别的样本数量级对类别进行分组(如**BAGS**)。
-
 
 ### ⚪ [<font color=Blue>多任务学习 (Multi-Task Learning)</font>](https://0809zheng.github.io/2021/08/28/MTL.html)
 
@@ -329,6 +332,19 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**, **Cluster-Margin**)、判别学习(如**VAAL**, **CAL**, **DAL**)
 - **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BatchBALD**, **BADGS**, **Active DPP**, **VAAL**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
 
+
+
+## (3) 深度学习的技巧
+
+
+### ⚪ [<font color=Blue>长尾分布 (Long-Tailed)</font>](https://0809zheng.github.io/2020/03/02/optimization.html)
+
+实际应用中的数据集大多服从**长尾分布**，即少数类别(**head class**)占据绝大多数样本，多数类别(**tail class**)仅有少量样本。解决长尾分布问题的方法包括：
+- 重采样 **Re-sampling**：通过对**head class**进行欠采样或对**tail class**进行过采样，人为地构造类别均衡的数据集。包括**Random under/over-sampling**, **Class-balanced sampling**, **Meta Sampler**等。
+- 重加权 **Re-weighting**：在损失函数中对不同类别样本的损失设置不同的权重，通常是对**tail class**对应的损失设置更大的权重。其中在$\log$运算之外调整损失函数的本质是在调节样本权重或者类别权重(如**Inverse Class Frequency Weighting**, **Cost-Sensitive Cross-Entropy Loss**, **Focal Loss**, **Class-Balanced Loss**)。在$\log$运算之内调整损失函数的本质是调整**logits**得分$z$，从而缓解对**tail**类别的负梯度(如**Equalization Loss**, **Equalization Loss v2**, **Logit Adjustment Loss**, **Balanced Softmax Loss**, **Seesaw Loss**)。
+- 其他方法：一些方法将长尾分布问题解耦为特征的表示学习和特征的分类。一些方法按照不同类别的样本数量级对类别进行分组(如**BAGS**)。
+
+
 ### ⚪ [<font color=Blue>对抗训练 (Adversarial Training)</font>](https://0809zheng.github.io/2020/07/26/adversirial_attack_in_classification.html)
 
 **对抗训练**是指通过构造对抗样本，对模型进行对抗攻击和防御来增强模型的稳健性。对抗训练的一般形式如下：
@@ -340,7 +356,15 @@ $$
 - 对抗攻击是指想办法造出更多的对抗样本；常用的对抗攻击方法包括：**FGSM**, **I-FGSM**, **MI-FGSM**, **NI-FGSM**, **DIM**, **TIM**, **One Pixel Attack**, **Black-box Attack**。
 - 对抗防御是指想办法让模型能正确识别更多的对抗样本；常用的对抗防御方法包括**Smoothing**, **Feature Squeezing**, **Randomization**, **Proactive defense**。
 
+### ⚪ [<font color=Blue>大模型的参数高效微调 (Parameter-Efficient Fine-Tuning)</font>](https://0809zheng.github.io/2023/02/02/peft.html)
 
+将预训练好的大型模型在下游任务上进行微调已成为处理不同任务的通用范式；但是随着模型越来越大，对模型进行全部参数的微调（**full fine-tuning**）变得非常昂贵。**参数高效微调**是指冻结预训练模型的大部分参数，仅微调少量或额外的模型参数。
+
+参数高效微调方法有以下几种形式：
+- 增加额外参数(**addition**)：在原始模型中引入额外的可训练参数，如**Adapter**, **AdapterFusion**, **AdapterDrop**, **P-Tuning**, **Prompt Tuning**, **Prefix-Tuning**, **P-Tuning v2**, **Ladder Side-Tuning**
+- 选取部分参数(**specification**)：指定原始模型中的部分参数可训练，如**BitFit**, **Child-Tuning**
+- 重参数化(**reparameterization**)：将微调过程重参数化为低维子空间的优化，如**Diff Pruning**, **LoRA**, **AdaLoRA**, **QLoRA**, **GLoRA**
+- 混合方法：如**MAM Adapter**, **UniPELT**
 
 - [深度学习的可解释性](https://0809zheng.github.io/2020/04/28/explainable-DL.html)
 
@@ -432,7 +456,15 @@ $$
 
 ### ⚪ [<font color=blue>文本检测与识别 (Text Detection and Recognition)</font>](https://0809zheng.github.io/2020/05/15/text-detection-recognition.html)
 
-文本检测是指找出图像中的文字区域；文本识别是指对定位好的文字区域进行识别，将图像中的文字区域进转化为字符信息。常用的文本检测与识别方法包括**EAST**, **CRNN**, **Mask TextSpotter**。
+**文本检测**是指找出图像中的文字区域；文本识别是指对定位好的文字区域进行识别，将图像中的文字区域进转化为字符信息。常用的文本检测与识别方法包括**EAST**, **CRNN**, **Mask TextSpotter**。
+
+### ⚪ [<font color=blue>点云分类 (Point Cloud Classification)</font>](https://0809zheng.github.io/2023/04/01/pointcloud.html)
+
+**点云分类**即点云形状分类，是一种重要的点云理解任务。该任务的方法通常首先学习每个点的嵌入，然后使用聚合方法从整个点云中提取全局形状嵌入，并通过分类器进行分类。根据神经网络输入的数据格式，三维点云分类方法可分为：
+- 基于多视图(**Multi-view based**)的方法：将点云投影为多个二维图像，如**MVCNN**, **MHBN**。
+- 基于体素(**Voxel-based**)的方法：将点云转换为三维体素表示，如**VoxNet**, **OctNet**。
+- 基于点(**Point-based**)的方法：直接处理原始点云，如**PointNet**, **PointNet++**, **PointCNN**, **DGCNN**, **PCT**。
+
 
 ## (2) 自然语言处理
 
@@ -454,19 +486,21 @@ $$
 - [Faster sorting algorithms discovered using deep reinforcement learning](https://0809zheng.github.io/2023/06/07/alphadev.html)：(Nature 2023.06)AlphaDev：通过深度强化学习发现更快的排序算法。
 
 
+# 4. 参考文献与扩展阅读
 
-
-
-### 深度学习的相关课程
+### ⚪ 深度学习的相关课程
 - [Deep Learning \| Coursera （Andrew Ng）](https://www.coursera.org/specializations/deep-learning)
 - [吴恩达Tensorflow2.0实践系列课程](https://www.bilibili.com/video/BV1zE411T7nb?from=search&seid=890015452850895449)
 - [CS231n：计算机视觉（李飞飞）](http://cs231n.stanford.edu/syllabus.html)
 - [CS294-158：深度无监督学习](https://sites.google.com/view/berkeley-cs294-158-sp20/home)
 - [旷视x北大《深度学习实践》](https://www.bilibili.com/video/BV1E7411t7ay)
+- **YouTuber**：[李宏毅](https://www.youtube.com/@HungyiLeeNTU)、[Yannic Kilcher](https://www.youtube.com/@YannicKilcher)
 
-
-
-### 深度学习的相关书籍
+### ⚪ 深度学习的相关书籍
+- [Deep Learning（花书）](https://book.douban.com/subject/27087503/)
 - [《神经网络与深度学习》（邱锡鹏）](https://nndl.github.io/)
 - [《动手学深度学习》（李沐等）](http://zh.d2l.ai/)
 
+### ⚪ 深度学习的相关博客
+- 企业博客：[OpenAI](https://openai.com/blog/)、[DeepMind](https://www.deepmind.com/blog)、[DeepLearning.AI](https://www.deepmind.com/blog)
+- 个人博客：[Lil’Log](https://lilianweng.github.io/)、[科学空间](https://spaces.ac.cn/)

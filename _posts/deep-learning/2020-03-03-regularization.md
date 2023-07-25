@@ -13,7 +13,7 @@ tags: 深度学习
 
 **正则化(Regularization)**指的是通过**引入噪声**或限制模型的**复杂度**，降低模型对输入或者参数的敏感性，避免过拟合，提高模型的泛化能力。常用的正则化方法包括约束目标函数(等价于约束模型参数)、约束网络结构、约束优化过程。
 
-- 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, 谱正则化, 自正交性正则化, **WEISSI**正则化, 梯度惩罚
+- 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, 弹性网络正则化, **L0**正则化, 谱正则化, 自正交性正则化, **WEISSI**正则化, 梯度惩罚
 - 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**及其系列方法,
 - 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, 梯度裁剪, **Early Stop**, 标签平滑, 变分信息瓶颈, 虚拟对抗训练, **Flooding**
 
@@ -109,6 +109,31 @@ $$ \begin{aligned} \hat{w} &= \mathop{\arg \max}_{w}\log p(w |x, y) = \mathop{\a
 **弹性网络正则化 (Elastic Net Regularization)**是指同时约束参数的**L2**范数和**L1**范数：
 
 $$ w^*= \mathop{\arg\min}_w \frac{1}{N} \sum_{n=1}^{N} {L(y_n,f(x_n);w)}+λ_2 ||w||_2^2+λ_1 ||w||_1$$
+
+## ⚪ L0正则化 L0 Regularization
+
+- paper：[<font color=blue>Learning Sparse Neural Networks through L0 Regularization</font>](https://0809zheng.github.io/2020/08/31/l0norm.html)
+
+**L0正则化**是指约束参数的**L0**范数（不为零的参数数量）：
+
+$$
+\begin{aligned}
+w^*&= \mathop{\arg\min}_w \frac{1}{N} \sum_{n=1}^{N} {L(y_n,f(x_n);w)}+λ_0 ||w||_0 \\
+||w||_0 &= \sum_{j=1}^{|w|} \mathbb{I}[w_j \neq 0]
+\end{aligned}
+$$
+
+上述损失项不可微，可通过**hard concrete**分布对其进行重参数化：
+
+$$
+\begin{aligned}
+w^*&= \mathop{\arg\min}_w \frac{1}{N} \sum_{n=1}^{N} {L(y_n,f(x_n);w \odot z)}+λ_0 \sum_{j=1}^{|w|} \text{sigmoid}(\log \alpha_j - \beta \log \frac{-\gamma}{\zeta}) \\
+u & \sim U[0,1] \\
+s &= \text{sigmoid}((\log u - \log(1-u) + \log \alpha)/\beta) \\
+\overline{s} &= s(\zeta - \gamma) + \gamma \\
+z &= \min(1, \max(0, \overline{s}))
+\end{aligned}
+$$
 
 ## ⚪ 谱正则化 Spectral Norm Regularization
 
