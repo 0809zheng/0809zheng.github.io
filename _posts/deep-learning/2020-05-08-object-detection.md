@@ -324,6 +324,36 @@ $$
 
 ## （3） Anchor-Free的目标检测方法
 
+目标检测模型的主流是**Anchor-Based**的方法。这种方法在特征图的每一个像素点预设几个不同尺度和长宽比的边界框，称之为**anchor**。网络对每一个 **anchor** 进行分类，并对正类的 **anchor** 进行回归（位置及大小调整）。这类方法的主要优点是：
+1. 很大程度上减少了计算量，并将 **proposal** 数量放到可控范围内以便后面的计算和筛选；
+2. 通过调整不同的 **anchor** 设置可以覆盖尽可能多的物体，也可针对不同任务设置不同的 **anchor** 尺度范围；
+3. 由于 **anchor** 的尺度是人工定义的，物体的定位是通过 **anchor** 的回归来实现，通过计算偏移量而不是物体的位置大大降低了优化难度。
+
+然而 **anchor** 的设置也有着它自身的缺点。单纯通过使用更多不同大小和长宽比的 **anchor** 以及更多的训练技巧就可以达到更好的效果，然而这种通过增加算力而改进网络的方法很难落实到实际的应用中。并且 **anchor** 的设定需要人为设定大量的参数，且离散的 **anchor** 尺度设定会导致一些物体无法很好的匹配，从而导致遗漏。
+
+**Anchor-Free**的目标检测方法没有采用“预设**anchor**+偏移量回归”的检测流程，而是把目标检测任务视作关键点检测等其它形式的任务，直接对目标的位置进行预测。
+
+### ⚪ CornerNet
+- paper：[<font color=blue>CornerNet: Detecting Objects as Paired Keypoints Learning</font>](https://0809zheng.github.io/2020/07/20/cornernet.html)
+
+**CornerNet**检测目标框的左上角和右下角位置，通过**Corner Pooling**提取角点特征，通过预测角点嵌入进行角点匹配，并进一步预测角点位置的偏移量。
+
+![](https://pic.imgdb.cn/item/64c0da391ddac507ccf07702.jpg)
+
+### ⚪ CenterNet
+- paper：[<font color=blue>Objects as Points</font>](https://0809zheng.github.io/2021/03/23/centernet.html)
+
+**CenterNet**直接检测目标的中心点、目标的大小以及中心点的位置偏移。
+
+![](https://pic.imgdb.cn/item/64c382301ddac507cc461a53.jpg)
+
+### ⚪ FCOS
+- paper：[<font color=blue>FCOS: A Simple and Strong Anchor-free Object Detector</font>](https://0809zheng.github.io/2021/03/30/fcos.html)
+
+**FCOS**预测特征图上各点的类别，再预测各点到**bbox**左侧、右侧、顶端和底部的距离，以及各点的**center-ness score**。
+
+![](https://pic.imgdb.cn/item/64c4bfc11ddac507cc3bf5b2.jpg)
+
 
 ## （4） 基于Transformer的目标检测模型
 
@@ -368,11 +398,6 @@ $$
 - arXiv:[https://arxiv.org/abs/1804.06215](https://arxiv.org/abs/1804.06215)
 
 
-### CornerNet: Detecting Objects as Paired Keypoints
-- intro:CornerNet
-- arXiv:[https://arxiv.org/abs/1808.01244](https://arxiv.org/abs/1808.01244)
-
-
 ### EfficientDet: Scalable and Efficient Object Detection
 - intro:EfficientDet
 - arXiv:[https://arxiv.org/abs/1911.09070](https://arxiv.org/abs/1911.09070)
@@ -381,8 +406,6 @@ $$
 
 ## ⚪ 目标检测
 
-
-- [CornerNet: Detecting Objects as Paired Keypoints Learning](https://0809zheng.github.io/2020/07/20/cornernet.html)：(arXiv1808)CornerNet：检测目标框的左上角和右下角位置。
 
 - [MMDetection: Open MMLab Detection Toolbox and Benchmark](https://0809zheng.github.io/2020/04/03/mmdetection.html)：(arXiv1906)商汤科技和香港中文大学开源的基于Pytorch实现的深度学习目标检测工具箱。
 
@@ -407,17 +430,14 @@ $$
 ![](https://pic.imgdb.cn/item/6482dd001ddac507ccacf5a1.jpg)
 
 ```python
-def IoU(x1_pred, y1_pred, x2_pred, y2_pred, x1_gt, y1_gt, x2_gt, y2_gt):
-    W = min(x2_pred, x2_gt) - max(x1_pred, x1_gt)
-    H = min(y2_pred, y2_gt) - max(y1_pred, y1_gt)
-    if W <= 0 or H <= 0:
-        return 0
-    
-    area_pred = (x2_pred-x1_pred) * (y2_pred-y1_pred)
-    area_gt = (x2_gt-x1_gt) * (y2_gt-y1_gt)
-    intersection = W * H
-    union = area_pred + area_gt - intersection
-    return intersection / union
+def IoU(pred, tar, epsilon=1e-12): # [n, 4]  (x1,y1,x2,y2)
+    pred_area = (pred[:, 2] - pred[:, 0]) * (pred[:, 3] - pred[:, 1])
+    tar_area  = (tar[:, 2]  - tar[:, 0])  * (tar[:, 3]  - tar[:, 1])
+    inter_lt = np.maximum(pred[:, :2], tar[:, :2])
+    inter_rb = np.minimum(pred[:, 2:], tar[:, 2:])
+    inter_wh = np.maximum(inter_rb - inter_lt, 0)
+    inter_area = inter_wh[:, 0] * inter_wh[:, 1]
+    return inter_area / (pred_area + tar_area - inter_area + epsilon)
 ```
 
 目标检测的常用评估指标包括准确率、召回率、**F-score**、**P-R**曲线、平均准确率**AP**、类别平均准确率**mAP**。
@@ -526,7 +546,7 @@ def NMS(dets, thresh):
     x1, y1, x2, y2 = dets[:, 0], dets[:, 1], dets[:, 2], dets[:, 3]
     scores = dets[:, 4]
 
-    areas = (x2-x1+1) * (y2-y1+1)  # +1 for numerical stability
+    areas = (x2-x1+1) * (y2-y1+1)  # +1是把像素数量转换为长宽
     order = scores.argsort()[::-1] # 置信度降序排列
 
     keep = []
@@ -544,7 +564,7 @@ def NMS(dets, thresh):
         iou = inter / (areas[i] + areas[order[1:]] - inter)
 
         idxs = np.where(iou <= thresh)[0]
-        order = order[idxs + 1]
+        order = order[idxs + 1] # +1是修正order[1:]的偏移
     return keep
 
 
@@ -910,7 +930,7 @@ def matrix_nms(boxes, scores, method='gauss', sigma=0.5):
 
 目标检测中的损失函数包括边界框的**分类**损失和**回归**损失。其中分类损失用于区分边界框的类别，即边界框内目标的类别，对于两阶段的检测方法还包含边界框的正负类别；常用的分类损失函数包括**Cross-Entropy loss**, **Focal loss**, **Poly loss**, **Cross-Entropy loss**, **Cross-Entropy loss**, 。
 
-而回归损失衡量预测边界框坐标$x_{pred}$和**GT**边界框坐标$x_{gt}$之间的差异，常用的回归损失函数包括**L1 / L2 loss**, **smooth L1 loss**, **IoU loss**, **GIoU loss**, **DIoU loss**, **CIoU loss**, **EIoU loss**。
+而回归损失衡量预测边界框坐标$x_{pred}$和**GT**边界框坐标$x_{gt}$之间的差异，常用的回归损失函数包括**L1 / L2 loss**, **smooth L1 loss**, **IoU loss**, **GIoU loss**, **DIoU loss**, **CIoU loss**, **EIoU loss**, **MPDIoU loss**。
 
 ## （1）常用的分类损失
 
@@ -1298,3 +1318,16 @@ def EIoULoss(b1, b2): # [n, 4]  format: xywh
     eiou                 = iou - center_squared_w / enclose_squared_w - center_squared_h / enclose_squared_h - center_squared_diag / enclose_squared_diag
     return 1-eiou
 ```
+
+### ⚪ MPDIoU loss
+- paper：[<font color=blue>MPDIoU: A Loss for Efficient and Accurate Bounding Box Regression</font>](https://0809zheng.github.io/2023/07/14/mpdiou.html)
+
+**MPDIoU**直接最小化预测边界框与实际标注边界框之间的左上角和右下角点距离。
+
+$$ \text{MPDIoU} = \text{IoU} - \frac{d_1^2}{w^2+h^2}- \frac{d_2^2}{w^2+h^2} $$
+
+![](https://pic.imgdb.cn/item/64c07dab1ddac507cc48af59.jpg)
+
+通过**MPDIoU**可以定义**MPDIoU loss**：
+
+$$ \text{MPDIoU loss} = 1-\text{MPDIoU} $$
