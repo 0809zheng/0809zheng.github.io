@@ -30,7 +30,7 @@ tags: 深度学习
 
 **2D**单人人体姿态估计通常是从已完成定位的人体图像中计算人体关节点的位置，并进一步生成**2D**人体骨架。这些方法可以进一步分为**基于回归(regression-based)**的方法与**基于检测(detection-based)**的方法。
 - 基于回归的方法：直接将输入图像映射为人体关节的**坐标**或人体模型的**参数**，如**DeepPose**, **TFPose**。
-- 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标；如**CPM**, **Hourglass**, **Chained**, **MCA**, **FPM**, **HRNet**, **ViTPose**。
+- 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标；如**CPM**, **Hourglass**, **Chained**, **MCA**, **FPM**, **HRNet**, **Lite Pose**, **TokenPose**, **ViTPose**。
 
 ## （1）基于回归的2D单人姿态估计 Regression-based 2D SHPE
 
@@ -58,8 +58,48 @@ tags: 深度学习
 
 ![](https://pic.downk.cc/item/5fb37ddeb18d62711306f2a6.jpg)
 
-由于热图能够保存空间位置信息，这类方法鲁棒性更好；但从中估计关节点坐标的准确性较差（热图大小往往是原图的等比例缩放，通过在输出热图上按通道找最大的响应位置，精度是**pixel**级别），并且阻碍了端到端的训练。
+由于热图能够保存空间位置信息，这类方法鲁棒性更好；但从中估计关节点坐标的准确性较差（热图大小往往是原图的等比例缩放，通过在输出热图上按通道找最大的响应位置，精度是**pixel**级别），并且阻碍了端到端的训练。同时基于热图的方法需要网络始终保留热图尺寸的中间层特征图，会使网络整体具有较大的参数量，不适合移动端部署。
 
+把关节点坐标转换成热图的过程如下：
+
+```python
+class Coord2Heatmap:
+    """
+        Generate target heatmaps from given coords
+    """
+    def __init__(self, hm_size=[64,64], sigma=2):
+        """
+        Args:
+            hm_size: [int, int]. Width and height of Target heatmap
+            sigma: int. Variance of Target heatmap
+        """
+        super(Coord2Heatmap, self).__init__()
+        self.hm_size = hm_size
+        self.sigma = sigma
+    
+    def generate(self, coords):
+        """
+        Args:
+            coords: numpy.array, shape: [N, 2]. Coordinates of keypoints
+        Return:
+            targets: numpy.array, shape: [N, hm_size[1], hm_size[0]]. Generated target heatmaps
+        """
+        num_joints = coords.shape[0]
+        W, H = self.hm_size
+        x = np.linspace(0, W-1, W)[np.newaxis, :]
+        x = np.repeat(x, num_joints, axis=0)
+        y = np.linspace(0, H-1, H)[np.newaxis, :]
+        y = np.repeat(y, num_joints, axis=0)
+        heatmap = np.exp(-((x-coords[:, 0])[:, :, np.newaxis]**2 + (y-coords[:, 1])[:, np.newaxis, :]**2) / self.sigma ** 2)
+        return heatmap
+
+if __name__ == "__main__":
+    generator = Coord2Heatmap(hm_size=[8,8])
+    test_coords = np.array([
+                            [8, 8],
+                            ])
+    test_targets = generator.generate(test_coords)
+```
 
 ### ⚪ Convolutional Pose Machine (CPM)
 
@@ -111,6 +151,22 @@ tags: 深度学习
 **HRNet**不断地去融合不同尺度上的信息，其整体结构分成多个层级，但是始终保留着最精细的空间层级信息，通过融合下采样然后做上采样的层，来获得更多的上下文以及语义层面的信息。
 
 ![](https://pic.imgdb.cn/item/64a510fb1ddac507cc221282.jpg)
+
+### ⚪ Lite Pose
+
+- paper：[<font color=blue>Lite Pose: Efficient Architecture Design for 2D Human Pose Estimation</font>](https://0809zheng.github.io/2021/05/01/litepose.html)
+
+对于轻量级姿态估计模型而言，多分支高分辨率的结构是比较冗余的。**Lite Pose**采用带有残差连接的单分支网络：
+
+![](https://pic.imgdb.cn/item/64d0a3561ddac507cce88190.jpg)
+
+### ⚪ TokenPose
+
+- paper：[<font color=blue>TokenPose: Learning Keypoint Tokens for Human Pose Estimation</font>](https://0809zheng.github.io/2021/04/27/tokenpose.html)
+
+**TokenPose**通过**CNN**网络提取特征图，将特征图拆分为**patch**后拉平为**visual tokens**，然后随机初始化一些可学习的**keypoint tokens**一起送入**transformer**进行学习，并将输出的**keypoint tokens**通过一个**MLP**映射到**heatmap**。
+
+![](https://pic.imgdb.cn/item/64cf201d1ddac507ccadc8fc.jpg)
 
 ### ⚪ ViTPose
 
@@ -313,7 +369,7 @@ $$
 ## （1）数据增强
 
 ### ⚪ Augmentation by Information Dropping (AID)
-- paper：[<font color=blue>AID: Pushing the Performance Boundary of Human Pose Estimation with Information Dropping Augmentation</font>](https://0809zheng.github.io/2021/04/20/poseaug.html)
+- paper：[<font color=blue>AID: Pushing the Performance Boundary of Human Pose Estimation with Information Dropping Augmentation</font>](https://0809zheng.github.io/2021/04/22/aid.html)
 
 模型在定位图像中的人体关键点时通常会使用两种信息：**外观**信息和**约束**信息。外观信息是定位关键点的基础，而约束信息主要包含人体关键点之间固有的相互约束关系以及人体和环境交互形成的约束关系。
 
@@ -328,30 +384,136 @@ $$
 
 ![](https://pic.imgdb.cn/item/64abcd831ddac507cce3abea.jpg)
 
+### ⚪ Unbiased Data Processing (UDP)
+- paper：[<font color=blue>The Devil is in the Details: Delving into Unbiased Data Processing for Human Pose Estimation</font>](https://0809zheng.github.io/2021/04/23/udp.html)
 
+对于离散像素点进行翻转和下采样等变换后可能会引入位置误差，通过将像素点定义到连续图像空间来消除这种误差。
+
+![](https://pic.imgdb.cn/item/64ae57211ddac507ccbf5622.jpg)
+
+
+## （2）量化误差消除
+
+在**Heatmap-based**方法中，对预测热图解码时是把模型输出的高斯概率分布图用**Argmax**得到最大相应点坐标。由于**Argmax**操作最的结果只能是整数，这就导致了经过下采样的特征图永远不可能得到输入图片尺度的坐标精度，因此产生了**量化误差(quantization error)**。
+
+### ⚪ Distribution-Aware coordinate Representation of Keypoint (DARK)
+- paper：[<font color=blue>Distribution-Aware Coordinate Representation for Human Pose Estimation</font>](https://0809zheng.github.io/2021/04/24/dark.html)
+
+**DARK**方法利用高斯分布的泰勒展开来缓解热图回归的量化误差，适用于热图概率分布函数的对数多项式需不高于二次。通常模型的预测热图并不是良好的高斯形式，因此可以首先对输出热图应用高斯模糊。
+
+$$
+\mu = m-(\mathcal{H}''(m))^{-1} \mathcal{H}'(m)
+$$
+
+![](https://pic.imgdb.cn/item/64ae6c021ddac507cc17ad27.jpg)
+
+### ⚪ Pixel-in-Pixel Net (PIP-Net)
+- paper：[<font color=blue>Pixel-in-Pixel Net: Towards Efficient Facial Landmark Detection in the Wild</font>](https://0809zheng.github.io/2021/04/30/pipnet.html)
+
+**PIP-Net**是对**Heatmap**和**Regression**两种形式的统一，对特征图上的每个特征预测关键点的存在性得分和关键点相对于左上角的坐标偏移，并预测周围最近关键点的坐标偏移。
+
+![](https://pic.imgdb.cn/item/64d07c601ddac507cc86380f.jpg)
+
+
+### ⚪ Simple Coordinate Classification (SimCC)
+- paper：[<font color=blue>SimCC: a Simple Coordinate Classification Perspective for Human Pose Estimation</font>](https://0809zheng.github.io/2021/04/28/simcc.html)
+
+**SimCC**将关键点坐标$(x, y)$用两个独立的一维向量进行表征，通过缩放因子$k(\geq1)$将定位精度增强到比单个像素更小的级别。
+
+![](https://pic.imgdb.cn/item/64d069ce1ddac507cc5cc49f.jpg)
+
+
+### ⚪ Differentiable Spatial to Numerical Transform (DSNT)
+- paper：[<font color=blue>Numerical Coordinate Regression with Convolutional Neural Networks</font>](https://0809zheng.github.io/2021/04/25/softargmax.html)
+
+**DSNT**通过构造坐标矩阵，并与归一化的热图计算$F$范数，从而把热图转换为关节点坐标。
+
+$$
+DSTN(\hat{Z}) = \left[ \langle \hat{Z},X\rangle_F, \langle\hat{Z},Y\rangle_F\right]
+$$
+
+![](https://pic.imgdb.cn/item/64d200da1ddac507ccdef44d.jpg)
+
+### ⚪ Integral Pose Regression (IPR)
+- paper：[<font color=blue>Integral Human Pose Regression</font>](https://0809zheng.github.io/2021/04/25/softargmax.html)
+
+**IPR**把从预测热图中取最大值操作修改为取期望操作：关节被估计为热图中所有位置的积分，由它们的归一化概率加权。
+
+$$
+\boldsymbol{J}_k = \int_{\boldsymbol{p} \in \Omega} \boldsymbol{p} \cdot \tilde{\boldsymbol{H}}_k(\boldsymbol{p}) = \int_{\boldsymbol{p} \in \Omega} \boldsymbol{p} \cdot \frac{e^{\boldsymbol{H}_k(\boldsymbol{p})}}{\int_{\boldsymbol{q} \in \Omega}e^{\boldsymbol{H}_k(\boldsymbol{q})}}
+$$
+
+### ⚪ Debiased IPR
+- paper：[<font color=blue>Removing the Bias of Integral Pose Regression</font>](https://0809zheng.github.io/2021/05/02/debias.html)
+
+**IPR**用**Soft-Argmax**近似**Argmax**的结果，只有在响应值足够大时近似才比较精确。这是因为**Softmax**倾向于让每一项的值都非零，导致原本多余的长尾也参与了期望值的计算。可以把这部分从期望结果中减去：
+
+$$
+\begin{aligned}
+\begin{bmatrix} x_0  \\ y_0  \end{bmatrix}= \begin{bmatrix} \frac{C}{C-hw}x_J-\frac{h^2w}{2(C-hw)} \\ \frac{C}{C-hw}y_J-\frac{hw^2}{2(C-hw)} \end{bmatrix}
+\end{aligned}
+$$
+
+![](https://pic.imgdb.cn/item/64d1a3731ddac507ccfb3e92.jpg)
+
+
+## （3）训练技巧
+
+### ⚪ Online Knowledge Distillation (OKDHP)
+- paper：[<font color=blue>Online Knowledge Distillation for Efficient Pose Estimation</font>](https://0809zheng.github.io/2021/04/26/okdhp.html)
+
+**OKDHP**训练了一个多分支网络，其中每个分支都被当做独立的学生模型；教师模型是通过加权集成多个分支的**heatmap**结果后形成的。通过优化**Pixel-wise KL Divergence**损失来优化每个学生分支模型。
+
+![](https://pic.imgdb.cn/item/64cf03991ddac507cc6af259.jpg)
+
+### ⚪ Bone Loss
+- paper：[<font color=blue>Weakly-Supervised Mesh-Convolutional Hand Reconstruction in the Wild</font>](https://0809zheng.github.io/2021/05/04/boneloss.html)
+
+**Bone Loss**计算了姿态骨骼长度比例的损失：
+
+$$
+\mathcal{L}_{\text{bone}}(J, Y) = \sum_{(i,j) \in \epsilon} \left| ||J_{2D_i}-J_{2D_j}|| - ||Y_{2D_i}-Y_{2D_j}|| \right|
+$$
+
+其中$J_{2D}$是模型预测的关键点，$Y_{2D}$是**Ground Truth**，该公式约束了每个关键点之间的空间关系，能帮助学习到骨骼长度关系，避免预测出一些诡异的不存在的姿态。
 
 # 5. 人体姿态估计的评估指标 Pose Estimation Evaluation
 
-二维人体姿态估计中常用的评估指标包括**PCK**, **OKS**, **AP**, **mAP**。三维人体姿态估计中常用的评估指标包括**MPJPE**。
+二维人体姿态估计中常用的评估指标包括**PCP**, **PCK**, **OKS**, **AP**, **mAP**。三维人体姿态估计中常用的评估指标包括**MPJPE**。
+
+### ⚪ PCP：Percentage of Correct Parts
+**PCP**指标以肢体的检出率作为评估指标。考虑每个人的左右大臂、小臂、大腿、小腿共计$4$个肢体（对应$8$个关节点）。如果两个预测关节位置和真实肢体关节位置之间的距离不超过肢体长度的一半，则认为肢体已经被正确地检测到。
+
+![](https://pic.imgdb.cn/item/64ae18681ddac507cccff4c7.jpg)
+
+对于某个特定部位，完整数据集上的**PCP**指标计算为：
+
+$$
+\text{PCP} = \frac{\text{整个数据集中正确检出此部位数量}}{\text{整个数据集中此部位总数}}
+$$
+
+
 
 ### ⚪ PCK：Percentage of Correct Keypoints
 **PCK**指标衡量正确估计出的关键点比例，这是比较老的人体姿态估计指标，在$2017$年比较广泛使用，现在基本不再使用。但是在工程项目中，使用该指标评价训练模型的好坏还是蛮方便的。
 
-第$i$个关键点的**PCK**指标计算如下：
+如果预测关节点和真实关节点之间的距离在某个阈值范围内，则认为检测到的关节点是正确的；其中阈值通常是根据目标的比例设置的。第$i$个关键点的**PCK**指标计算如下：
 
-$$ PCK_{i}^{k} = \frac{\sum_{p}^{} {\delta (\frac{d_{pi}}{d_{p}^{def}} ≤ T_k)}}{\sum_{p}^{} {1}} $$
+$$ PCK_{i}@T_k = \frac{\sum_{p}^{} {\delta (d_{pi} ≤ T_k*d_{p}^{def})}}{\sum_{p}^{} {1}} $$
 
 其中：
 - $p$表示第$p$个人
 - $T_k$表示人工设定的阈值，$T_k \in \[0:0.01:0.1\]$
-- $k$表示第$k$个阈值
 - $d_{pi}$表示第$p$个人的第$i$个关键点预测值与人工标注值之间的欧氏距离
 - $d_{p}^{def}$表示第$p$个人的尺度因子，不同数据集中此因子的计算方法不一样。**FLIC**数据集是以当前人的躯干直径作为尺度因子，即左肩到右臀的欧式距离或者右肩到左臀的欧式距离；**MPII**数据集是以当前人的头部直径作为尺度因子，即头部左上点与右下点的欧式距离，使用此尺度因子的姿态估计指标也称**PCKh**。
 - $\delta$表示如果条件成立则为$1$，否则为$0$
 
+
 算法的**PCK**指标是对所有关键点计算取平均：
 
-$$ PCK_{mean}^{k} = \frac{\sum_{p}^{} {\sum_{i}^{} {\delta (\frac{d_{pi}}{d_{p}^{def}}} ≤ T_k)}}{\sum_{p}^{} {\sum_{i}^{} {1}}} $$
+$$ PCK@T_k = \frac{\sum_{p}^{} \sum_{i}^{} \delta (d_{pi} ≤ T_k*d_{p}^{def})}{\sum_{p} \sum_{i}^{} {1}} $$
+
+例如，$PCK@0.2$是指阈值设置为躯干直径的$20\%$，$PCKh@0.5$是指阈值设置为头部直径的$50\%$。
 
 **PCK**指标计算参考代码：
 
@@ -466,9 +628,87 @@ $$
 常用的二维人体姿态估计数据集包括：
 - [LSP](http://sam.johnson.io/research/lsp.html)：样本数$2000$，关节点个数$14$，单人
 - [FLIC](https://bensapp.github.io/flic-dataset.html)：样本数$20000$，关节点个数$9$，单人
-- [MPII](http://human-pose.mpi-inf.mpg.de/)：样本数$25000$，关节点个数$16$，单人/多人，$40000$人，$410$种人类活动
-- [MS COCO](http://cocodataset.org/#download)：样本数$300000$，关节点个数$18$，多人，$100000$人![](https://pic.downk.cc/item/5ebaa357101ccd402bb8c7c6.jpg)
-- [AI Challenge](https://challenger.ai/competition/keypoint/subject)：$210000$训练集，$30000$验证集，$30000$测试集，关节点个数$14$，多人，$380000$人
+
+### ⚪ [MPII](http://human-pose.mpi-inf.mpg.de/)
+
+- paper：[2D Human Pose Estimation: New Benchmark and State of the Art Analysis](http://human-pose.mpi-inf.mpg.de/contents/andriluka14cvpr.pdf)
+
+**MPII**人体姿态数据集是用于评估关节式人体姿态估计的常用基准之一。该数据集包括大约**25000**张图像，其中包含超过**40000**名带有关节注释的人体目标，涵盖**410**种人类活动，并且每个图像都提供有活动标签。每个图像都是从**YouTube**视频中提取的，并提供了前面和后面的未注释帧。此外，测试集提供了更丰富的注释，包括身体部位遮挡以及**3D**躯干和头部方向。
+
+![](http://human-pose.mpi-inf.mpg.de/images/random_activities.png)
+
+**MPII**原始的标注数据是**matlab**格式的，也可以下载[**json**格式](https://drive.google.com/drive/folders/1En_VqmStnsXMdldXA6qpqEyDQulnmS3a?usp=sharing)。**MPII**的标注文件是一个列表，每一项代表一个人体以及该人体的标注，以下是每一项人体标注的内容解析：
+
+```python
+[{
+"joints_vis": [1, ···],   # 关节点是否可见，长度16
+"joints": [[x1,y1], ···], # 关节点坐标
+"image": "000003072.jpg", # 对应的图像名称
+"scale": 1.946961,        # scale*200为人体边界框的边长（正方形框）
+"center": [754.0, 335.0]  # 人体边界框的中心
+}, ···]
+```
+
+**MPII**格式中关节点的对应关系为：
+
+```python
+0 - r ankle, 1 - r knee, 2 - r hip, 3 - l hip
+4 - l knee, 5 - l ankle, 6 - pelvis, 7 - thorax
+8 - upper neck, 9 - head top, 10 - r wrist, 11 - r elbow
+12 - r shoulder, 13 - l shoulder, 14 - l elbow, 15 - l wrist
+```
+
+### ⚪ [MS COCO](http://cocodataset.org/#home)
+
+**COCO**数据集的样本数$300000$，$100000$人。关节点个数$18$，关节点对应关系如下：
+
+![](https://pic.downk.cc/item/5ebaa357101ccd402bb8c7c6.jpg)
+
+**COCO**的标注中包含 **4** 个部分/字段，"**info**" 描述数据集，"**licenses**" 描述图片来源，"**images**" 和 "**annotations**" 是主体部分。
+
+"**images**" 部分是一个列表，每一项是一张图片的基本信息与图片 **ID**，**ID**是为了方便 **annotation** 回溯对应图片，该部分格式如下：
+
+```python
+[{
+"license": 3,
+"file_name": "000000017905.jpg",
+"coco_url": "http://images.cocodataset.org/val2017/000000017905.jpg",
+"height": 640,
+"width": 480,
+"date_captured": "2013-11-16 18:01:33",
+"flickr_url": "http://farm1.staticflickr.com/44/173771776_53b9c22bb6_z.jpg",
+"id": 17905     # 对应 annotation 中的 image_id
+}, ···]
+```
+
+"**annotations**" 部分是一个列表，每一项是一个对象(人体、汽车等等)的一条标注，该部分中与姿态估计相关的数据格式如下：
+
+```python
+"num_keypoints": 17
+"keypoints": [x1,y1,vis1, ···],          # 特征点坐标与可见性，共17个个特征点，长度3*17。
+                                         # 可见性对应关系为 { 0: "不可见", 1: "遮挡", 2: "可见" }。
+"image_id": 17905,                       # 图片ID
+"bbox": [81.27, 229.19, 119.39, 364.68], # [l, t, w, h] 格式的 bounding box
+"category_id": 1,                        # 标注对象的类别，如果是 1 则是人体，选入姿态估计任务的数据
+"id": 2157397                            # 每一条标注数据的ID
+```
+
+### ⚪ [AI Challenge (AIC)](https://challenger.ai/competition/keypoint/subject)
+
+**AIC**数据集包括：$210000$训练集，$30000$验证集，$30000$测试集；关节点个数$14$，$380000$人。
+
+**AIC**数据集在论文主要以 "**extra data**" 的形式出现，因此最重要的是 “如何利用 **AIC** 数据进行预训练，提升 **COCO** 数据集上的结果”。有两种思路，一是在 **AIC** 数据集上先训练，然后在 **COCO train2017** 数据集上训练；另一种思路是合并 **AIC** 和 **COCO train2017** 数据集。因为两个数据集 "**keypoints**" 中特征点个数与“**index**与特征点对应关系”是不同的，不管哪种思路，都需要将 **AIC** "**keypoints**" 内容转换为 **COCO** 格式。
+
+转换后的**AIC**数据集下载见[链接](https://download.openmmlab.com/mmpose/datasets/aic_annotations.tar)。转换后 **json** 字段格式与 **COCO** 相同，可以参见 **COCO** 的标注格式。转换后的 **AIC** 标注格式与 **COCO** 不同的是 ["**annotations**"]["**keypoints**"] 字段，包括特征点个数与“**index**与特征点对应关系”是不同的。**AIC** 共**14**个个特征点，长度**3*14**，可见性对应关系与**COCO**相同。**index**与特征点对应关系如下：
+
+```python
+{ 0: "right shoulder", 1: "right elbow", 2: "right wrist", 3: "left shoulder",
+4: "left elbow", 5: "left wrist", 6: "right hip", 7: "right knee",
+8: "right ankle", 9: "left hip", 10: "left knee", 11: "left ankle",
+12: "head tops" 13: "upper neck" }
+```
+
+**aic2coco**标注格式转换代码见[链接](https://github.com/Indigo6/Human-Pose-Estimation-datasets-annot-format/blob/main/aic2coco.py)。
 
 ## （2）3D姿态估计数据集
 

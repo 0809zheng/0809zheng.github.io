@@ -322,6 +322,14 @@ $$
 
 ![](https://pic.imgdb.cn/item/649bce1c1ddac507cc8a1d4f.jpg)
 
+### ⚪ YOLOv4
+- paper：[<font color=blue>YOLOv4: Optimal Speed and Accuracy of Object Detection</font>](https://0809zheng.github.io/2020/06/13/yolov4.html)
+
+**YOLOv4**相比于之前**YOLO**系列的改进包括：
+- 网络结构的改进：**backbone**采用**CSPDarkNet53**、**neck**采用**SPP+PANet**
+- 训练过程的改进：回归损失采用**CIoU Loss**、引入标签平滑、引入**Mosaic**数据增强
+
+
 ## （3） Anchor-Free的目标检测方法
 
 目标检测模型的主流是**Anchor-Based**的方法。这种方法在特征图的每一个像素点预设几个不同尺度和长宽比的边界框，称之为**anchor**。网络对每一个 **anchor** 进行分类，并对正类的 **anchor** 进行回归（位置及大小调整）。这类方法的主要优点是：
@@ -408,8 +416,6 @@ $$
 
 
 - [MMDetection: Open MMLab Detection Toolbox and Benchmark](https://0809zheng.github.io/2020/04/03/mmdetection.html)：(arXiv1906)商汤科技和香港中文大学开源的基于Pytorch实现的深度学习目标检测工具箱。
-
-- [YOLOv4: Optimal Speed and Accuracy of Object Detection](https://0809zheng.github.io/2020/06/13/yolov4.html)：(arXiv2004)YOLO的第四个版本。
 
 
 
