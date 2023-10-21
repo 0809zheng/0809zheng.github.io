@@ -17,6 +17,7 @@ tags: 深度学习
 3. 目标检测的评估指标
 4. 非极大值抑制算法
 5. 目标检测中的损失函数
+6. 目标检测中的标签分配策略
 
 # 1. 传统的目标检测算法
 
@@ -245,6 +246,13 @@ $$
 
 ![](https://pic.imgdb.cn/item/648a798e1ddac507cc9f9cb3.jpg)
 
+### ⚪ Libra R-CNN
+- paper：[<font color=blue>Libra R-CNN: Towards Balanced Learning for Object Detection</font>](https://0809zheng.github.io/2021/05/22/libra.html)
+
+**Libra R-CNN**出发点为解决目标检测中的一些不均衡现象，如采样不均衡、不同阶段特征分布的不均衡、框回归过程中不均衡。改进包括**IoU**均衡采样，对**FPN**结构的均衡以及对**L1 loss**的均衡：
+
+![](https://pic.imgdb.cn/item/652de603c458853aef2f3da1.jpg)
+
 ### ⚪ Cascade R-CNN
 - paper：[<font color=blue>Cascade R-CNN: Delving into High Quality Object Detection</font>](https://0809zheng.github.io/2021/03/10/cascadercnn.html)
 
@@ -297,7 +305,7 @@ $$
 
 **YOLOv3**相比于**YOLOv2**进行以下改进：
 - 网络结构的改进：特征提取网络为**DarkNet53**、使用多层映射进行多尺度检测、构造特征金字塔网络增强特征
-- 损失函数的改进：边界框回归损失采用**GIoU**损失、置信度分类与类别分类损失采用逻辑回归（二元交叉熵）
+- 损失函数的改进：边界框回归损失采用**GIoU**损失、置信度分类与类别分类损失采用二元交叉熵
 
 
 ### ⚪ SSD
@@ -329,6 +337,22 @@ $$
 - 网络结构的改进：**backbone**采用**CSPDarkNet53**、**neck**采用**SPP+PANet**
 - 训练过程的改进：回归损失采用**CIoU Loss**、引入标签平滑、引入**Mosaic**数据增强
 
+### ⚪ YOLOv5
+- paper：[<font color=blue>Comprehensive Guide to Ultralytics YOLOv5</font>](https://0809zheng.github.io/2022/07/09/yolov5.html)
+
+**YOLOv5**相比于之前**YOLO**系列的改进包括：
+- 网络结构的改进：**CSPDarknet** + **PAFPN** + 非解耦 **Head**
+- 标签分配策略：采用了 **anchor** 和 **gt_bbox** 的形状匹配度作为划分规则，同时引入跨邻域网格策略来增加正样本
+- 训练和推理的改进：采用**Mosaic + RandomAffine + MixUp**数据增强、推理时引入 **batch shape** 策略
+
+### ⚪ RTMDet
+- paper：[<font color=blue>RTMDet: An Empirical Study of Designing Real-Time Object Detectors</font>](https://0809zheng.github.io/2022/12/07/rtmdet.html)
+
+**MMDetection** 核心开发者针对当前 **YOLO** 系列的诸多改进模型进行了经验性的总结，推出了高精度、低延时的单阶段目标检测器 **RTMDet**。
+- 模型结构：整体结构由 **CSPNeXt + CSPNeXtPAFPN +** 共享卷积权重但分别计算 **BN** 的 **SepBNHead** 构成。内部核心模块是 **CSPNeXt Block**。
+- 标签分配策略：**Dynamic Soft Label Assigner**，该方法主要包括使用位置先验信息损失、样本回归损失、样本分类损失，同时对三个损失进行了 **Soft** 处理进行参数调优。
+- 损失函数：分类损失采用**QualityFocalLoss**，回归损失采用**GIoULoss**。
+
 
 ## （3） Anchor-Free的目标检测方法
 
@@ -339,7 +363,49 @@ $$
 
 然而 **anchor** 的设置也有着它自身的缺点。单纯通过使用更多不同大小和长宽比的 **anchor** 以及更多的训练技巧就可以达到更好的效果，然而这种通过增加算力而改进网络的方法很难落实到实际的应用中。并且 **anchor** 的设定需要人为设定大量的参数，且离散的 **anchor** 尺度设定会导致一些物体无法很好的匹配，从而导致遗漏。
 
-**Anchor-Free**的目标检测方法没有采用“预设**anchor**+偏移量回归”的检测流程，而是把目标检测任务视作关键点检测等其它形式的任务，直接对目标的位置进行预测。
+**Anchor-Free**的目标检测方法没有采用“预设**anchor**+偏移量回归”的检测流程，而是把目标检测任务视作关键点检测等其它形式的任务，直接对目标的位置进行预测；可分为**Anchor-Point**检测和**Key-Point**检测。
+- **Anchor-Point**检测器：根据中心点到检测框边界的距离将目标**bboxes**编码为**anchor point**，表现为特征图上的一个像素，关联着当前位置的特征。这类方法能够灵活地选择特征表示金字塔层级，具有更简单的网络结构、更快的检测速度。常用方法包括**FCOS**。
+- **Key-Point**检测器：预测**bbox**一些关键点的位置，例如角点、中心或极点，并将这些关键点分组以形成框。这类方法可以使用相对小的输入图像尺寸取得相对更高的检测精度，但依赖于对单个高分辨率特征图的重复推理，因此往往需要更大的内存消耗和更长的检测时间。常用方法包括**CornerNet**, **CenterNet**。
+
+### a. Anchor-Point检测器
+
+### ⚪ FCOS
+- paper：[<font color=blue>FCOS: A Simple and Strong Anchor-free Object Detector</font>](https://0809zheng.github.io/2021/03/30/fcos.html)
+
+**FCOS**预测特征图上各点的类别，再预测各点到**bbox**左侧、右侧、顶端和底部的距离，以及各点的**center-ness score**。
+
+![](https://pic.imgdb.cn/item/64c4bfc11ddac507cc3bf5b2.jpg)
+
+
+### ⚪ YOLOX
+- paper：[<font color=blue>YOLOX: Exceeding YOLO Series in 2021</font>](https://0809zheng.github.io/2021/08/01/yolox.html)
+
+**YOLOX**把**YOLOv3**模型修改为**anchor free**结构，对特征图的每一个栅格位置预测$1$个目标，从而可以直接预测目标框的$4$
+个值(左上角**xy**坐标和**box**高宽)；并做出如下改进：
+- 解耦预测分支（分类+回归），回归分支添加**IoU**分支；
+- 使用**Mosaic**和**MixUp**数据增强，但在最后**15 epochs**时关闭；
+- 采用**simOTA**进行正负样本分配。
+
+![](https://pic.imgdb.cn/item/610765a35132923bf87b9cc1.png)
+
+### ⚪ YOLOv6
+- paper：[<font color=blue>YOLOv6: A Single-Stage Object Detection Framework for Industrial Applications</font>](https://0809zheng.github.io/2022/09/30/yolov6.html)
+
+**YOLOv6** 提出了一系列适用于各种工业场景的模型，包括 **N/T/S/M/L**，考虑到模型的大小，其架构有所不同，以获得更好的精度-速度权衡。本算法专注于检测的精度和推理效率，并在网络结构、训练策略等算法层面进行了多项改进和优化：
+- 网络结构：基于 **RepVGG style** 设计了可重参数化、更高效的骨干网络 **EfficientRep Backbone** 和 **Rep-PAN Neck**；进一步优化设计了简洁有效的 **Efficient Decoupled Head**。
+- 标签分配策略：前 **4** 个 **epoch** 采用 **ATSS** 作为标签匹配策略的 **warm-up** , 后续使用 **TOOD** 算法选择正负样本。
+- 损失函数：分类损失使用的是**VarifocalLoss**；回归损失对于**l/m/s**使用的是 **GIoULoss**, **t/n** 用的是 **SIoULoss**。
+
+### ⚪ YOLOv8
+- paper：[<font color=blue>Ultralytics YOLOv8</font>](https://0809zheng.github.io/2023/01/31/yolov8.html)
+
+**YOLOv8** 是 **Ultralytics** 公司开源的 **YOLOv5** 的下一个重大更新版本，目前支持图像分类、物体检测和实例分割任务。**YOLOv8** 算法的核心特性和改动可以归结为如下：
+- 骨干网络和 **Neck** 部分将 **YOLOv5** 的 **C3** 结构换成了梯度流更丰富的 **C2f** 结构；**Head** 部分换成了目前主流的解耦头结构，同时也从 **Anchor-Based** 换成了 **Anchor-Free**。
+- **Loss** 计算方面采用了 **TOOD** 正样本分配策略，并引入了 **Distribution Focal Loss**。
+- 训练的数据增强部分引入了 **YOLOX** 中的最后 **10 epoch** 关闭 **Mosiac** 增强的操作，可以有效地提升精度。
+
+
+### b. Key-Point检测器
 
 ### ⚪ CornerNet
 - paper：[<font color=blue>CornerNet: Detecting Objects as Paired Keypoints Learning</font>](https://0809zheng.github.io/2020/07/20/cornernet.html)
@@ -355,12 +421,7 @@ $$
 
 ![](https://pic.imgdb.cn/item/64c382301ddac507cc461a53.jpg)
 
-### ⚪ FCOS
-- paper：[<font color=blue>FCOS: A Simple and Strong Anchor-free Object Detector</font>](https://0809zheng.github.io/2021/03/30/fcos.html)
 
-**FCOS**预测特征图上各点的类别，再预测各点到**bbox**左侧、右侧、顶端和底部的距离，以及各点的**center-ness score**。
-
-![](https://pic.imgdb.cn/item/64c4bfc11ddac507cc3bf5b2.jpg)
 
 
 ## （4） 基于Transformer的目标检测模型
@@ -389,22 +450,6 @@ $$
 - intro:RefineNet
 - arXiv:[https://arxiv.org/abs/1711.06897](https://arxiv.org/abs/1711.06897)
 
-### MegDet: A Large Mini-Batch Object Detector
-- intro:MegDet
-- arXiv:[https://arxiv.org/abs/1711.07240](https://arxiv.org/abs/1711.07240)
-
-### FSSD: Feature Fusion Single Shot Multibox Detector
-- intro:FSSD
-- arXiv:[https://arxiv.org/abs/1712.00960](https://arxiv.org/abs/1712.00960)
-
-### Extend the shallow part of Single Shot MultiBox Detector via Convolutional Neural Network
-- intro:ESSD
-- arXiv:[https://arxiv.org/abs/1801.05918](https://arxiv.org/abs/1801.05918)
-
-### DetNet: A Backbone network for Object Detection
-- intro:DetNet
-- arXiv:[https://arxiv.org/abs/1804.06215](https://arxiv.org/abs/1804.06215)
-
 
 ### EfficientDet: Scalable and Efficient Object Detection
 - intro:EfficientDet
@@ -421,7 +466,6 @@ $$
 
 - [OneNet: Towards End-to-End One-Stage Object Detection](https://0809zheng.github.io/2020/12/26/onenet.html)：(arXiv2012)OneNet：无需**NMS**的**One-stage**端到端目标检测方法。
 
-- [YOLOX: Exceeding YOLO Series in 2021](https://0809zheng.github.io/2021/08/01/yolox.html)：(arXiv2107)YOLOX：**Anchor-free**的**YOLO**检测器。
 
 # 3. 目标检测的评估指标
 
@@ -934,9 +978,9 @@ def matrix_nms(boxes, scores, method='gauss', sigma=0.5):
 
 # 5. 目标检测中的损失函数
 
-目标检测中的损失函数包括边界框的**分类**损失和**回归**损失。其中分类损失用于区分边界框的类别，即边界框内目标的类别，对于两阶段的检测方法还包含边界框的正负类别；常用的分类损失函数包括**Cross-Entropy loss**, **Focal loss**, **Poly loss**, **Cross-Entropy loss**, **Cross-Entropy loss**, 。
+目标检测中的损失函数包括边界框的**分类**损失和**回归**损失。其中分类损失用于区分边界框的类别，即边界框内目标的类别，对于两阶段的检测方法还包含边界框的正负类别；常用的分类损失函数包括**Cross-Entropy loss**, **Focal loss**, **Generalized Focal Loss**, **Generalized Focal Loss V2**, **Poly loss**。
 
-而回归损失衡量预测边界框坐标$x_{pred}$和**GT**边界框坐标$x_{gt}$之间的差异，常用的回归损失函数包括**L1 / L2 loss**, **smooth L1 loss**, **IoU loss**, **GIoU loss**, **DIoU loss**, **CIoU loss**, **EIoU loss**, **MPDIoU loss**。
+而回归损失衡量预测边界框坐标$x_{pred}$和**GT**边界框坐标$x_{gt}$之间的差异，常用的回归损失函数包括**L1 / L2 loss**, **smooth L1 loss**, **balanced L1 loss**, **IoU loss**, **GIoU loss**, **DIoU loss**, **CIoU loss**, **EIoU loss**, **SIoU loss**, **MPDIoU loss**。
 
 ## （1）常用的分类损失
 
@@ -969,6 +1013,48 @@ $$
 $$
 
 ![](https://pic.imgdb.cn/item/648d08ef1ddac507cc9777f4.jpg)
+
+### ⚪ [<font color=blue>Generalized Focal Loss (GFL)</font>](https://0809zheng.github.io/2021/05/21/gfl.html)
+
+![](https://pic.imgdb.cn/item/6529fd6ec458853aefddb96b.jpg)
+
+**Quality Focal Loss (QFL)** 将离散标签的 **Focal Loss** 泛化到连续标签上，将预测框与 **GT** 的 **IoU** 软化作为分类分数的标签，使得分类分数关联回归质量。
+
+$$
+QFL(p) = -|y-p|^\beta \left( y\log p + (1-y) \log(1-p) \right)
+$$
+
+**Distribution Focal Loss (DFL)** 把边界框位置建模为离散分布$S$，以类似交叉熵的形式去优化浮点值标签$y$的左右整数值$y_i$和$y_{i+1}$两个位置的概率。
+
+$$
+DFL(S_i, S_{i+1}) = -\left( (y_{i+1}-y)\log S_i + (y-y_i) \log S_{i+1} \right)
+$$
+
+**QFL**和**DFL**可以统一地表示为**GFL**:
+
+$$
+GFL\left(p_{y_l}, p_{y_r}\right)=-\left|y-\left(y_l p_{y_l}+y_r p_{y_r}\right)\right|^\beta\left(\left(y_r-y\right) \log \left(p_{y_l}\right)+\left(y-y_l\right) \log \left(p_{y_r}\right)\right)
+$$
+
+[<font color=blue>GFLV2</font>](https://0809zheng.github.io/2021/05/21/gfl.html)则进一步用**DFL**分布形状的统计量去指导最终定位质量的估计。直接取学习到分布的**Topk**数值**concat**在一起形成一个维度非常低的输入特征向量，用这个向量再接一个非常小的全连接层，最后再变成一个**Sigmoid**之后的**scalar**乘到原来的分类表征中。
+
+![](https://pic.imgdb.cn/item/6533834dc458853aef943e01.jpg)
+
+### ⚪ [<font color=blue>Varifocal Loss</font>](https://0809zheng.github.io/2021/05/25/varifocal.html)
+
+**Varifocal Loss**针对正负样本提出了非对称的加权操作:
+
+$$
+VFL(p) = 
+\begin{cases}
+-y \left( y\log p + (1-y) \log(1-p) \right) & y > 0 \\
+-\alpha p^\gamma \log(1-p) & y = 0
+\end{cases}
+$$
+
+其中 $y$ 是预测 **bboxes** 与 **GT** 的 **IoU**，使用软标签的形式作为分类的标签。 $p\in[0,1]$ 表示分类分数。
+- 对于负样本，即当 $y = 0$ 时，使用 $\alpha p^\gamma$ 作为 **focal weight** 使样本聚焦于困难样本上，这与 **Focal Loss** 基本一致。
+- 对于正样本，即当 $y > 0$ 时，首先计算标准二值交叉熵部分，正样本的权重设置使用分类的标签 $y$， 即 **IoU** 作为 **focal weight**, 使得聚焦到具有高质量的样本上。
 
 ### ⚪ [<font color=blue>Poly Loss</font>](https://0809zheng.github.io/2022/07/07/poly.html)
 
@@ -1006,11 +1092,11 @@ $$ L1 = |x| \qquad L2 = x^2 $$
 
 针对**L1 / L2 loss**存在的问题，修正后得到**smooth L1 loss**：
 
-$$ \text{smooth-L1}(x) = \begin{cases} |x|-0.5, & x ≥ 1 \\ 0.5x^2, &x < 1 \end{cases} $$
+$$ \text{smooth-L1}(x) = \begin{cases} |x|-0.5, & |x| ≥ 1 \\ 0.5x^2, &|x| < 1 \end{cases} $$
 
 该损失函数在差值$x$较大时是**L1 Loss**，在其较小时是**L2 Loss**。也可以引入一个方差系数：
 
-$$ \text{smooth-L1}(x, \sigma) = \begin{cases} |x|-0.5/\sigma^2, & x ≥ 1/\sigma^2 \\ 0.5\sigma^2x^2, &x < 1/\sigma^2 \end{cases} $$
+$$ \text{smooth-L1}(x, \sigma) = \begin{cases} |x|-0.5/\sigma^2, & |x| ≥ 1/\sigma^2 \\ 0.5\sigma^2x^2, &|x| < 1/\sigma^2 \end{cases} $$
 
 
 ```python
@@ -1025,6 +1111,24 @@ def smoothL1Loss(pred_loc, gt_loc, sigma):
         )
     return regression_loss.mean()
 ```
+
+### ⚪ balances L1 loss
+- paper：[<font color=blue>Libra R-CNN: Towards Balanced Learning for Object Detection</font>](https://0809zheng.github.io/2021/05/22/libra.html)
+
+**Balanced L1 Loss**首先设计梯度的函数，增加梯度绝对值小于$1$的样本（**inlier**）的梯度值，以帮助网络更好地定位，也使得分类和回归过程更加均衡。梯度形式为：
+
+$$
+\frac{\partial L_b}{\partial x} = \begin{cases}
+\alpha \ln (b|x|+1), & |x| < 1 \\
+\gamma, & |x| ≥ 1
+\end{cases}
+$$
+
+在梯度表达式的基础上，积分得到**Balanced L1 Loss**的表达式：
+
+$$
+L_b(x)= \begin{cases}\frac{\alpha}{b}(b|x|+1) \ln (b|x|+1)-\alpha|x| & \text { if }|x|<1 \\ \gamma|x|+C & \text { otherwise }\end{cases}
+$$
 
 上述介绍的损失函数存在共通的缺点：
 - 这些损失函数独立地计算每一个坐标分量(如$x$,$y$,$h$,$w$)的差异，然后相加得到最终的损失。这样做忽略了不同坐标分量之间的联系(如$x$,$y$靠近图像边缘时，$h$,$w$会受到限制)；
@@ -1325,6 +1429,28 @@ def EIoULoss(b1, b2): # [n, 4]  format: xywh
     return 1-eiou
 ```
 
+### ⚪ SIoU Loss
+- paper：[<font color=blue>SIoU Loss: More Powerful Learning for Bounding Box Regression</font>](https://0809zheng.github.io/2022/07/31/siou.html)
+
+**SIoU**包括交并比、角度损失、距离损失和形状损失。角度损失衡量两个边界框的水平或垂直夹角，距离损失衡量两个边界框的中心距离，形状损失衡量两个边界框长宽之间的差异。
+
+$$
+\begin{aligned}
+\text{SIoU} &= IoU - \frac{\Delta + \Omega}{2} \\
+\Lambda &= 1-2 \cdot \sin^2 \left( \arcsin(x) - \frac{\pi}{4} \right) \\
+\Delta &= \sum_{t=x,y} (1-e^{-\gamma \rho_t}) \\
+\Omega &= \sum_{t=w,h} (1-e^{-\omega_t})^{\theta} \\
+\end{aligned}
+$$
+
+![](https://pic.imgdb.cn/item/6524ac55c458853aef876a2f.jpg)
+
+通过**SIoU**可以定义**SIoU loss**：
+
+$$
+L = 1 - \text{SIoU}
+$$
+
 ### ⚪ MPDIoU loss
 - paper：[<font color=blue>MPDIoU: A Loss for Efficient and Accurate Bounding Box Regression</font>](https://0809zheng.github.io/2023/07/14/mpdiou.html)
 
@@ -1337,3 +1463,93 @@ $$ \text{MPDIoU} = \text{IoU} - \frac{d_1^2}{w^2+h^2}- \frac{d_2^2}{w^2+h^2} $$
 通过**MPDIoU**可以定义**MPDIoU loss**：
 
 $$ \text{MPDIoU loss} = 1-\text{MPDIoU} $$
+
+# 6. 目标检测中的标签分配策略
+
+**标签分配(label assignment, LA)**策略是指在训练目标检测器时，为特征图不同位置的预测样本分配合适的标签（即区分**anchor**是正样本还是负样本），用于计算损失。标签分配根据非负即正划分为**硬标签分配(hard LA)**和**软标签分配(soft LA)**。
+- 硬标签分配策略是指根据阈值把样本划分为正样本或者负样本。依据在训练阶段是否动态调整阈值，硬标签分配策略又可以细分为静态和动态两种：
+1. **静态分配**策略主要依据于模型的先验知识（例如距离阈值和**iou**阈值等）来选取不同的正负样本；
+2. **动态分配**策略依据在训练阶段采用不同的统计量来动态地设置阈值，并划分正负样本；如。
+- 软标签分配策略则会根据预测结果与**GT**计算正负权重，在候选正样本(中心点落在**GT**框内)的基础上依据正负样本权重分配正负样本，且在训练的过程中动态调整分配权重。常见的软标签分配策略包括。
+
+## （1）静态分配策略
+
+### ⚪ Anchor-based的静态分配策略
+
+**Anchor-based**的静态分配策略是基于**iou**阈值来实现的，通过计算预测框和**GT**之间的交并比来划分正负样本；常应用在**Faster RCNN**、**YOLO**等网络中。流程如下：
+1. 初始化时假设每个**anchor**的**mask**都是$-1$，表示都是忽略**anchor**
+2. 计算每个**anchor**和所有**GT**的**IoU**，把最大**IoU**小于**neg_iou_thr**的**anchor**的**mask**设置为$0$，表示负样本(背景样本)
+3. 把最大**IoU**大于**pos_iou_thr**的**anchor**的**mask**设置为$1$，表示该**anchor**负责预测该**gt bbox**，是正样本
+4. 可能会出现某些**GT**没有分配到对应的**anchor**，因此对于每个**GT**还需要找出最大**IoU**的**anchor**位置，如果其**IoU**大于**min_pos_iou**，将该**anchor**的**mask**设置为$1$，表示该**anchor**负责预测该**GT**
+
+在该分配策略中，每个**anchor**最多只能预测一个**GT**，而每个**GT**可能由多个**anchor**负责预测。
+
+```python
+# overlaps 表示anchor与gt的交并比矩阵
+# 1. 所有index全部设置为-1，表示忽略anchor
+assigned_gt_inds = overlaps.new_full((num_bboxes),
+                                     -1,
+                                     dtype = torch.long)
+
+# 计算每个anchor和哪个gt的iou最大
+max_overlaps, argmax_overlaps = overlaps.max(dim=0)
+# 计算每个gt和哪个anchor的iou最大
+gt_max_overlaps, gt_argmax_overlaps = overlaps.max(dim=1)
+
+# 2. 对于每个anchor，如果其和gt的最大iou小于阈值neg_iou_thr，则分配负样本
+assigned_gt_inds[(max_overlaps >= 0)
+                 & (max_overlaps < neg_iou_thr)] = 0
+
+# 3. 对于每个anchor，如果其和gt的最大iou大于阈值pos_iou_thr，则分配负样本
+pos_inds = max_overlaps >= pos_iou_thr
+assigned_gt_inds[pos_inds] = argmax_overlaps[pos_inds] + 1
+
+# 4. 对于每个gt，如果其和anchor的最大iou大于阈值min_pos_iou，则分配正样本
+for i in range(num_gts):
+    if gt_max_overlaps[i] >= min_pos_iou:
+       assigned_gt_inds[gt_argmax_overlaps[i]] = i + 1 
+```
+
+### ⚪ Anchor-free的静态分配策略
+
+**Anchor-free**的静态分配策略是基于距离阈值来实现的。以**FCOS**模型为例，将输入图像上的位置作为**anchor point**的中心点，并且对这些**anchor point**进行回归。
+1. 由于**Anchor-free**方法通常是多尺度预测输出，因此需要首先考虑**GT**由哪一个输出层具体负责。首先设计**min_size**和**max_size**来确定某个**GT**到底由哪一层负责，比如设置$0, 64, 128, 256, 512$和无穷大，则第**1**层负责预测尺度在**0~64**范围内的**GT**，第**2**层负责预测尺度在**64~128**范围内的**GT**，其余类推。通过该分配策略就可以将不同大小的**GT**分配到最合适的预测层进行学习。
+2. 然后需要确定在每个输出层上面，哪些空间位置是正样本区域，哪些是负样本区域。采用**center sampling**来确定正负样本，具体是：引入了**center_sample_radius**(基于当前**stride**参数)的参数用于确定在半径范围内的样本都属于正样本区域，其余区域作为负样本。默认配置**center_sample_radius=1.5**，以第**1**层为例，其**stride=8**，在该输出层上基于**gt bbox**中心点为起点，在半径为**1.5*8=12**个像素范围内都属于正样本区域。
+
+## （2）动态分配策略
+
+### ⚪ Adaptive Training Sample Selection (ATSS)
+- paper：[<font color=blue>Bridging the Gap Between Anchor-based and Anchor-free Detection via Adaptive Training Sample Selection</font>](https://0809zheng.github.io/2021/05/23/atss.html)
+
+**ATSS**根据检测框中心的**L2**距离和**IoU**阈值自适应地选择正负样本：
+1. 针对每个**GT**，在每个尺度的特征图上计算预测框与**GT**的$l_{2}$距离，选取其中最小的前$k$(默认为$9$)个作为候选正样本；
+2. 计算每个**GT**和候选正样本的**IoU**值，并统计这些**IoU**值的均值和方差；
+3. 对均值和方差求和，并将该值作为划分正负样本的阈值：大于该值的候选正样本为最终正样本，反之就是负样本。
+
+### ⚪ SimOTA
+- paper：[<font color=blue>YOLOX: Exceeding YOLO Series in 2021</font>](https://0809zheng.github.io/2021/08/01/yolox.html)
+
+**SimOTA**基于代价矩阵和**IoU**，在训练的过程中动态选择正负样本：
+1. 将落在**GT**框内的特征点作为候选正样本；
+2. 计算候选正样本与**GT**的分类交叉熵和回归损失，两值相加即为代价矩阵的元素值；
+3. 计算**GT**和候选正样本的**IoU**值，并对计算出的**IoU**值进行排序，选取前$k$个值(默认为$16$)进行相加，该值作为最终划分正样本的个数值$k_{2}$；
+4. 针对每个**GT**，选择代价矩阵最小的$k_{2}$个候选正样本作为最终的正样本，其余的为负样本。分配到多个**GT**的预测框取选取最小代价的进行匹配。
+
+## （3）软标签分配策略
+
+### ⚪ Soft Anchor-Point Detection (SAPD)
+- paper：[<font color=blue>Soft Anchor-Point Object Detection</font>](https://0809zheng.github.io/2021/05/24/sapd.html)
+
+**SAPD**首先设计了一个和检测器联合训练的元选择(**meta-selection**)网络，它为每个**GT**预测各个特征金字塔**level**的软选择权重。然后对于正样本**anchor point**，会根据**anchor point**到对应目标中心点的距离以及它所属的特征金字塔**level**的软选择权重两个因素来调整该**anchor point**对整个网络损失的影响权重。
+
+![](https://pic.imgdb.cn/item/6530d84ac458853aefee9c77.jpg)
+
+### ⚪ Task-aligned One-stage Object Detection (TOOD)
+- paper：[<font color=blue>TOOD: Task-aligned One-stage Object Detection</font>](https://0809zheng.github.io/2021/10/12/tood.html)
+
+针对分类回归任务解耦所带来的空间不一致问题（即要求正样本高置信度高定位，负样本低置信度低定位），**TOOD**设计出一种预测框的度量方式，对预测框进行正负样本的划分：
+1. 所有候选点落在**GT**框内即为候选正样本；
+2. 针对每个**GT**，计算其与候选正样本的**IoU**值$u$，并与其置信度得分$s$相乘后作为度量值$t=s^\alpha\times u^\beta$；
+3. 根据$t$排序选择前$k$个候选正样本作为最终的正样本；
+4. 如果一个预测框和多个**GT**进行匹配，则选择**IoU**最大的**GT**。
+

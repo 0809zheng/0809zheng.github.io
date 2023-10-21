@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
 ### ⚪ ViTPose
 
-- paper：[<font color=blue>ViTPose: Simple Vision Transformer Baselines for Human Pose Estimation</font>](https://0809zheng.github.io/2022/07/07/vitpose.html)
+- paper：[<font color=blue>ViTPose: Simple Vision Transformer Baselines for Human Pose Estimation</font>](https://0809zheng.github.io/2022/07/08/vitpose.html)
 
 **ViTPose**使用**ViT**结构作为**Backbone**，结合一个轻量级的**Decoder**解码关节点热图。
 
@@ -476,6 +476,15 @@ $$
 $$
 
 其中$J_{2D}$是模型预测的关键点，$Y_{2D}$是**Ground Truth**，该公式约束了每个关键点之间的空间关系，能帮助学习到骨骼长度关系，避免预测出一些诡异的不存在的姿态。
+
+### ⚪ Self-Correctable and Adaptable Inference (SCAI)
+- paper：[<font color=blue>Self-Correctable and Adaptable Inference for Generalizable Human Pose Estimation</font>](https://0809zheng.github.io/2023/03/20/scai.html)
+
+**SCAI**是一种自监督的推理方法，能在完全没有标注的测试样本上进行训练，逐步修正预测结果，带来显著的性能提升。**SCAI**方法的输入是姿态模型预测的**Heatmap**，通过近端关节点热图预测远端关节点热图，学习预测结果的误差并进行反馈。
+
+![](https://pic.imgdb.cn/item/652fb8abc458853aef3efc5c.jpg)
+
+
 
 # 5. 人体姿态估计的评估指标 Pose Estimation Evaluation
 
