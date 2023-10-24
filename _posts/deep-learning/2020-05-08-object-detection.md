@@ -192,13 +192,15 @@ $$
 单阶段的目标检测模型直接在最后的特征映射上进行预测；而两阶段的方法先在特征映射上生成若干候选区域，再对候选区域进行预测。由此可以看出单阶段的方法所处理的候选区域是**密集**的；而两阶段的方法由于预先筛选了候选区域，最终处理的候选区域相对来说是**稀疏**的。
 
 下面介绍一些常用的目标检测模型：
-- 两阶段的目标检测模型：**R-CNN**, **Fast RCNN**, **Faster RCNN**, **SPP-Net**, **FPN**, **Cascade RCNN**, 
-- 单阶段的目标检测模型：**OverFeat**, **YOLOv1-3**, **SSD**, **RetinaNet**, **YOLT**, 
-- **Anchor-Free**的目标检测模型：
-- 基于**Transformer**的目标检测模型：**DETR**
+- 两阶段的目标检测模型：**R-CNN**, **Fast RCNN**, **Faster RCNN**, **SPP-Net**, **FPN**, **Libra RCNN**, **Cascade RCNN**, **Sparse RCNN**
+- 单阶段的目标检测模型：**OverFeat**, **YOLOv1-3**, **SSD**, **RetinaNet**, **Guided Anchoring**, **ASFF**, **EfficientDet**, **YOLT**, **Poly-YOLO**, **YOLOv4**, **YOLOv5**, **RTMDet**
+- **Anchor-Free**的目标检测模型：(**anchor-point**方法) **FCOS**, **YOLOX**, **YOLOv6**, **YOLOv8**; (**key-point**方法) **CornerNet**, **CenterNet**, **RepPoints**
+- 基于**Transformer**的目标检测模型：**DETR**, **Deformable DETR**
 
 ### ⭐ 扩展阅读
 - [<font color=blue>Recent Advances in Deep Learning for Object Detection</font>](https://0809zheng.github.io/2020/05/17/paper-recent.html)：(arXiv1908)深度学习中目标检测最近的进展综述。
+- [<font color=blue>MMDetection: Open MMLab Detection Toolbox and Benchmark</font>](https://0809zheng.github.io/2020/04/03/mmdetection.html)：(arXiv1906)商汤科技和香港中文大学开源的基于Pytorch实现的深度学习目标检测工具箱。
+
 
 ## （1）两阶段的目标检测模型
 
@@ -263,6 +265,15 @@ $$
 ![](https://pic.imgdb.cn/item/648a6d5a1ddac507cc8cd09c.jpg)
 
 
+### ⚪ Sparse R-CNN
+- paper：[<font color=blue>Sparse R-CNN: End-to-End Object Detection with Learnable Proposals</font>](https://0809zheng.github.io/2021/05/29/sparsercnn.html)
+
+**Sparse RCNN**通过嵌入指定的$N$个可学习候选框**Proposal Boxes**来提供**RoI**坐标，通过嵌入指定的$N$个可学习实例级别特征**Proposal Features**来提供更多的物体相关信息；并采用级联思想对输出的**bbox**进行**refine**。
+
+![](https://pic.imgdb.cn/item/6534be43c458853aef5545d0.jpg)
+
+
+
 ## （2）单阶段的目标检测模型
 
 ### ⚪ OverFeat
@@ -323,12 +334,43 @@ $$
 
 ![](https://pic.imgdb.cn/item/648d115a1ddac507ccc3c57e.jpg)
 
+### ⚪ Guided Anchoring
+- paper：[<font color=blue>Region Proposal by Guided Anchoring</font>](https://0809zheng.github.io/2021/06/18/guidedanchor.html)
+
+**Guided Anchoring**把回归**anchor**分支替换为两条预测分支，一条分支用于区分前后景，目标是预测哪些区域应该作为中心点来生成 **anchor**；另一条分支是用于预测**anchor**的长和宽。
+
+![](https://pic.imgdb.cn/item/65378c74c458853aef90bc41.jpg)
+
+### ⚪ Adaptively Spatial Feature Fusion (ASFF)
+- paper：[<font color=blue>Learning Spatial Fusion for Single-Shot Object Detection</font>](https://0809zheng.github.io/2021/06/19/asff.html)
+
+**ASFF**通过可学习的权重把**FPN**中具有不同语义信息的特征图进行自适应融合。
+
+![](https://pic.imgdb.cn/item/6537ac6bc458853aefe1e1f0.jpg)
+
+### ⚪ EfficientDet
+- paper：[<font color=blue>EfficientDet: Scalable and Efficient Object Detection</font>](https://0809zheng.github.io/2021/06/02/efficientdet.html)
+
+**EfficientDet**提出了**BiFPN**和联合缩放方法（**Compound Scaling**）。**BiFPN**在特征融合前为每一个特征设置了一个权重系数 $\phi$，并引入了跨尺度连接；联合缩放方法对目标检测网络的**BackBone**的输出分辨率、宽度和深度、**BiFPN(Neck)**的深度和宽度、预测网络(**Head**)的宽度和深度同时缩放。
+
+![](https://pic.imgdb.cn/item/65365524c458853aef7b88fe.jpg)
+
+
 ### ⚪ YOLT
 - paper：[<font color=blue>You Only Look Twice: Rapid Multi-Scale Object Detection In Satellite Imagery</font>](https://0809zheng.github.io/2020/10/12/yolt.html)
 
 对于高分辨率大尺寸图像（如遥感图像）中的目标检测问题，**YOLT**提出了一种两阶段的检测框架：首先把输入图像划分成重叠的子图像，对每张子图像分别进行检测；再通过全局的非极大值抑制算法获得最终的检测结果。
 
 ![](https://pic.imgdb.cn/item/649bce1c1ddac507cc8a1d4f.jpg)
+
+### ⚪ Poly-YOLO
+- paper：[<font color=blue>Poly-YOLO: higher speed, more precise detection and instance segmentation for YOLOv3</font>](https://0809zheng.github.io/2021/05/31/polyyolo.html)
+
+**YOLOv3**由于特殊的网格预测模式，当物体比较密集且大小差不多时，会存在标签重写现象；并且在该场景下基于**kmeans**计算得到的**anchor**会出现物体预测尺度和感受野不符的问题。
+
+针对上述问题，**Poly-YOLO**提出采用单尺度预测，且维持高输出分辨率特征图的策略。为了进一步提高性能，采用了通道注意力单元、**hypercolumn + stairstep**上采样特征聚合方式来加强特征提取能力。
+
+![](https://pic.imgdb.cn/item/6534f7fdc458853aef1247c1.jpg)
 
 ### ⚪ YOLOv4
 - paper：[<font color=blue>YOLOv4: Optimal Speed and Accuracy of Object Detection</font>](https://0809zheng.github.io/2020/06/13/yolov4.html)
@@ -421,50 +463,33 @@ $$
 
 ![](https://pic.imgdb.cn/item/64c382301ddac507cc461a53.jpg)
 
+### ⚪ RepPoints
+- paper：[<font color=blue>RepPoints: Point Set Representation for Object Detection</font>](https://0809zheng.github.io/2021/05/28/reppoint.html)
 
+**RepPoints**对特征图上面任何一点都学习出$9$个语义关键点坐标**offset**，同时将**offset**解码、**refine**和转换得到原始**bbox**。
+
+![](https://pic.imgdb.cn/item/6534a6f7c458853aef01c34d.jpg)
 
 
 ## （4） 基于Transformer的目标检测模型
 
+### ⚪ DETR
+- paper：[<font color=blue>DETR：End-to-End Object Detection with Transformers</font>](https://0809zheng.github.io/2020/06/20/detr.html)
 
+**DETR**用**Transformer**架构一次性生成$N$个**box**预测，基于预测**box**和**GT box**的二分图匹配计算损失的大小。**DETR**的结构主要有三部分：
+- 一个卷积神经网络**backbone**，用于提取紧凑的图像特征表示;
+- 一个编码器-解码器结构的**Transformer**；
+- 一个简单的前馈网络**FFN**，进行最终的检测预测。
 
+![](https://pic.downk.cc/item/5eedb8e214195aa5948bbb07.jpg)
 
-## 两阶段的检测器 Two-Stage Detectors
+### ⚪ Deformable DETR
+- paper：[<font color=blue>Deformable DETR: Deformable Transformers for End-to-End Object Detection</font>](https://0809zheng.github.io/2021/06/13/ddetr.html)
 
+**Deformable DETR**提出了可变形注意力模块(**Deformable Attention Module**)，其中每个查询向量**Query**的查询对象通过学习一组偏移**offset**得到，而注意力图通过线性变换得到。
 
-### R-FCN: Object Detection via Region-based Fully Convolutional Networks
-- intro:R-FCN
-- arXiv:[http://arxiv.org/abs/1605.06409](http://arxiv.org/abs/1605.06409)
+![](https://pic.imgdb.cn/item/6535e122c458853aef4a9378.jpg)
 
-
-
-### Mask R-CNN
-- intro:Mask R-CNN
-- arXiv:[http://arxiv.org/abs/1703.06870](http://arxiv.org/abs/1703.06870)
-
-
-## 单阶段的检测器 One-Stage Detectors
-
-
-### Single-Shot Refinement Neural Network for Object Detection
-- intro:RefineNet
-- arXiv:[https://arxiv.org/abs/1711.06897](https://arxiv.org/abs/1711.06897)
-
-
-### EfficientDet: Scalable and Efficient Object Detection
-- intro:EfficientDet
-- arXiv:[https://arxiv.org/abs/1911.09070](https://arxiv.org/abs/1911.09070)
-
-
-
-## ⚪ 目标检测
-
-
-- [MMDetection: Open MMLab Detection Toolbox and Benchmark](https://0809zheng.github.io/2020/04/03/mmdetection.html)：(arXiv1906)商汤科技和香港中文大学开源的基于Pytorch实现的深度学习目标检测工具箱。
-
-
-
-- [OneNet: Towards End-to-End One-Stage Object Detection](https://0809zheng.github.io/2020/12/26/onenet.html)：(arXiv2012)OneNet：无需**NMS**的**One-stage**端到端目标检测方法。
 
 
 # 3. 目标检测的评估指标
@@ -978,9 +1003,9 @@ def matrix_nms(boxes, scores, method='gauss', sigma=0.5):
 
 # 5. 目标检测中的损失函数
 
-目标检测中的损失函数包括边界框的**分类**损失和**回归**损失。其中分类损失用于区分边界框的类别，即边界框内目标的类别，对于两阶段的检测方法还包含边界框的正负类别；常用的分类损失函数包括**Cross-Entropy loss**, **Focal loss**, **Generalized Focal Loss**, **Generalized Focal Loss V2**, **Poly loss**。
+目标检测中的损失函数包括边界框的**分类**损失和**回归**损失。其中分类损失用于区分边界框的类别，即边界框内目标的类别，对于两阶段的检测方法还包含边界框的正负类别；常用的分类损失函数包括**Cross-Entropy loss**, **Focal loss**, **Generalized Focal Loss**, **Varifocal Loss**, **GHM**, **Poly loss**。
 
-而回归损失衡量预测边界框坐标$x_{pred}$和**GT**边界框坐标$x_{gt}$之间的差异，常用的回归损失函数包括**L1 / L2 loss**, **smooth L1 loss**, **balanced L1 loss**, **IoU loss**, **GIoU loss**, **DIoU loss**, **CIoU loss**, **EIoU loss**, **SIoU loss**, **MPDIoU loss**。
+而回归损失衡量预测边界框坐标$x_{pred}$和**GT**边界框坐标$x_{gt}$之间的差异，常用的回归损失函数包括**L1 / L2 loss**, **Smooth L1 loss**, **Dynamic SmoothL1 Loss**, **Balanced L1 loss**, **IoU loss**, **GIoU loss**, **DIoU loss**, **CIoU loss**, **EIoU loss**, **SIoU loss**, **MPDIoU loss**。
 
 ## （1）常用的分类损失
 
@@ -1036,7 +1061,7 @@ $$
 GFL\left(p_{y_l}, p_{y_r}\right)=-\left|y-\left(y_l p_{y_l}+y_r p_{y_r}\right)\right|^\beta\left(\left(y_r-y\right) \log \left(p_{y_l}\right)+\left(y-y_l\right) \log \left(p_{y_r}\right)\right)
 $$
 
-[<font color=blue>GFLV2</font>](https://0809zheng.github.io/2021/05/21/gfl.html)则进一步用**DFL**分布形状的统计量去指导最终定位质量的估计。直接取学习到分布的**Topk**数值**concat**在一起形成一个维度非常低的输入特征向量，用这个向量再接一个非常小的全连接层，最后再变成一个**Sigmoid**之后的**scalar**乘到原来的分类表征中。
+[<font color=blue>GFLV2</font>](https://0809zheng.github.io/2021/05/26/gflv2.html)则进一步用**DFL**分布形状的统计量去指导最终定位质量的估计。直接取学习到分布的**Topk**数值**concat**在一起形成一个维度非常低的输入特征向量，用这个向量再接一个非常小的全连接层，最后再变成一个**Sigmoid**之后的**scalar**乘到原来的分类表征中。
 
 ![](https://pic.imgdb.cn/item/6533834dc458853aef943e01.jpg)
 
@@ -1055,6 +1080,19 @@ $$
 其中 $y$ 是预测 **bboxes** 与 **GT** 的 **IoU**，使用软标签的形式作为分类的标签。 $p\in[0,1]$ 表示分类分数。
 - 对于负样本，即当 $y = 0$ 时，使用 $\alpha p^\gamma$ 作为 **focal weight** 使样本聚焦于困难样本上，这与 **Focal Loss** 基本一致。
 - 对于正样本，即当 $y > 0$ 时，首先计算标准二值交叉熵部分，正样本的权重设置使用分类的标签 $y$， 即 **IoU** 作为 **focal weight**, 使得聚焦到具有高质量的样本上。
+
+### ⚪ [<font color=blue>Gradient Harmonized Mechanism (GHM)</font>](https://0809zheng.github.io/2021/06/17/ghm.html)
+
+对于一个已经收敛的目标检测模型，依然有部分样本梯度范数接近$1$，这些样本极可能是外点数据即标注有错误的数据，如果训练时候强行拟合，对最终性能反而有影响。
+
+**GHM**对**loss**两端的梯度进行降低权重，具备了易学习样本降低损失权重并且外点数据梯度不会过大的效果。在实现时计算梯度密度函数，并把密度分布的倒数设置为样本的权值。
+
+$$
+\begin{gathered}
+\hat{L}_{G H M-C}=\frac{1}{N} \sum_{i=1}^N \hat{\beta}_i L_{C E}\left(p_i, p_i^*\right) \\
+=\sum_{i=1}^N \frac{L_{C E}\left(p_i, p_i^*\right)}{G D\left(g_i\right)} \\
+\end{gathered}
+$$
 
 ### ⚪ [<font color=blue>Poly Loss</font>](https://0809zheng.github.io/2022/07/07/poly.html)
 
@@ -1111,6 +1149,17 @@ def smoothL1Loss(pred_loc, gt_loc, sigma):
         )
     return regression_loss.mean()
 ```
+
+
+### ⚪ Dynamic SmoothL1 Loss
+- paper：[<font color=blue>Dynamic R-CNN: Towards High Quality Object Detection via Dynamic Training</font>](https://0809zheng.github.io/2021/05/30/dynamicrcnn.html)
+
+$$ \text{DSL}(x, \beta_{now}) = \begin{cases} |x|-0.5\beta_{now}, & |x| ≥ \beta_{now} \\ 0.5x^2/\beta_{now}, &|x| < \beta_{now} \end{cases} $$
+
+$\beta_{now}$是需要动态确定的。其确定规则是先计算预测值和**GT**的回归误差，然后选择第$K_{\beta-th}$个最小值，然后在达到迭代次数后，采用中位数作为设置值。
+
+随着训练进行，高质量样本越来越多，回归误差会越来越小，并且高质量的预测框其误差会更小。引入动态$\beta_{now}$减少来修正，来增加高质量部分样本的梯度，可以不断突出高质量预测框的回归误差。
+
 
 ### ⚪ balances L1 loss
 - paper：[<font color=blue>Libra R-CNN: Towards Balanced Learning for Object Detection</font>](https://0809zheng.github.io/2021/05/22/libra.html)
@@ -1469,20 +1518,20 @@ $$ \text{MPDIoU loss} = 1-\text{MPDIoU} $$
 **标签分配(label assignment, LA)**策略是指在训练目标检测器时，为特征图不同位置的预测样本分配合适的标签（即区分**anchor**是正样本还是负样本），用于计算损失。标签分配根据非负即正划分为**硬标签分配(hard LA)**和**软标签分配(soft LA)**。
 - 硬标签分配策略是指根据阈值把样本划分为正样本或者负样本。依据在训练阶段是否动态调整阈值，硬标签分配策略又可以细分为静态和动态两种：
 1. **静态分配**策略主要依据于模型的先验知识（例如距离阈值和**iou**阈值等）来选取不同的正负样本；
-2. **动态分配**策略依据在训练阶段采用不同的统计量来动态地设置阈值，并划分正负样本；如。
-- 软标签分配策略则会根据预测结果与**GT**计算正负权重，在候选正样本(中心点落在**GT**框内)的基础上依据正负样本权重分配正负样本，且在训练的过程中动态调整分配权重。常见的软标签分配策略包括。
+2. **动态分配**策略依据在训练阶段采用不同的统计量来动态地设置阈值，并划分正负样本；如**DLA**, **MCA**, **HAMBox**, **ATSS**, **SimOTA**, **DSLA**。
+- 软标签分配策略则会根据预测结果与**GT**计算正负权重，在候选正样本(中心点落在**GT**框内)的基础上依据正负样本权重分配正负样本，且在训练的过程中动态调整分配权重。常见的软标签分配策略包括**Noisy Anchor**, **AutoAssign**, **SAPD**, **TOOD**。
 
 ## （1）静态分配策略
 
 ### ⚪ Anchor-based的静态分配策略
 
-**Anchor-based**的静态分配策略是基于**iou**阈值来实现的，通过计算预测框和**GT**之间的交并比来划分正负样本；常应用在**Faster RCNN**、**YOLO**等网络中。流程如下：
+**Anchor-based**的静态分配策略是基于**IoU**阈值来实现的，通过计算预测框和**GT**之间的交并比来划分正负样本；常应用在**Faster RCNN**、**YOLO**等网络中。流程如下：
 1. 初始化时假设每个**anchor**的**mask**都是$-1$，表示都是忽略**anchor**
 2. 计算每个**anchor**和所有**GT**的**IoU**，把最大**IoU**小于**neg_iou_thr**的**anchor**的**mask**设置为$0$，表示负样本(背景样本)
 3. 把最大**IoU**大于**pos_iou_thr**的**anchor**的**mask**设置为$1$，表示该**anchor**负责预测该**gt bbox**，是正样本
 4. 可能会出现某些**GT**没有分配到对应的**anchor**，因此对于每个**GT**还需要找出最大**IoU**的**anchor**位置，如果其**IoU**大于**min_pos_iou**，将该**anchor**的**mask**设置为$1$，表示该**anchor**负责预测该**GT**
 
-在该分配策略中，每个**anchor**最多只能预测一个**GT**，而每个**GT**可能由多个**anchor**负责预测。
+在该分配策略中，每个**anchor**最多只能预测一个**GT**，而每个**GT**可能由多个**anchor**负责预测；**IoU**介于**neg_iou_thr**和**pos_iou_thr**之间的**anchor**可能被忽略。
 
 ```python
 # overlaps 表示anchor与gt的交并比矩阵
@@ -1518,6 +1567,26 @@ for i in range(num_gts):
 
 ## （2）动态分配策略
 
+### ⚪ Dynamic Label Assignment (DLA)
+- paper：[<font color=blue>Dynamic R-CNN: Towards High Quality Object Detection via Dynamic Training</font>](https://0809zheng.github.io/2021/05/30/dynamicrcnn.html)
+
+**IoU**阈值$T_{now}$动态调整，做法是首先计算每个**ROI**和所有**GT**的最大**IoU**值，在每张图片上选取第$K_{I-th}$个最大值，遍历所有图片求均值作为$T_{now}$，并且每隔$C$个迭代更新一次该参数。
+
+### ⚪ Minimum Cost Assignment (MCA)
+- paper：[<font color=blue>OneNet: Towards End-to-End One-Stage Object Detection</font>](https://0809zheng.github.io/2020/12/26/onenet.html)
+
+在进行标签匹配时，同时考虑分类损失和位置损失，对每个**GT**只有一个具有最小分类损失和定位损失的样本被分配为正样本。
+
+### ⚪ Online High-quality Anchors Mining (HAMBox)
+- paper：[<font color=blue>HAMBox: Delving into Online High-quality Anchors Mining for Detecting Outer Faces</font>](https://0809zheng.github.io/2021/06/16/hambox.html)
+
+**HAMBox**在保证**IoU**质量的前提下，尽可能保证每个**GT**都有指定数目的$K$个**anchor**进行匹配(并没有保证一定要$K$个)。
+- 将每个**GT**匹配到**IoU**大于阈值的**anchor**，如果匹配到$K$个正样本，则不需要补充；否则假设只匹配到$M$个正样本；
+- 在每次前向传播之后，每个**anchor**通过回归得到回归框$B_{reg}$；对每个未匹配完成的**GT**计算它与$B_{reg}$的**IoU**值，然后补偿$K-M$个**unmatched anchor**：
+1. **IoU**要大于阈值$T$
+2. 对上一步得到的**anchor**进行排序，选择**IoU**最大的**top-(K-M)**个**anchor**做补偿。
+
+
 ### ⚪ Adaptive Training Sample Selection (ATSS)
 - paper：[<font color=blue>Bridging the Gap Between Anchor-based and Anchor-free Detection via Adaptive Training Sample Selection</font>](https://0809zheng.github.io/2021/05/23/atss.html)
 
@@ -1535,7 +1604,64 @@ for i in range(num_gts):
 3. 计算**GT**和候选正样本的**IoU**值，并对计算出的**IoU**值进行排序，选取前$k$个值(默认为$16$)进行相加，该值作为最终划分正样本的个数值$k_{2}$；
 4. 针对每个**GT**，选择代价矩阵最小的$k_{2}$个候选正样本作为最终的正样本，其余的为负样本。分配到多个**GT**的预测框取选取最小代价的进行匹配。
 
+
+### ⚪ Dynamic Soft Label Assigner (DSLA)
+- paper：[<font color=blue>RTMDet: An Empirical Study of Designing Real-Time Object Detectors</font>](https://0809zheng.github.io/2022/12/07/rtmdet.html)
+
+**Dynamic Soft Label Assigner**主要包括使用位置先验信息损失、样本回归损失、样本分类损失，同时对三个损失进行了 **Soft** 处理进行参数调优, 以达到最佳的动态匹配效果。
+
+位置先验信息损失：
+
+$$
+C_{center} = \alpha^{|x_{pred}-x_{gt}|-\beta}
+$$
+
+样本回归损失：
+
+$$
+C_{reg} = -\log(IOU)
+$$
+
+样本分类损失：
+
+$$
+C_{cls} = CE(P,Y_{soft}) *(Y_{soft}-P)^2
+$$
+
+通过计算上述三个损失的和得到最终的 **cost_matrix** 后, 再使用 **SimOTA** 决定每一个 **GT** 匹配的样本的个数并决定最终的样本。具体操作如下所示：
+1. 首先通过自适应计算每一个 **GT** 要选取的样本数量： 取每一个 **GT** 与所有 **bboxes** 前 **13** 大的 **IoU**, 得到它们的和取整后作为这个 **GT** 的 样本数目 , 最少为 **1** 个, 记为 **dynamic_ks**。
+2. 对于每一个 **GT** , 将其 **cost_matrix** 矩阵前 **dynamic_ks** 小的位置作为该 **GT** 的正样本。
+3. 对于某一个 **bbox**, 如果被匹配到多个 **GT** 就将与这些 **GTs** 的 **cost_marix** 中最小的那个作为其 **label**。
+
 ## （3）软标签分配策略
+
+### ⚪ Noisy Anchor
+- paper：[<font color=blue>Learning from Noisy Anchors for One-stage Object Detection</font>](https://0809zheng.github.io/2021/06/01/noisyanchor.html)
+
+**Noisy Anchor**对每个**GT**根据**IoU**分别选出**TOP-N**样本分别作为候选正样本$A_{pos}$和候选负样本$A_{neg}$，并为其设置软标签：
+
+$$
+c = \begin{cases}
+\alpha\cdot \text{loc\_a} + (1-\alpha)\cdot \text{cls\_c}, & b \in A_{pos} \\
+0, & b \in A_{neg}
+\end{cases}
+$$
+
+**loc_a**表示定位置信度，采用预测**box**和对应的**GT**之间的**IOU**衡量；**cls_c**表示分类置信度，通过网络**head**直接预测。对于候选正样本$A_{pos}$，进一步引入了损失函数的软权重：
+
+$$
+r = \left( \alpha\cdot f(\text{loc\_a}) + (1-\alpha)\cdot f(\text{cls\_c}) \right)^\gamma
+$$
+
+### ⚪ AutoAssign
+- paper：[<font color=blue>AutoAssign: Differentiable Label Assignment for Dense Object Detection</font>](https://0809zheng.github.io/2021/05/27/autoassign.html)
+
+**AutoAssign**基于预测框的分类得分、框回归得分、中心先验得分计算正负权重，实现对**GT**框内物体的形状自适应，以及不同**FPN**层物体正负样本的自动划分:
+1. 所有**FPN**特征点落在**GT**框内的作为候选正样本，其余的作为负样本；
+2. 针对负样本，其负样本属性权重为$1$，正样本属性权重为$0$；而针对候选正样本，其负样本属性权重计算方式为分类得分乘以前背景得分，而正样本属性权重来自于分类得分、前背景得分和**IoU**得分，以及综合考虑中心先验得分；
+3. 计算损失时考虑所有样本的负权重和候选正样本的正权重
+
+![](https://pic.imgdb.cn/item/65349bd6c458853aefddf9d8.jpg)
 
 ### ⚪ Soft Anchor-Point Detection (SAPD)
 - paper：[<font color=blue>Soft Anchor-Point Object Detection</font>](https://0809zheng.github.io/2021/05/24/sapd.html)
@@ -1552,4 +1678,3 @@ for i in range(num_gts):
 2. 针对每个**GT**，计算其与候选正样本的**IoU**值$u$，并与其置信度得分$s$相乘后作为度量值$t=s^\alpha\times u^\beta$；
 3. 根据$t$排序选择前$k$个候选正样本作为最终的正样本；
 4. 如果一个预测框和多个**GT**进行匹配，则选择**IoU**最大的**GT**。
-
