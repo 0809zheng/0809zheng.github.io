@@ -21,7 +21,7 @@ tags: 论文阅读
 
 $$
 c = \begin{cases}
-\alpha\cdot \text{loc\_a} + (1-\alpha)\cdot \text{cls\_c}, & b \in A_{pos} \\
+\alpha\cdot \text{loc_a} + (1-\alpha)\cdot \text{cls_c}, & b \in A_{pos} \\
 0, & b \in A_{neg}
 \end{cases}
 $$
@@ -31,7 +31,7 @@ $$
 对于候选正样本$A_{pos}$，作者进一步引入了损失函数的软权重：
 
 $$
-r = \left( \alpha\cdot f(\text{loc\_a}) + (1-\alpha)\cdot f(\text{cls\_c}) \right)^\gamma
+r = \left( \alpha\cdot f(\text{loc_a}) + (1-\alpha)\cdot f(\text{cls_c}) \right)^\gamma
 $$
 
 其中$f(x)=1/(1-x)$，和$γ$都是用来增大方差的。

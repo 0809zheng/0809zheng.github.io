@@ -3,7 +3,7 @@ layout: post
 title: 'Region Proposal by Guided Anchoring'
 date: 2021-06-18
 author: 郑之杰
-cover: 'https://pic.imgdb.cn/item/65372d7ac458853aef8d360e.jpg'
+cover: 'https://pic.imgdb.cn/item/65388472c458853aef09c07d.jpg'
 tags: 论文阅读
 ---
 
