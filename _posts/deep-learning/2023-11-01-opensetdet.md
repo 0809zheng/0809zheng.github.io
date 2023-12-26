@@ -3,13 +3,15 @@ layout: post
 title: '开放集合目标检测(Open-Set Object Detection)'
 date: 2023-11-01
 author: 郑之杰
-cover: 'https://pic.imgdb.cn/item/63f48f89f144a0100755912f.jpg'
+cover: ''
 tags: 深度学习
 ---
 
 > Open-Set Object Detection.
 
-**开集目标检测(Open-Set Object Detection, OSOD)**也被称为**Open-World**目标检测或**Open-Vocabulary**目标检测，是指目标检测模型能够检测任意给定的目标类别（这些类别可能不是预定义的训练集类别）。
+**开集目标检测(Open-Set Object Detection, OSOD)**也被称为**Open-World**目标检测或**Open-Vocabulary**目标检测，是指在可见类（**base class**）的数据上进行训练，然后完成对不可见类（**unseen/target**）数据的识别和检测。
+
+开集目标检测的出发点是制定一种更加通用的目标检测模型来覆盖更多的**object concept**，使得目标检测不再受限于带标注数据的少数类别，从而实现更加泛化的目标检测，识别出更多**novel**的物体类别。
 
 注意：早期的**Open-Set**目标检测与**Open-Vocabulary**目标检测所指代含义是不同的。前者倾向于检测出未知目标即可，不再判别目标的具体类别；后者则需要根据指定的新类别进行检测。本文则不再进行区分。
 
@@ -24,6 +26,14 @@ tags: 深度学习
 - **OCD**对已知物体和未知物体的区域特征进行编码，并用 **constrained k-means**对未知类别进行聚类。
 
 ![](https://pic.imgdb.cn/item/655c6f42c458853aef59a09d.jpg)
+
+### ⚪ Detic
+- paper：[<font color=blue>Detecting Twenty-thousand Classes using Image-level Supervision</font>](https://0809zheng.github.io/2023/11/09/detic.html)
+
+**Detic**使用图像分类数据集和目标检测数据集一起联合训练。对于分类图像，由**RPN**获取**proposal**，选取最大面积的**proposal**，这个**proposal**对应的**label**就是图像层面的类别。
+
+![](https://pic.imgdb.cn/item/658933bec458853aef946211.jpg)
+
 
 # 2. 基于多模态学习的开集检测器
 
@@ -44,9 +54,32 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/65701bf4c458853aef0a6a30.jpg)
 
+### ⚪ RegionCLIP
+- paper：[<font color=blue>RegionCLIP: Region-based Language-Image Pretraining</font>](https://0809zheng.github.io/2023/11/10/regionclip.html)
+
+**CLIP**在**Region**区域上的识别很差，这是由于**CLIP**是在**Image-Language level**上进行的预训练导致的。**RegionCLIP**将**CLIP**在**region**图像和单词层面进行预训练，提高了区域级别的检测能力。
+
+![](https://pic.imgdb.cn/item/658a7ae7c458853aefdff48d.jpg)
+
+### ⚪ VL-PLM
+- paper：[<font color=blue>Exploiting Unlabeled Data with Vision and Language Models for Object Detection</font>](https://0809zheng.github.io/2023/11/11/vlplm.html)
+
+**VL-PLM**利用**CLIP**对无标签数据进行伪标签标注，然后混合伪标签数据和真实标注数据一起训练。注意到**CLIP**对于区域级别的图像识别能力不足，**VL-PLM**反复将**ROI**输入**ROI head**精调，最后**RPN**的分数将和**CLIP**的分类分数作平均。
+
+![](https://pic.imgdb.cn/item/658a947bc458853aef34c850.jpg)
+
+### ⚪ Grad-OVD
+- paper：[<font color=blue>Open Vocabulary Object Detection with Pseudo Bounding-Box Labels</font>](https://0809zheng.github.io/2023/11/08/gradovd.html)
+
+给定一个预训练的视觉语言模型和一个图像-描述样本对，**Grad-OVD**在图像中计算**Grad-CAM**激活图，对应于描述中感兴趣的目标。然后将激活映射转换为对应类别的伪标签框。开放词汇检测器可以直接在这些伪标签的监督下进行训练。
+
+![](https://pic.imgdb.cn/item/6585330dc458853aef21b989.jpg)
+
 ## （2）基于Grounding的开集检测器
 
-基于**Grounding**的开集检测器是指把开集目标检测任务建模为边界框提取+短语对齐（**phrase grounding**）任务。
+短语定位（**phrase grounding**）任务是指同时提供一张图像和一段描述图像的文本，根据文本的描述信息从图像中找到对应的物体。
+
+基于**Grounding**的开集检测器是指把开集目标检测任务建模为边界框提取+短语定位任务。该过程引入大规模**caption**数据集完成**region-word**级别的视觉模型和语言模型预训练。
 
 ### ⚪ OVR-CNN
 - paper：[<font color=blue>Open-Vocabulary Object Detection Using Captions</font>](https://0809zheng.github.io/2023/11/06/ovrcnn.html)
@@ -76,5 +109,3 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/6555809dc458853aef89eec8.jpg)
 
-### ⚪ Co-DETR
-- paper：[<font color=blue>DETRs with Collaborative Hybrid Assignments Training</font>](https://0809zheng.github.io/2023/11/02/groundingdino.html)
