@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'RegionCLIP: Region-based Language-Image Pretraining'
-date: 2023-11-10
+date: 2023-11-12
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/658a72a2c458853aefc127a6.jpg'
 tags: 论文阅读
