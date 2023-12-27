@@ -3,17 +3,23 @@ layout: post
 title: '开放集合目标检测(Open-Set Object Detection)'
 date: 2023-11-01
 author: 郑之杰
-cover: ''
+cover: 'https://pic.imgdb.cn/item/658aa19ac458853aef584c92.jpg'
 tags: 深度学习
 ---
 
 > Open-Set Object Detection.
 
-**开集目标检测(Open-Set Object Detection, OSOD)**也被称为**Open-World**目标检测或**Open-Vocabulary**目标检测，是指在可见类（**base class**）的数据上进行训练，然后完成对不可见类（**unseen/target**）数据的识别和检测。
+**开集目标检测(Open-Set Object Detection, OSOD)**也被称为**Open-World**目标检测或**Open-Vocabulary**目标检测，是指在可见类（**base class**）的数据上进行训练，然后完成对不可见类（**unseen/target**）数据的定位与识别。
 
 开集目标检测的出发点是制定一种更加通用的目标检测模型来覆盖更多的**object concept**，使得目标检测不再受限于带标注数据的少数类别，从而实现更加泛化的目标检测，识别出更多**novel**的物体类别。
 
 注意：早期的**Open-Set**目标检测与**Open-Vocabulary**目标检测所指代含义是不同的。前者倾向于检测出未知目标即可，不再判别目标的具体类别；后者则需要根据指定的新类别进行检测。本文则不再进行区分。
+
+一些常见的开集目标检测方法包括：
+- 基于无监督学习的开集检测器：通过聚类、弱监督等手段实现开集检测，如**OSODD**, **Detic**, **VLDet**
+- 基于多模态学习的开集检测器：
+1. 基于**Referring**的开集检测器：借助多模态视觉-语言模型实现检测，如**ViLD**, **RegionCLIP**, **VL-PLM**, **Grad-OVD**
+2. 基于**Grounding**的开集检测器：把开集检测任务建模为边界框提取+短语定位任务，如**OVR-CNN**, **MDETR**, **GLIP**, **DetCLIP**, **DetCLIPv2**, **Grounding DINO**
 
 # 1. 基于无监督学习的开集检测器
 
@@ -34,10 +40,17 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/658933bec458853aef946211.jpg)
 
+### ⚪ VLDet
+- paper：[<font color=blue>Learning Object-Language Alignments for Open-Vocabulary Object Detection</font>](https://0809zheng.github.io/2023/11/13/vldet.html)
+
+**VLDet**直接从**image-text pairs**训练目标检测器，主要出发点是从**image-text pairs**中提取**region-word pairs**可以表述为两个集合的元素匹配问题，该问题可以通过找到区域和单词之间具有最小全局匹配成本的二分匹配来有效解决。
+
+![](https://pic.imgdb.cn/item/658b9483c458853aef13b6c9.jpg)
+
 
 # 2. 基于多模态学习的开集检测器
 
-开集目标检测。开集目标检测是利用已有的边界框标注进行训练，目的是借助语言泛化来检测任意类。DetCLIP[53]涉及大规模图像字幕数据集，并使用生成的伪标签扩展知识库。生成的伪标签有效地扩展了检测器的泛化能力。
+当人类捕捉到视觉信息后，会将它们与语言文字联系起来，从而产生丰富的视觉和语义词汇，这些词汇可以用于检测物体，并拓展模型的表达能力。因此通过多模态学习技术借助大量的图像与语义词汇，可以使得目标检测器在未知类别也能进行识别与定位。
 
 
 ## （1）基于Referring的开集检测器
@@ -55,7 +68,7 @@ tags: 深度学习
 ![](https://pic.imgdb.cn/item/65701bf4c458853aef0a6a30.jpg)
 
 ### ⚪ RegionCLIP
-- paper：[<font color=blue>RegionCLIP: Region-based Language-Image Pretraining</font>](https://0809zheng.github.io/2023/11/10/regionclip.html)
+- paper：[<font color=blue>RegionCLIP: Region-based Language-Image Pretraining</font>](https://0809zheng.github.io/2023/11/12/regionclip.html)
 
 **CLIP**在**Region**区域上的识别很差，这是由于**CLIP**是在**Image-Language level**上进行的预训练导致的。**RegionCLIP**将**CLIP**在**region**图像和单词层面进行预训练，提高了区域级别的检测能力。
 
@@ -77,7 +90,7 @@ tags: 深度学习
 
 ## （2）基于Grounding的开集检测器
 
-短语定位（**phrase grounding**）任务是指同时提供一张图像和一段描述图像的文本，根据文本的描述信息从图像中找到对应的物体。
+短语定位（**phrase grounding**）任务是指同时提供一张图像和一段描述图像的文本（**captions**），根据文本的描述信息从图像中找到对应的物体。
 
 基于**Grounding**的开集检测器是指把开集目标检测任务建模为边界框提取+短语定位任务。该过程引入大规模**caption**数据集完成**region-word**级别的视觉模型和语言模型预训练。
 
@@ -101,6 +114,20 @@ tags: 深度学习
 **GLIP**把图像特征与文本特征分别由单独的编码器编码，然后通过跨模态多头注意力模块（**X-MHA**）进行深度融合。
 
 ![](https://pic.imgdb.cn/item/655c6111c458853aef2d9091.jpg)
+
+### ⚪ DetCLIP
+- paper：[<font color=blue>DetCLIP: Dictionary-Enriched Visual-Concept Paralleled Pre-training for Open-world Detection</font>](https://0809zheng.github.io/2023/11/14/detclip.html)
+
+**GLIP** 在 **text encoder** 中会学习所有类别之间的 **attention**，**DetCLIP**将每个 **concept** 分别送入不同的 **text encoder**。这样能够避免模型受到不相关类别无效关联，并且能给每个 **concept** 都产生一个长描述。
+
+![](https://pic.imgdb.cn/item/658bcb3cc458853aefce62d3.jpg)
+
+### ⚪ DetCLIPv2
+- paper：[<font color=blue>DetCLIPv2: Scalable Open-Vocabulary Object Detection Pre-training via Word-Region Alignment</font>](https://0809zheng.github.io/2023/11/15/detclipv2.html)
+
+**DetCLIPv2**是一个面向开放词汇目标检测的统一端到端预训练框架，通过使用区域和单词之间的最佳匹配集相似性来引导对比目标，以端到端的方式执行检测、定位和图像对数据的联合训练。
+
+![](https://pic.imgdb.cn/item/658be095c458853aef1b3bf3.jpg)
 
 ### ⚪ Grounding DINO
 - paper：[<font color=blue>Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set Object Detection</font>](https://0809zheng.github.io/2023/11/02/groundingdino.html)
