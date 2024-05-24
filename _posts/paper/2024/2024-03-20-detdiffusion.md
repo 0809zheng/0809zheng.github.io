@@ -31,7 +31,7 @@ tags: 论文阅读
 
 $$
 d_i = \begin{cases}
-[\text{easy}], & \exist j, \text{IoU}(b_j, o_i) > \beta \\
+[\text{easy}], & \exists j, \text{IoU}(b_j, o_i) > \beta \\
 [\text{hard}], & \text{else}
 \end{cases}
 $$
