@@ -84,4 +84,3 @@ $$
 ![](https://pic.imgdb.cn/item/6641b5a90ea9cb1403a83dd6.png)
 
 
-{% include image-gallery.html folder="https://github.com/0809zheng/PhotoGallery1/tree/cf0f6a9eaef5bc610759d57e99efd64e70084ab2/test" %}
