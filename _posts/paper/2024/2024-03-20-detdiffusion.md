@@ -82,3 +82,6 @@ $$
 作者可视化了感知属性的选择，比较了**easy/hard**实例。**easy**属性的图像生成的重点是目标的内在特征，确保清晰度和无噪声。**hard**的属性的图像生成包含了通过遮挡、照明和其他复杂性引入噪声的额外元素。
 
 ![](https://pic.imgdb.cn/item/6641b5a90ea9cb1403a83dd6.png)
+
+
+{% include image-gallery.html folder="https://github.com/0809zheng/PhotoGallery1/tree/cf0f6a9eaef5bc610759d57e99efd64e70084ab2/test" %}
