@@ -9,22 +9,23 @@ tags: 深度学习
 
 > Diffusion Model.
 
-**扩散模型 (Diffusion Model)**是一类受到**非平衡热力学 (non-equilibrium thermodynamics)**启发的深度生成模型。这类模型首先定义前向扩散过程的**马尔科夫链 (Markov Chain)**，向数据中逐渐地添加随机噪声；然后学习反向扩散过程，从噪声中构造所需的数据样本。扩散模型也是一类隐变量模型，其隐变量通常具有较高的维度（与原始数据相同的维度）。
+**扩散模型 (Diffusion Model)**是一类受到**非平衡热力学 (non-equilibrium thermodynamics)**启发的深度生成模型。这类模型首先定义**前向扩散**过程的**马尔科夫链 (Markov Chain)**，向原始图像中逐渐地添加随机噪声，直至把原始图像破坏成一张完全随机的噪声图像；然后学习**反向扩散**过程，从噪声图像中不断减去添加噪声（由神经网络预测），最终会还原为清晰的原始图像。扩散模型也是一类隐变量模型，其隐变量通常具有较高的维度（与原始数据相同的维度）。
 
-![](https://pic.imgdb.cn/item/64228e1fa682492fcc54a663.jpg)
+
 
 扩散模型的主要优点：
-1. 目标函数为回归损失，训练过程平稳，容易训练；
-2. 与像素顺序无关的逐级自回归过程，图像生成质量高。
+- 目标函数为回归损失，训练过程平稳，容易训练；
+- 与像素顺序无关的逐级自回归过程，图像生成质量高。
 
 扩散模型的主要缺点：
-1. 采样速度慢，单次生成需要$T$步采样；
-2. 没有编码能力，无法编辑隐空间。
+- 采样速度慢，单次生成需要$T$步采样；
+- 没有低维空间的编码能力，无法表征和编辑隐空间。
 
 本文目录：
 1. 时间离散型扩散模型的基本原理
 2. 时间连续型扩散模型的基本原理
 3. 条件扩散模型
+4. 生成扩散模型的优化
 
 # 1. 时间离散型扩散模型的基本原理
 
@@ -34,9 +35,11 @@ tags: 深度学习
 3. 解析地推导：$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t,\mathbf{x}_{0}\right)$$
 4. 近似反向扩散过程：$$p_{\theta}\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t\right)$$
 
+![](https://pic.imgdb.cn/item/64228e1fa682492fcc54a663.jpg)
+
 ## （1）前向扩散过程 forward diffusion process
 
-给定从真实数据分布$q(\mathbf{x})$中采样的数据点$\mathbf{x}_0$~$q(\mathbf{x})$，**前向扩散过程**定义为逐渐向样本中添加高斯噪声$\boldsymbol{\epsilon}$（共计$T$步），从而产生一系列噪声样本$\mathbf{x}_1,...,\mathbf{x}_T$。噪声的添加程度是由一系列前向方差(**forward variances**)系数$$\{\beta_t\in (0,1)\}_{t=1}^T$$控制的。
+给定从真实数据分布$q(\mathbf{x})$中采样的数据点$\mathbf{x}_0 \sim q(\mathbf{x})$，**前向扩散过程**定义为逐渐向样本中添加高斯噪声$\boldsymbol{\epsilon}$（共计$T$步），从而产生一系列噪声样本$\mathbf{x}_1,...,\mathbf{x}_T$。噪声的添加程度是由一系列**前向方差**(**forward variances**)系数$$\{\beta_t\in (0,1)\}_{t=1}^T$$控制的。
 
 $$
 \begin{aligned}
@@ -76,7 +79,7 @@ $$
 
 ## （2）反向扩散过程 reverse diffusion process
 
-如果能够求得前向扩散过程$$q\left(\mathbf{x}_t \mid \mathbf{x}_{t-1}\right)$$的逆过程$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_{t}\right)$$，则能够从高斯噪声输入$$\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$$中构造真实样本。注意到当$\beta_t$足够小时，$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_{t}\right)$$也近似服从高斯分布。然而直接估计$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_{t}\right)$$是相当困难的，我们在给定数据集的基础上通过神经网络学习条件概率$$p_{\theta}\left(\mathbf{x}_{t-1} \mid \mathbf{x}_{t}\right)$$：
+如果能够求得前向扩散过程$$q\left(\mathbf{x}_t \mid \mathbf{x}_{t-1}\right)$$的逆过程$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_{t}\right)$$，则能够从高斯噪声输入$$\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$$出发构造真实样本。注意到当$\beta_t$足够小时，$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_{t}\right)$$也近似服从高斯分布。然而直接估计$$q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_{t}\right)$$是相当困难的，我们在给定数据集的基础上通过神经网络学习条件概率$$p_{\theta}\left(\mathbf{x}_{t-1} \mid \mathbf{x}_{t}\right)$$：
 
 $$
 \begin{aligned}
@@ -170,7 +173,7 @@ $$
 \end{aligned}
 $$
 
-至此，扩散模型的目标函数（负变分下界）可以被分解为$T$项：
+至此，扩散模型的目标函数（负变分下界）可以被分解为$T+1$项：
 
 $$
 \begin{aligned}
@@ -194,7 +197,7 @@ q\left(\mathbf{x}_{t-1} \mid \mathbf{x}_t, \mathbf{x}_0\right) & =\mathcal{N}\le
 \end{aligned}
 $$
 
-通过神经网络建模$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$和$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)$$，并最小化两个分布的**KL**散度，即可完成扩散模型的训练过程。
+通过神经网络建模$$\boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)$$和$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)$$，并最小化两个分布的**KL**散度，即可完成扩散模型的训练过程。
 
 ```python
 def normal_kl(mean1, logvar1, mean2, logvar2):
@@ -204,7 +207,7 @@ def normal_kl(mean1, logvar1, mean2, logvar2):
     return 0.5 * (-1.0 + logvar2 - logvar1 + torch.exp(logvar1 - logvar2) + ((mean1 - mean2) ** 2) * torch.exp(-logvar2))
 ```
 
-在实践中，$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)=\sigma_t^2I$$通常直接人为指定，而不视为可训练参数，以减小训练难度。而$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$包含两个输入$$\mathbf{x}_t, t$$，即原则上对于每个不同的$t$都应构造一个不同的模型；实践中共享所有模型的参数，把$t$作为条件传入。
+在实践中，$$\boldsymbol{\Sigma}_\theta\left(\mathbf{x}_t, t\right)=\sigma_t^2I$$通常直接人为指定，而不视为可训练参数，以减小训练难度。而$$\boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)$$包含两个输入$$\mathbf{x}_t, t$$，即原则上对于每个不同的$t$都应构造一个不同的模型；实践中共享所有模型的参数，把$t$作为条件传入。
 
 不妨把$$\boldsymbol{\mu}_\theta\left(\mathbf{x}_t, t\right)$$进一步表示为$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$的函数：
 
@@ -224,10 +227,6 @@ L_t & =\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}}\left[\frac{1}{2\sigma_t^
 $$
 
 因此在扩散模型中，神经网络学习的目标是在每一步前向扩散过程中加入输入样本的噪声，并尝试在反向扩散过程中去除该噪声；因此扩散模型也被称作**去噪(denoising**)扩散模型。
-
-```python
-simple_losses = F.l1_loss(pred_noise, noise, reduction = 'none')
-```
 
 ### ⚪ 建模$L_0$
 
@@ -576,7 +575,19 @@ $$
 \end{aligned}
 $$
 
-因此只需要用$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)-\sqrt{1-\bar{\alpha}_t}\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})$$替换$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$即可实现条件控制生成。
+因此只需要用$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)-\sqrt{1-\bar{\alpha}_t}\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})$$替换$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$即可实现条件控制生成：
+
+$$
+\overline{\boldsymbol{\epsilon}}_\theta\left(\mathbf{x}_t, t\right) = \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)-\sqrt{1-\bar{\alpha}_t}\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})
+$$
+
+为了控制事后修改的程度，引入**分类器引导尺度 （classifier guidance scale）** $w$:
+
+$$
+\overline{\boldsymbol{\epsilon}}_\theta\left(\mathbf{x}_t, t\right) = \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)-\sqrt{1-\bar{\alpha}_t}w\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})
+$$
+
+分类器引导尺度$w$越大，模型倾向于生成更具有确定性的结果。
 
 ### ⚪ 基于事后修改的条件扩散模型
 
@@ -617,19 +628,72 @@ $$
 
 $$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \mathbf{y},\epsilon_t}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t,\mathbf{y}, t\right)\right\|^2\right]\end{aligned} $$ 
 
+此时应把噪声估计器$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t,\mathbf{y}, t\right)$$建模为条件输入模型，如通过交叉注意力机制实现。
+
+### ⚪ 讨论：事后修改与事前训练的关系
+
+注意到：
+
+$$
+\begin{aligned}
+\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})&=\nabla_{\mathbf{x}} \log p_t(\mathbf{x}\mid \mathbf{y})-\nabla_{\mathbf{x}} \log p_t(\mathbf{x}) \\
+&= -\frac{\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,y\right)}{\sqrt{1-\bar{\alpha}_t}}-\frac{\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)}{\sqrt{1-\bar{\alpha}_t}} \\
+&= -\frac{1}{\sqrt{1-\bar{\alpha}_t}}\left(\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,y\right)-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)
+\end{aligned}
+$$
+
+对于事后修改的条件扩散模型，其噪声估计器$\boldsymbol{\epsilon}_\theta$表示为：
+
+$$
+\overline{\boldsymbol{\epsilon}}_\theta\left(\mathbf{x}_t, t\right) = \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)-\sqrt{1-\bar{\alpha}_t}w\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x})
+$$
+
+向噪声估计器$\boldsymbol{\epsilon}_\theta$中引入条件$\mathbf{y}$，有：
+
+$$
+\begin{aligned}
+\overline{\boldsymbol{\epsilon}}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right) &= \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right)-\sqrt{1-\bar{\alpha}_t}w\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x}) \\
+&= \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right)+w\left(\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,y\right)-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right) \\
+&= (1+w)\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right) - w\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)
+\end{aligned}
+$$
+
+注意到$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right)$$和$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$可以用同一个模型表示：$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)=\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}=\phi\right)$$；因此在训练时以一定的概率丢弃条件，使得模型同时学习两种情况。此时$\gamma = 1+w$被称作**无分类器引导尺度（classifier-free guidance scale, CFG scale）**，$\gamma=0$表示无条件生成。
+
+### ⚪ 基于事前训练的条件扩散模型
+
+| 模型 | 采样过程 |
+| :---:  |  :---  |
+| [<font color=Blue>Classifier Free</font>](https://0809zheng.github.io/2022/06/10/free_diffusion.html) | $$ \tilde{\boldsymbol{\epsilon}}_\theta\left(\mathbf{x}_t,\mathbf{y}, t\right) = (1+w) \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t,\mathbf{y}, t\right) - w\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) $$ |
+|  |  |
+
+# 5. 生成扩散模型的优化
+
+## （1）高分辨率图像生成
+
+### ⚪ [<font color=Blue>Latent Diffusion Models</font>](https://0809zheng.github.io/2022/06/18/ldm.html)
+
+**隐扩散模型（latent diffusion model）**没有直接在高维图像空间中执行扩散，而是首先使用变分自编码器把图像压缩到隐空间，再在隐空间中构造扩散过程。
+
+![](https://pic.imgdb.cn/item/667247fad9c307b7e9df5cdb.png)
+
+
+## （2）采样加速
 
 
 # ⭐ 参考文献
 - [生成扩散模型漫谈](https://spaces.ac.cn/tag/%E6%89%A9%E6%95%A3/)(苏剑林)：介绍扩散模型的中文系列博客。
-- [What are Diffusion Models?](https://lilianweng.github.io/posts/2019-11-10-self-supervised/)(Lil'Log)：一篇介绍扩散模型的英文博客。
-- [denoising-diffusion-pytorch](https://lilianweng.github.io/posts/2019-11-10-self-supervised/)(GitHub)：Implementation of Denoising Diffusion Probabilistic Model in Pytorch。
+- [What are Diffusion Models?](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/)(Lil'Log)：一篇介绍扩散模型的英文博客。
+- [denoising-diffusion-pytorch](https://github.com/lucidrains/denoising-diffusion-pytorch)(GitHub)：Implementation of Denoising Diffusion Probabilistic Model in Pytorch。
 - [<font color=Blue>Denoising Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/02/ddpm.html)：(arXiv2006)DDPM：去噪扩散概率模型。
 - [<font color=Blue>Denoising Diffusion Implicit Models</font>](https://0809zheng.github.io/2022/06/04/ddim.html)：(arXiv2010)DDIM：去噪扩散隐式模型。
 - [<font color=Blue>Score-Based Generative Modeling through Stochastic Differential Equations</font>](https://0809zheng.github.io/2022/06/05/score.html)：(arXiv2011)基于得分匹配的随机微分方程生成式建模。
 - [<font color=Blue>Improved Denoising Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html)：(arXiv2102)改进的去噪扩散概率模型。
 - [<font color=Blue>Diffusion Models Beat GANs on Image Synthesis</font>](https://0809zheng.github.io/2022/06/08/cond_diffusion.html)：(arXiv2105)在图像合成任务上扩散模型超越了生成对抗网络。
 - [<font color=Blue>More Control for Free! Image Synthesis with Semantic Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/09/sim_diffusion.html)：(arXiv2112)基于语义扩散引导的图像合成。
+- [<font color=Blue>High-Resolution Image Synthesis with Latent Diffusion Models</font>](https://0809zheng.github.io/2022/06/18/ldm.html)：(arXiv2112)通过隐扩散模型实现高分辨率图像合成。
 - [<font color=Blue>Analytic-DPM: an Analytic Estimate of the Optimal Reverse Variance in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/06/analytic.html)：(arXiv2201)Analytic-DPM：扩散概率模型中最优反向方差的分析估计。
 - [<font color=Blue>Estimating the Optimal Covariance with Imperfect Mean in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html)：(arXiv2206)扩散概率模型中具有不准确均值的最优协方差估计。
+- [<font color=Blue>Classifier-Free Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/10/free_diffusion.html)：(arXiv2207)无分类器引导的条件扩散模型。
 - [<font color=Blue>Cold Diffusion: Inverting Arbitrary Image Transforms Without Noise</font>](https://0809zheng.github.io/2022/06/17/cold.html)：(arXiv2208)Cold Diffusion：反转任意无噪声的图像变换。
 - [<font color=Blue>Poisson Flow Generative Models</font>](https://0809zheng.github.io/2022/06/21/pfgm.html)：(arXiv2209)泊松流生成模型。
