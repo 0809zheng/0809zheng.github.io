@@ -54,3 +54,22 @@ $$ \tilde{\boldsymbol{\epsilon}}_\theta\left(\mathbf{x}_t,\mathbf{y}, t\right) =
 
 $$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$可以通过引入一个特定的输入类别$\phi$实现，它对应的目标图像为全体图像，因此把$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) = \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, \phi, t\right)$$加入到模型训练中。
 
+噪声预测器$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t,\mathbf{y}, t\right)$$通过条件**UNet**模型实现，$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$则通过丢弃条件输入实现：
+
+```python
+    def forward_with_cond_scale(
+        self,
+        *args,
+        cond_scale = 1.,
+        **kwargs
+    ):
+        logits = self.forward(*args, cond_drop_prob = 0., **kwargs)
+
+        null_logits = self.forward(*args, cond_drop_prob = 1., **kwargs)
+
+        scaled_logits = null_logits + (logits - null_logits) * cond_scale
+
+        return scaled_logits
+```
+
+基于事前训练的条件扩散模型的完整实现可参考[denoising-diffusion-pytorch](https://github.com/lucidrains/denoising-diffusion-pytorch/blob/main/denoising_diffusion_pytorch/classifier_free_guidance.py)。
