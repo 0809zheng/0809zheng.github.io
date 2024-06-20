@@ -654,29 +654,43 @@ $$
 \begin{aligned}
 \overline{\boldsymbol{\epsilon}}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right) &= \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right)-\sqrt{1-\bar{\alpha}_t}w\nabla_{\mathbf{x}} \log p_t(\mathbf{y}\mid \mathbf{x}) \\
 &= \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right)+w\left(\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,y\right)-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right) \\
-&= (1+w)\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right) - w\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)
+&= (1+w)\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right) - w\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\\
+&=s\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right) +(1-s) \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)
 \end{aligned}
 $$
 
-注意到$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right)$$和$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$可以用同一个模型表示：$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)=\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}=\phi\right)$$；因此在训练时以一定的概率丢弃条件，使得模型同时学习两种情况。此时$\gamma = 1+w$被称作**无分类器引导尺度（classifier-free guidance scale, CFG scale）**，$\gamma=0$表示无条件生成。
+此时$s = 1+w\geq 1$被称作**无分类器引导尺度（classifier-free guidance scale, CFG scale）**。因此通过在有标签和无标签的扩散模型的预测之间进行插值，可以实现类似于事后修改使用分类器梯度将样本引导至标签的效果。
+
+注意到$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}\right)$$和$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)$$可以用同一个模型表示：$$\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)=\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t,\mathbf{y}=\phi\right)$$；因此在训练时以一定的概率丢弃条件，使得模型同时学习两种情况。
 
 ### ⚪ 基于事前训练的条件扩散模型
 
-| 模型 | 采样过程 |
+| 模型 | 噪声预测器 |
 | :---:  |  :---  |
 | [<font color=Blue>Classifier Free</font>](https://0809zheng.github.io/2022/06/10/free_diffusion.html) | $$ \tilde{\boldsymbol{\epsilon}}_\theta\left(\mathbf{x}_t,\mathbf{y}, t\right) = (1+w) \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t,\mathbf{y}, t\right) - w\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) $$ |
-|  |  |
+| [<font color=Blue>GLIDE</font>](https://0809zheng.github.io/2022/06/25/glide.html) | $$ \overline{\boldsymbol{\epsilon}}_\theta\left(\mathbf{x}_t \mid c\right) =s\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t\mid c\right) +(1-s) \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t\mid \phi \right) $$ |
 
 # 5. 生成扩散模型的优化
 
 ## （1）高分辨率图像生成
 
-### ⚪ [<font color=Blue>Latent Diffusion Models</font>](https://0809zheng.github.io/2022/06/18/ldm.html)
+### ⚪ [<font color=Blue>DALL-E 2</font>](https://0809zheng.github.io/2022/06/24/dalle2.html)
+
+**DALL-E 2**模型通过**CLIP**模型找到文本特征与图像特征的对应关系，然后训练一个**prior**模型将文本特征转换为图像特征，再训练一个**decoder**模型（条件扩散模型**GLIDE**）根据图像特征生成图像。
+
+![](https://pic.imgdb.cn/item/6673ee01d9c307b7e9b85b05.png)
+
+### ⚪ [<font color=Blue>Latent Diffusion Model (LDM)</font>](https://0809zheng.github.io/2022/06/18/ldm.html)
 
 **隐扩散模型（latent diffusion model）**没有直接在高维图像空间中执行扩散，而是首先使用变分自编码器把图像压缩到隐空间，再在隐空间中构造扩散过程。
 
 ![](https://pic.imgdb.cn/item/667247fad9c307b7e9df5cdb.png)
 
+### ⚪ [<font color=Blue>SDXL</font>](https://0809zheng.github.io/2023/07/04/sdxl.html)
+
+**SDXL**模型是一个二阶段的级联扩散模型，包括**Base**模型和**Refiner**模型。其中**Base**模型是基本的文生图模型；在**Base**模型之后级联的**Refiner**模型是图生图模型，用于对**Base**模型生成的图像隐特征进行精细化。
+
+![](https://pic.imgdb.cn/item/6672baa1d9c307b7e9a72c4a.png)
 
 ## （2）采样加速
 
@@ -692,8 +706,11 @@ $$
 - [<font color=Blue>Diffusion Models Beat GANs on Image Synthesis</font>](https://0809zheng.github.io/2022/06/08/cond_diffusion.html)：(arXiv2105)在图像合成任务上扩散模型超越了生成对抗网络。
 - [<font color=Blue>More Control for Free! Image Synthesis with Semantic Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/09/sim_diffusion.html)：(arXiv2112)基于语义扩散引导的图像合成。
 - [<font color=Blue>High-Resolution Image Synthesis with Latent Diffusion Models</font>](https://0809zheng.github.io/2022/06/18/ldm.html)：(arXiv2112)通过隐扩散模型实现高分辨率图像合成。
+- [<font color=Blue>GLIDE: Towards Photorealistic Image Generation and Editing with Text-Guided Diffusion Models</font>](https://0809zheng.github.io/2022/06/23/glide.html)：(arXiv2112)GLIDE：通过文本引导的扩散模型实现真实图像生成与编辑。
 - [<font color=Blue>Analytic-DPM: an Analytic Estimate of the Optimal Reverse Variance in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/06/analytic.html)：(arXiv2201)Analytic-DPM：扩散概率模型中最优反向方差的分析估计。
+- [<font color=Blue>Hierarchical Text-Conditional Image Generation with CLIP Latents</font>](https://0809zheng.github.io/2022/06/24/dalle2.html)：(arXiv2204)通过CLIP隐特征实现层次化文本条件图像生成。
 - [<font color=Blue>Estimating the Optimal Covariance with Imperfect Mean in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html)：(arXiv2206)扩散概率模型中具有不准确均值的最优协方差估计。
 - [<font color=Blue>Classifier-Free Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/10/free_diffusion.html)：(arXiv2207)无分类器引导的条件扩散模型。
 - [<font color=Blue>Cold Diffusion: Inverting Arbitrary Image Transforms Without Noise</font>](https://0809zheng.github.io/2022/06/17/cold.html)：(arXiv2208)Cold Diffusion：反转任意无噪声的图像变换。
 - [<font color=Blue>Poisson Flow Generative Models</font>](https://0809zheng.github.io/2022/06/21/pfgm.html)：(arXiv2209)泊松流生成模型。
+- [<font color=Blue>SDXL: Improving Latent Diffusion Models for High-Resolution Image Synthesis</font>](https://0809zheng.github.io/2023/07/04/sdxl.html)：(arXiv2307)SDXL：改进高分辨率图像合成的隐扩散模型。
