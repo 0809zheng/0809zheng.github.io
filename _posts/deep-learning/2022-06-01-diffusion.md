@@ -311,6 +311,7 @@ $$
 | [<font color=Blue>DDPM</font>](https://0809zheng.github.io/2022/06/02/ddpm.html) | 目标函数：$$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|\right\|^2\right]\end{aligned} $$ <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(\mathbf{x}_t-\frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)\right)+ \sigma_t\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \sigma_t^2=\frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t $$ |
 | [<font color=Blue>Improved DDPM</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html) | 目标函数：$$ \begin{aligned} & \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t}\left[\left\|\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\sqrt{\bar{\alpha}_t} \mathbf{x}_0+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|\right\|^2\right] \\  & + \lambda \mathbb{E}_{t \sim[1, T], \mathbf{x}_0, \epsilon_t} \left[D_{\mathrm{KL}}\left(q\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}, \mathbf{x}_0\right) \|\| p_\theta\left(\mathbf{x}_t \mid \mathbf{x}_{t+1}\right)\right)\right] \end{aligned} $$ <br> 采样过程： 同**DDPM** <br> 部分参数：$$ \boldsymbol{\Sigma}_t=\exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t) $$ |
 | [<font color=Blue>DDIM</font>](https://0809zheng.github.io/2022/06/04/ddim.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right)+ \sigma_t \mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \sigma_t^2=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t $$ |
+| [<font color=Blue>VDM</font>](https://0809zheng.github.io/2022/06/22/vdm.html) |目标函数：$$ \frac{T}{2} \mathbb{E}_{\mathbf{\epsilon}\sim \mathcal{N}(0, \mathbf{I}),i\sim U[1,T]} [(\exp(\gamma_{\eta}(i/T)-\gamma_{\eta}((i-1)/T))-1 )\left\| \mathbf{\epsilon}-\hat{\mathbf{\epsilon}}_{\theta}(\mathbf{x}_t;t)\right\|_2^2] $$ <br> 采样过程： $$ \hat{\mathbf{x}}_{\theta}(\mathbf{x}_t;t) = \frac{\mathbf{x}_t-\sigma_t\hat{\mathbf{\epsilon}}_{\theta}(\mathbf{x}_t;t)}{\alpha_t} $$ |
 | [<font color=Blue>Analytic-DPM</font>](https://0809zheng.github.io/2022/06/06/analytic.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \\& + \sqrt{\sigma_t^2 + \left( \sqrt{\bar{\alpha}_{t-1}} - \sqrt{\frac{\bar{\alpha}_{t}(1-\bar{\alpha}_{t-1}-\sigma_t^2)}{1-\bar{\alpha}_{t}}} \right)^2\hat{\sigma}_t^2}\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \begin{aligned} \sigma_t^2&=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t \\ \hat{\sigma}_t^2&= \frac{1-\bar{\alpha}_t}{\bar{\alpha}_t} \left(1-\frac{1}{d}\mathbb{E}_{\mathbf{x}_t \sim q\left(\mathbf{x}_{t}\right)} \left[ \|\|\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \|\|^2 \right] \right) \end{aligned} $$ |
 | [<font color=Blue>Extended-Analytic-DPM</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html) | 目标函数：同**DDPM**  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \frac{1}{\sqrt{\alpha_t}}\mathbf{x}_{t}+\left( \sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}-\frac{\sqrt{1-\bar{\alpha}_t}}{\sqrt{\alpha_t}} \right)  \boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \\& + \sqrt{\sigma_t^2 + \left( \sqrt{\bar{\alpha}_{t-1}} - \sqrt{\frac{\bar{\alpha}_{t}(1-\bar{\alpha}_{t-1}-\sigma_t^2)}{1-\bar{\alpha}_{t}}} \right)^2\hat{\sigma}_t^2}\mathbf{z} \end{aligned} $$ <br> 部分参数：$$ \begin{aligned} \sigma_t^2&=\eta \frac{1-\overline{\alpha}_{t-1}}{1-\overline{\alpha}_{t}}\cdot \beta_t \\ \hat{\sigma}_t^2&= \frac{1-\bar{\alpha}_t}{\bar{\alpha}_t}\mathop{\arg\min}_{\mathbb{g}(\mathbf{x}_t)}\mathbb{E}_{\mathbf{x}_t ,\mathbf{x}_0 \sim q\left(\mathbf{x}_{t} \mid \mathbf{x}_0\right)q\left(\mathbf{x}_{0}\right)}\left[\left\|\left\| \left(\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\theta\left(\mathbf{x}_t, t\right) \right)^2-\mathbb{g}(\mathbf{x}_t)\right\|\right\|^2\right] \end{aligned} $$ |
 | [<font color=Blue>Cold Diffusion</font>](https://0809zheng.github.io/2022/06/17/cold.html)  | 目标函数：$$ \begin{aligned} \mathbb{E}_{t \sim[1, T], \mathbf{x}_0}\left[\left\|\left\|\mathbf{x}_0 - \mathcal{G}_t(\mathcal{F}_t (\mathbf{x}_{0}))\right\|\right\|_1\right]\end{aligned} $$  <br> 采样过程： $$ \begin{aligned} \mathbf{x}_{t-1} =& \mathbf{x}_t+\mathcal{F}_{t-1} (\mathcal{G}_t(\mathbf{x}_t))   - \mathcal{F}_t (\mathcal{G}_t(\mathbf{x}_t)) \\\mathbf{x}_{t-1} =&  \mathcal{F}_{t-1} (\mathcal{G}_t(\mathbf{x}_t)) \end{aligned} $$ |
@@ -463,14 +464,22 @@ d \mathbf{x} = [\mathbf{f}_t(\mathbf{x})-g_t^2s_θ(\mathbf{x}_t,t)]dt+g_t d\math
 \end{aligned}
 $$
 
-## （5）时间连续型扩散模型的各种变体
+## （5）由SDE到ODE
+
+扩散模型对应了一个随机微分方程，实际上也隐含了一个**常微分方程 (ordinary differential equation, ODE)**。相比于**SDE**，**ODE**用于描述确定性系统的动态行为，不涉及随机性，具有更好的数值稳定性，并且可以实现加速采样。
+
+
+
+
+## （6）时间连续型扩散模型的各种变体
 
 | 模型 | 表达式 |
 | :---:  |  :---  |
-| [<font color=Blue>Variance Exploding SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) | 前向**SDE**：$$ d \mathbf{x} = \sqrt{\frac{d\bar{\beta}_t}{dt}} d\mathbf{w} $$ |
-| [<font color=Blue>Variance Preserving SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) |前向**SDE**： $$ d \mathbf{x} = -\frac{\bar{\gamma}_t}{2} \mathbf{x}dt+\sqrt{\bar{\gamma}_t} d\mathbf{w}, \bar{\gamma}_t=\bar{\alpha}_t\frac{d}{dt}\left(\frac{\bar{\beta}_t}{\bar{\alpha}_t}\right) $$ |
-| [<font color=Blue>Probability Flow ODE</font>](https://0809zheng.github.io/2022/06/05/score.html) | 前向**SDE**：$$ d \mathbf{x} = \left(\mathbf{f}_t(\mathbf{x}) -\frac{1}{2}g_t^2\nabla_\mathbf{x} \log p_t(\mathbf{x})\right)dt $$ |
-| [<font color=Blue>Poisson Flow Generative Models</font>](https://0809zheng.github.io/2022/06/21/pfgm.html) | 前向**SDE**：$$ \mathbf{x} = \mathbf{x}_0 + \|\| \epsilon_x\|\|(1+\tau)^m \mathbf{u}, \quad t=  \|\epsilon_t\|(1+\tau)^m $$ <br> 目标函数：$$ \left\|\left\| s_{\theta}(\mathbf{x},t)+ \text{Norm} \left(\mathbb{E}_{\mathbf{x}_0 \sim p(\mathbf{x}_0)} \left[\frac{(\mathbf{x}-\mathbf{x}_0,t)}{(\left\|\left\|\mathbf{x}-\mathbf{x}_0\right\|\right\|^2 + t^2 )^{(d+1)/2}}\right]\right) \right\|\right\|^2 $$ <br>  反向**SDE**：$$ \frac{d \mathbf{x}}{dt} = \frac{F_\mathbf{x}}{F_t}, s_{\theta}(\mathbf{x},t) = (F_\mathbf{x},F_t) $$|
+| [<font color=Blue>Variance Exploding SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) | 前向扩散：$$ d \mathbf{x} = \sqrt{\frac{d\bar{\beta}_t}{dt}} d\mathbf{w} $$ |
+| [<font color=Blue>Variance Preserving SDE</font>](https://0809zheng.github.io/2022/06/05/score.html) |前向扩散： $$ d \mathbf{x} = -\frac{\bar{\gamma}_t}{2} \mathbf{x}dt+\sqrt{\bar{\gamma}_t} d\mathbf{w}, \bar{\gamma}_t=\bar{\alpha}_t\frac{d}{dt}\left(\frac{\bar{\beta}_t}{\bar{\alpha}_t}\right) $$ |
+| [<font color=Blue>Probability Flow ODE</font>](https://0809zheng.github.io/2022/06/05/score.html) | 前向扩散：$$ d \mathbf{x} = \left(\mathbf{f}_t(\mathbf{x}) -\frac{1}{2}g_t^2\nabla_\mathbf{x} \log p_t(\mathbf{x})\right)dt $$ |
+| [<font color=Blue>Rectified Flow</font>](https://0809zheng.github.io/2022/09/17/rectifiedflow.html) | 前向扩散：$$ d\mathbf{x} = s_{\theta}(\mathbf{x},t) dt $$ <br> 目标函数：$$ \mathbb{E}_{x_0\sim p_0(x_0),x_T\sim p_T(x_T)}\left[ \left\| s_\theta((x_1-x_0)t+x_0,t) - (x_1-x_0) \right\|^2 \right] $$ |
+| [<font color=Blue>Poisson Flow</font>](https://0809zheng.github.io/2022/06/21/pfgm.html) | 前向扩散：$$ \mathbf{x} = \mathbf{x}_0 + \|\| \epsilon_x\|\|(1+\tau)^m \mathbf{u}, \quad t=  \|\epsilon_t\|(1+\tau)^m $$ <br> 目标函数：$$ \left\|\left\| s_{\theta}(\mathbf{x},t)+ \text{Norm} \left(\mathbb{E}_{\mathbf{x}_0 \sim p(\mathbf{x}_0)} \left[\frac{(\mathbf{x}-\mathbf{x}_0,t)}{(\left\|\left\|\mathbf{x}-\mathbf{x}_0\right\|\right\|^2 + t^2 )^{(d+1)/2}}\right]\right) \right\|\right\|^2 $$ <br>  反向扩散：$$ \frac{d \mathbf{x}}{dt} = \frac{F_\mathbf{x}}{F_t}, s_{\theta}(\mathbf{x},t) = (F_\mathbf{x},F_t) $$|
 
 
 # 3. 条件扩散模型
@@ -680,6 +689,12 @@ $$
 
 ![](https://pic.imgdb.cn/item/6673ee01d9c307b7e9b85b05.png)
 
+### ⚪ [<font color=Blue>Imagen</font>](https://0809zheng.github.io/2022/06/26/imagen.html)
+
+**Imagen**模型采用仅在文本数据上训练的大型冻结语言模型**T5-XXL**编码文本嵌入序列，并将其为条件输入64×64文本图像扩散模型与两个256×256和1024×1024的超分辨率扩散模型。
+
+![](https://pic.imgdb.cn/item/6675257cd9c307b7e9a70128.png)
+
 ### ⚪ [<font color=Blue>Latent Diffusion Model (LDM)</font>](https://0809zheng.github.io/2022/06/18/ldm.html)
 
 **隐扩散模型（latent diffusion model）**没有直接在高维图像空间中执行扩散，而是首先使用变分自编码器把图像压缩到隐空间，再在隐空间中构造扩散过程。
@@ -694,6 +709,16 @@ $$
 
 ## （2）采样加速
 
+### ⚪ [<font color=Blue>Score identity Distillation (SiD)</font>](https://0809zheng.github.io/2024/04/05/sid.html)
+
+**SiD**提出了一种将扩散模型蒸馏为单步生成模型的方案：通过学生模型$x=g_\theta(z)$采样数据并训练扩散模型$\epsilon_\psi(x_t,t)$，并最小化其与教师扩散模型$\epsilon_\phi(x_t,t)$的差异。上述两个目标交替优化：
+
+$$
+\begin{aligned}
+\psi^* &= \mathop{\arg\min}_\psi\mathbb{E}_{t \sim[1, T], z, \epsilon_t \sim \mathcal{N}(0,I)}\left[\left\|\boldsymbol{\epsilon}_t-\boldsymbol{\epsilon}_\psi\left(\sqrt{\bar{\alpha}_t} g_\theta(z)+\sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}_t, t\right)\right\|^2\right] \\
+\theta^* &= \mathop{\arg\min}_\theta\mathbb{E}_{t \sim[1, T], z, \epsilon_t \sim \mathcal{N}(0,I)}\left[\left<\boldsymbol{\epsilon}_\phi\left(x_t^{(g)}, t\right)-\boldsymbol{\epsilon}_\psi\left(x_t^{(g)}, t\right), \boldsymbol{\epsilon}_\phi\left(x_t^{(g)}, t\right)-\boldsymbol{\epsilon}_t\right>\right]
+\end{aligned}
+$$
 
 # ⭐ 参考文献
 - [生成扩散模型漫谈](https://spaces.ac.cn/tag/%E6%89%A9%E6%95%A3/)(苏剑林)：介绍扩散模型的中文系列博客。
@@ -703,14 +728,18 @@ $$
 - [<font color=Blue>Denoising Diffusion Implicit Models</font>](https://0809zheng.github.io/2022/06/04/ddim.html)：(arXiv2010)DDIM：去噪扩散隐式模型。
 - [<font color=Blue>Score-Based Generative Modeling through Stochastic Differential Equations</font>](https://0809zheng.github.io/2022/06/05/score.html)：(arXiv2011)基于得分匹配的随机微分方程生成式建模。
 - [<font color=Blue>Improved Denoising Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/03/improved_ddpm.html)：(arXiv2102)改进的去噪扩散概率模型。
-- [<font color=Blue>Diffusion Models Beat GANs on Image Synthesis</font>](https://0809zheng.github.io/2022/06/08/cond_diffusion.html)：(arXiv2105)在图像合成任务上扩散模型超越了生成对抗网络。
+- [<font color=Blue>Variational Diffusion Models</font>](https://0809zheng.github.io/2022/06/22/vdm.html)：(arXiv2105)在图像合成任务上扩散模型超越了生成对抗网络。
+- [<font color=Blue>Diffusion Models Beat GANs on Image Synthesis</font>](https://0809zheng.github.io/2022/06/08/cond_diffusion.html)：(arXiv2107)变分扩散模型。
 - [<font color=Blue>More Control for Free! Image Synthesis with Semantic Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/09/sim_diffusion.html)：(arXiv2112)基于语义扩散引导的图像合成。
 - [<font color=Blue>High-Resolution Image Synthesis with Latent Diffusion Models</font>](https://0809zheng.github.io/2022/06/18/ldm.html)：(arXiv2112)通过隐扩散模型实现高分辨率图像合成。
 - [<font color=Blue>GLIDE: Towards Photorealistic Image Generation and Editing with Text-Guided Diffusion Models</font>](https://0809zheng.github.io/2022/06/23/glide.html)：(arXiv2112)GLIDE：通过文本引导的扩散模型实现真实图像生成与编辑。
 - [<font color=Blue>Analytic-DPM: an Analytic Estimate of the Optimal Reverse Variance in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/06/analytic.html)：(arXiv2201)Analytic-DPM：扩散概率模型中最优反向方差的分析估计。
 - [<font color=Blue>Hierarchical Text-Conditional Image Generation with CLIP Latents</font>](https://0809zheng.github.io/2022/06/24/dalle2.html)：(arXiv2204)通过CLIP隐特征实现层次化文本条件图像生成。
+- [<font color=Blue>Photorealistic Text-to-Image Diffusion Models with Deep Language Understanding</font>](https://0809zheng.github.io/2022/06/26/imagen.html)：(arXiv2205)通过深度语言理解实现真实文本图像扩散模型。
 - [<font color=Blue>Estimating the Optimal Covariance with Imperfect Mean in Diffusion Probabilistic Models</font>](https://0809zheng.github.io/2022/06/07/extended_analytic.html)：(arXiv2206)扩散概率模型中具有不准确均值的最优协方差估计。
 - [<font color=Blue>Classifier-Free Diffusion Guidance</font>](https://0809zheng.github.io/2022/06/10/free_diffusion.html)：(arXiv2207)无分类器引导的条件扩散模型。
 - [<font color=Blue>Cold Diffusion: Inverting Arbitrary Image Transforms Without Noise</font>](https://0809zheng.github.io/2022/06/17/cold.html)：(arXiv2208)Cold Diffusion：反转任意无噪声的图像变换。
+- [<font color=Blue>Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow</font>](https://0809zheng.github.io/2022/09/17/rectifiedflow.html)：(arXiv2209)通过整流流实现数据的生成与转换。
 - [<font color=Blue>Poisson Flow Generative Models</font>](https://0809zheng.github.io/2022/06/21/pfgm.html)：(arXiv2209)泊松流生成模型。
 - [<font color=Blue>SDXL: Improving Latent Diffusion Models for High-Resolution Image Synthesis</font>](https://0809zheng.github.io/2023/07/04/sdxl.html)：(arXiv2307)SDXL：改进高分辨率图像合成的隐扩散模型。
+- [<font color=Blue>Score identity Distillation: Exponentially Fast Distillation of Pretrained Diffusion Models for One-Step Generation</font>](https://0809zheng.github.io/2024/04/05/sid.html)：(arXiv2404)得分恒等蒸馏：单步生成的预训练扩散模型的指数级快速蒸馏。
