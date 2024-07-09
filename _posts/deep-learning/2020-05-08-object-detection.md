@@ -12,12 +12,12 @@ tags: 深度学习
 **目标检测(Object Detection)**任务是指在图像中检测出可能存在的目标；包括**定位**和**分类**两个子任务：其中定位是指确定目标在图像中的具体位置，分类是确定目标的具体类别。
 
 本文目录：
-1. 传统的目标检测算法
-2. 基于深度学习的目标检测算法
-3. 目标检测的评估指标
-4. 非极大值抑制算法
-5. 目标检测中的损失函数
-6. 目标检测中的标签分配策略
+1. [传统的目标检测算法](https://0809zheng.github.io/2020/05/08/object-detection.html#1-%E4%BC%A0%E7%BB%9F%E7%9A%84%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95)
+2. [基于深度学习的目标检测算法](https://0809zheng.github.io/2020/05/08/object-detection.html#2-%E5%9F%BA%E4%BA%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E6%A8%A1%E5%9E%8B)
+3. [目标检测的评估指标](https://0809zheng.github.io/2020/05/08/object-detection.html#3-%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E7%9A%84%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87)
+4. [非极大值抑制算法](https://0809zheng.github.io/2020/05/08/object-detection.html#4-%E9%9D%9E%E6%9E%81%E5%A4%A7%E5%80%BC%E6%8A%91%E5%88%B6%E7%AE%97%E6%B3%95)
+5. [目标检测中的损失函数](https://0809zheng.github.io/2020/05/08/object-detection.html#5-%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E4%B8%AD%E7%9A%84%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0)
+6. [目标检测中的标签分配策略](https://0809zheng.github.io/2020/05/08/object-detection.html#6-%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E4%B8%AD%E7%9A%84%E6%A0%87%E7%AD%BE%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5)
 
 # 1. 传统的目标检测算法
 
@@ -194,12 +194,12 @@ $$
 下面介绍一些常用的目标检测模型：
 - 两阶段的目标检测模型：**R-CNN**, **Fast RCNN**, **Faster RCNN**, **SPP-Net**, **FPN**, **Libra RCNN**, **Cascade RCNN**, **Sparse RCNN**
 - 单阶段的目标检测模型：**OverFeat**, **YOLOv1-3**, **SSD**, **RetinaNet**, **Guided Anchoring**, **ASFF**, **EfficientDet**, **YOLT**, **Poly-YOLO**, **YOLOv4**, **YOLOv5**, **RTMDet**
-- **Anchor-Free**的目标检测模型：(**anchor-point**方法) **FCOS**, **YOLOX**, **YOLOv6**, **YOLOv8**; (**key-point**方法) **CornerNet**, **CenterNet**, **RepPoints**
+- **Anchor-Free**的目标检测模型：(**anchor-point**方法) **FCOS**, **YOLOX**, **YOLOv6**, **YOLOv7**, **YOLOv8**, **YOLOv9**, **YOLOv10**; (**key-point**方法) **CornerNet**, **CenterNet**, **RepPoints**
 - 基于**Transformer**的目标检测模型：**DETR**, **Deformable DETR**
 
 ### ⭐ 扩展阅读
 - [<font color=blue>Recent Advances in Deep Learning for Object Detection</font>](https://0809zheng.github.io/2020/05/17/paper-recent.html)：(arXiv1908)深度学习中目标检测最近的进展综述。
-- [<font color=blue>MMDetection: Open MMLab Detection Toolbox and Benchmark</font>](https://0809zheng.github.io/2020/04/03/mmdetection.html)：(arXiv1906)商汤科技和香港中文大学开源的基于Pytorch实现的深度学习目标检测工具箱。
+- [<font color=blue>MMDetection: Open MMLab Detection Toolbox and Benchmark</font>](https://0809zheng.github.io/2020/04/03/mmdetection.html)：商汤科技和香港中文大学开源的基于Pytorch实现的深度学习目标检测工具箱。
 
 
 ## （1）两阶段的目标检测模型
@@ -438,6 +438,14 @@ $$
 - 标签分配策略：前 **4** 个 **epoch** 采用 **ATSS** 作为标签匹配策略的 **warm-up** , 后续使用 **TOOD** 算法选择正负样本。
 - 损失函数：分类损失使用的是**VarifocalLoss**；回归损失对于**l/m/s**使用的是 **GIoULoss**, **t/n** 用的是 **SIoULoss**。
 
+### ⚪ YOLOv7
+- paper：[<font color=blue>YOLOv7: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors</font>](https://0809zheng.github.io/2022/07/10/yolov7.html)
+
+**YOLOv7**为实时检测器提出了高效的聚合网络和基于连接的模型缩放方法，可以更加高效地利用参数和计算量；并设计了几种可训练的**bag-of-freebies**，使实时检测器可以在不提高推理成本的情况下大大提高检测精度。
+1. 用梯度传播路径的概念分析了适用于不同网络中各层结构重参数化策略，提出了规划的模型结构重参数化，高效替代原始模块。
+2. 提出了一种新的标签分配方法：由粗到细的引导标签分配策略，为不同输出层分支更好的分配动态目标。
+
+
 ### ⚪ YOLOv8
 - paper：[<font color=blue>Ultralytics YOLOv8</font>](https://0809zheng.github.io/2023/01/31/yolov8.html)
 
@@ -446,6 +454,23 @@ $$
 - **Loss** 计算方面采用了 **TOOD** 正样本分配策略，并引入了 **Distribution Focal Loss**。
 - 训练的数据增强部分引入了 **YOLOX** 中的最后 **10 epoch** 关闭 **Mosiac** 增强的操作，可以有效地提升精度。
 
+### ⚪ YOLOv9
+- paper：[<font color=blue>YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information</font>](https://0809zheng.github.io/2024/02/21/yolov9.html)
+
+**YOLOv9**是在**YOLOv7**的基础上进行的改进，现有方案进行逐层特征提取时会丢失大量信息，**YOLOv9**主要有以下2点改进：
+- 设计了一种广义高效层聚合网络**GELAN**。**GELAN**将**ELAN**中的卷积组替换成带有**RepConv**的**CSPNet**，相当于增加网络的宽度。
+- 提出可编程梯度信息**PGI**。**PGI**包括主分支、辅助可逆分支、多级辅助信息。辅助可逆分支解决网络深度带来的信息丢失问题；多级辅助信息解决深度监督带来的错误累积问题。
+
+![](https://pic.imgdb.cn/item/668ce7cfd9c307b7e9c8ccbe.png)
+
+### ⚪ YOLOv10
+- paper：[<font color=blue>YOLOv10: Real-Time End-to-End Object Detection</font>](https://0809zheng.github.io/2024/05/23/yolov10.html)
+
+**YOLOv10**模型针对**YOLOv8**检测流程中的后处理和模型架构进一步推进**YOLOs**在准确率与推理速度上的发展。
+- 为了解决后处理中的冗余预测问题，**YOLOv10**采用一致的对偶分配策略，该策略允许模型在训练期间同时采用一对多与一对一的标签分配策略；在推理期间仅使用无需**NMS**的一对一预测结果。
+- 通过对**YOLO**各个组件的全面检查，**YOLOv10**采用整体效率-准确性驱动的模型设计策略；为了降低计算冗余，采用轻量级分类头、空间-通道解耦下采样和秩引导的模块设计；为了提高准确率，采用大核卷积与部分自注意力模块。
+
+![](https://pic.imgdb.cn/item/668bca2cd9c307b7e9f4d5d1.png)
 
 ### b. Key-Point检测器
 
@@ -1642,7 +1667,7 @@ $$
 
 $$
 c = \begin{cases}
-\alpha\cdot \text{loc\_a} + (1-\alpha)\cdot \text{cls\_c}, & b \in A_{pos} \\
+\alpha\cdot \text{loc_a} + (1-\alpha)\cdot \text{cls_c}, & b \in A_{pos} \\
 0, & b \in A_{neg}
 \end{cases}
 $$
@@ -1650,7 +1675,7 @@ $$
 **loc_a**表示定位置信度，采用预测**box**和对应的**GT**之间的**IOU**衡量；**cls_c**表示分类置信度，通过网络**head**直接预测。对于候选正样本$A_{pos}$，进一步引入了损失函数的软权重：
 
 $$
-r = \left( \alpha\cdot f(\text{loc\_a}) + (1-\alpha)\cdot f(\text{cls\_c}) \right)^\gamma
+r = \left( \alpha\cdot f(\text{loc_a}) + (1-\alpha)\cdot f(\text{cls_c}) \right)^\gamma
 $$
 
 ### ⚪ AutoAssign
