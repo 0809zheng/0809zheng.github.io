@@ -9,7 +9,7 @@ tags: 深度学习
 
 > Outlines about Deep Learning.
 
-- 提示：请点击任意[<font color=Blue>超链接</font>](https://0809zheng.github.io/2020/01/02/DL-outline.html)以发现更多细节！
+- 提示：请点击任意[<font color=Blue>高亮位置</font>](https://0809zheng.github.io/2020/01/02/DL-outline.html)以发现更多细节！
 
 **深度学习**(**Deep Learning**)是一种以深度神经网络为工具的机器学习方法。
 本文首先介绍深度神经网络的**类型**，其次介绍深度学习的**基本组件**和**方法技巧**，最后介绍深度学习在计算机视觉和自然语言处理等领域的**应用**。
@@ -23,10 +23,10 @@ tags: 深度学习
 5. **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络
 - **深度学习的基本组件和方法技巧**
 1. **深度学习的基本组件**：激活函数、优化方法、正则化方法、归一化方法、参数初始化方法
-2. **深度学习的方法**：半监督学习、度量学习、多任务学习、主动学习、迁移学习
+2. **深度学习的方法**：半监督学习、自监督学习、度量学习、多任务学习、主动学习、迁移学习
 3. **深度学习的技巧**：长尾分布、对抗训练、大模型的参数高效微调
 - **深度学习的应用**
-1. **计算机视觉**：图像识别、图像分割、图像超分辨率、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别、点云分类
+1. **计算机视觉**：图像识别、目标检测、开放集合目标检测、图像分割、图像超分辨率、图像到图像翻译、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别、点云分类、目标计数
 2. **自然语言处理**：
 3. **AI for Science**
 
@@ -184,7 +184,7 @@ $$  \log p_{\theta}(x)  \geq \mathbb{E}_{z \text{~} q_{\phi}(z|x)} [\log p_{\the
 **VAE**的优化目标共涉及三个不同的概率分布：由概率编码器表示的后验分布$q_{\phi}(z\|x)$、隐变量的先验分布$p(z)$以及由概率解码器表示的生成分布$p_{\theta}(x\|z)$。对**VAE**的各种改进可以落脚于对这些概率分布的改进：
 
 - 后验分布$q(z\|x)$：后验分布为模型引入了正则化；一种改进思路是通过调整后验分布的正则化项增强模型的解耦能力(如**β-VAE**, **Disentangled β-VAE**, **InfoVAE**, **DIP-VAE**, **FactorVAE**, **β-TCVAE**, **HFVAE**)。
-- 先验分布$p(z)$：先验分布描绘了隐变量分布的隐空间；一种改进思路是通过引入标签实现半监督学习(如**CVAE**, **CMMA**)；一种改进思路是通过对隐变量离散化实现聚类或分层特征表示(如**Categorical VAE**, **Joint VAE**, **VQ-VAE**, **VQ-VAE-2**)；一种改进思路是更换隐变量的概率分布形式(如**Hyperspherical VAE**, **TD-VAE**, **f-VAE**, **NVAE**)。
+- 先验分布$p(z)$：先验分布描绘了隐变量分布的隐空间；一种改进思路是通过引入标签实现半监督学习(如**CVAE**, **CMMA**)；一种改进思路是通过对隐变量离散化实现聚类或分层特征表示(如**Categorical VAE**, **Joint VAE**, **VQ-VAE**, **VQ-VAE-2**, **FSQ**)；一种改进思路是更换隐变量的概率分布形式(如**Hyperspherical VAE**, **TD-VAE**, **f-VAE**, **NVAE**)。
 - 生成分布$p(x\|z)$：生成分布代表模型的数据重构能力；一种改进思路是将均方误差损失替换为其他损失(如**EL-VAE**, **DFCVAE**, **LogCosh VAE**)。
 - 改进整体损失函数：也有方法通过调整整体损失改进模型，如紧凑变分下界(如**IWAE**, **MIWAE**)或引入**Wasserstein**距离(如**WAE**, **SWAE**)。
 - 改进模型结构：如**BN-VAE**通过引入**BatchNorm**缓解**KL**散度消失问题；引入对抗训练(如**AAE**, **VAE-GAN**)。
@@ -304,6 +304,16 @@ $$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nab
 - **伪标签**：根据当前模型的最大预测概率为无标签样本指定假标签，如**Label Propagation**, **Confirmation Bias**, **Noisy Student**, **Meta Pseudo Label**。
 - **一致性正则化+伪标签**：既构造无标签样本的伪标签，又同时建立监督损失和无监督损失，如**MixMatch**, **ReMixMatch**, **FixMatch**, **DivideMix**。
 
+
+### ⚪ [<font color=Blue>自监督学习 (Self-Supervised Learning)</font>](https://0809zheng.github.io/2022/10/01/self.html)
+
+**自监督学习**是一种无监督表示学习方法，旨在根据无标签数据集中的一部分信息预测剩余的信息，并以有监督的方式来训练该数据集。
+
+适用于图像数据集的自监督任务包括：
+- **前置任务(pretext task)**：通过从数据集中自动构造伪标签而设计的对目标任务有帮助的辅助任务，如**Exemplar-CNN**, **Context Prediction**, **Jigsaw Puzzle**, **Image Colorization**, **Learning to Count**, **Image Rotation**, **Jigsaw Clustering**, **Evolving Loss**, **PIC**, **MP3**。
+- **对比学习(contrastive learning)**：学习一个特征嵌入空间使得正样本对彼此靠近、负样本对相互远离。(对比损失函数) **NCE**, **CPC**, **CPC v2**, **Alignment and Uniformity**, **Debiased Contrastive Loss**, **Hard Negative Samples**, **FlatNCE**; (并行数据增强) **InvaSpread**, **SimCLR**, **SimCLRv2**, **BYOL**, **SimSiam**, **DINO**, **SwAV**, **PixContrast**, **Barlow Twins**; (存储体) **InstDisc**, **MoCo**, **MoCo v2**, **MoCo v3**; (多模态) **CMC**, **CLIP**; (应用) **CURL**, **CUT**, **Background Augmentation**, **FD**。
+- **掩码图像建模(masked image modeling)**：随机遮挡图像中的部分**patch**，并以自编码器的形式重构这部分**patch**，如**BEiT**, **MAE**, **SimMIM**, **iBOT**, **ConvMAE**, **QB-Heat**, **LocalMIM**, **DeepMIM**。
+
 ### ⚪ [<font color=Blue>度量学习 (Metric Learning)</font>](https://0809zheng.github.io/2022/11/01/metric.html)
 
 **深度度量学习**通过共享权重的**Siamese**网络把原始样本映射到低维特征空间，并设计合理的度量损失使得同类样本在特征空间上的距离比较近，不同类样本之间的距离比较远。
@@ -420,11 +430,39 @@ $$
 - 基于区域的损失：**Sensitivity-Specifity Loss**, **IoU Loss**, **Lovász Loss**, **Dice Loss**, **Tversky Loss**, **Focal Tversky Loss**, **Asymmetric Similarity Loss**, **Generalized Dice Loss**, **Penalty Loss**
 - 基于边界的损失：**Boundary Loss**, **Hausdorff Distance Loss**
 
-### ⚪ [目标检测](https://0809zheng.github.io/2020/05/31/object-detection.html)
+### ⚪ [<font color=blue>目标检测 (Object Detection)</font>](https://0809zheng.github.io/2020/05/08/object-detection.html)
 
-- [目标检测中的回归损失函数](https://0809zheng.github.io/2021/02/01/iouloss.html)
-- [提高非极大值抑制算法的精度](https://0809zheng.github.io/2021/05/12/nms_accuracy.html)
-- [提高非极大值抑制算法的效率](https://0809zheng.github.io/2021/05/11/nms_efficiency.html)
+**目标检测**任务是指在图像中检测出可能存在的目标；包括**定位**和**分类**两个子任务：其中定位是指确定目标在图像中的具体位置，分类是确定目标的具体类别。
+
+传统的目标检测算法首先在图像中生成候选区域，然后对每个候选区域提取特征向量，最后对每个候选区域提取的特征进行分类。常用的候选区域生成方法包括滑动窗口、**Felzenszwalb**算法、选择搜索算法。常用的特征描述子包括图像梯度向量、方向梯度直方图**HOG**、尺度不变特征变换**SIFT**、可变形部位模型**DPM**。
+
+基于深度学习的目标检测模型包括：
+- **两阶段**的目标检测模型：首先在图像中生成可能存在目标的候选区域，然后对这些候选区域进行预测。如**R-CNN**, **Fast RCNN**, **Faster RCNN**, **SPP-Net**, **FPN**, **Libra RCNN**, **Cascade RCNN**, **Sparse RCNN**
+- **单阶段**的目标检测模型：把图像中的每一个位置看作潜在的候选区域，直接进行预测。如**OverFeat**, **YOLOv1-3**, **SSD**, **RetinaNet**, **Guided Anchoring**, **ASFF**, **EfficientDet**, **YOLT**, **Poly-YOLO**, **YOLOv4**, **YOLOv5**, **RTMDet**
+- **Anchor-Free**的目标检测模型：把目标检测任务视作关键点检测等其它形式的任务，直接对目标的位置进行预测。(**anchor-point**方法) **FCOS**, **YOLOX**, **YOLOv6**, **YOLOv7**, **YOLOv8**, **YOLOv9**, **YOLOv10**; (**key-point**方法) **CornerNet**, **CenterNet**, **RepPoints**
+- 基于**Transformer**的目标检测模型：**DETR**, **Deformable DETR**
+
+目标检测的常用评估指标包括准确率、召回率、**F-score**、**P-R**曲线、平均准确率**AP**、类别平均准确率**mAP**。
+
+**非极大值抑制**算法是目标检测等任务中常用的后处理方法，能够过滤掉多余的检测边界框。提高**NMS**算法精度的方法包括**Soft-NMS**, **IoU-Guided NMS**, **Weighted NMS**, **Softer-NMS**, **Adaptive NMS**, **DIoU-NMS**。提高**NMS**算法效率的方法包括**CUDA NMS**, **Fast NMS**, **Cluster NMS**, **Matrix NMS**。
+
+目标检测中的损失函数包括边界框的**分类**损失和**回归**损失。其中分类损失用于区分边界框的类别，即边界框内目标的类别，对于两阶段的检测方法还包含边界框的正负类别；常用的分类损失函数包括**Cross-Entropy loss**, **Focal loss**, **Generalized Focal Loss**, **Varifocal Loss**, **GHM**, **Poly loss**。
+
+而回归损失衡量预测边界框坐标$x_{pred}$和**GT**边界框坐标$x_{gt}$之间的差异，常用的回归损失函数包括**L1 / L2 loss**, **Smooth L1 loss**, **Dynamic SmoothL1 Loss**, **Balanced L1 loss**, **IoU loss**, **GIoU loss**, **DIoU loss**, **CIoU loss**, **EIoU loss**, **SIoU loss**, **MPDIoU loss**。
+
+**标签分配**策略是指在训练目标检测器时，为特征图不同位置的预测样本分配合适的标签（即区分**anchor**是正样本还是负样本），用于计算损失。标签分配根据非负即正划分为**硬标签分配(hard LA)**和**软标签分配(soft LA)**。
+- 硬标签分配策略是指根据阈值把样本划分为正样本或者负样本。依据在训练阶段是否动态调整阈值，硬标签分配策略又可以细分为静态和动态两种：
+1. **静态分配**策略主要依据于模型的先验知识（例如距离阈值和**iou**阈值等）来选取不同的正负样本；
+2. **动态分配**策略依据在训练阶段采用不同的统计量来动态地设置阈值，并划分正负样本；如**DLA**, **MCA**, **HAMBox**, **ATSS**, **SimOTA**, **DSLA**。
+- 软标签分配策略则会根据预测结果与**GT**计算正负权重，在候选正样本(中心点落在**GT**框内)的基础上依据正负样本权重分配正负样本，且在训练的过程中动态调整分配权重。常见的软标签分配策略包括**Noisy Anchor**, **AutoAssign**, **SAPD**, **TOOD**。
+
+### ⚪ [<font color=blue>开放集合目标检测 (Open-Set Object Detection)</font>](https://0809zheng.github.io/2023/11/01/opensetdet.html)
+
+**开集目标检测**是指在可见类的数据上进行训练，然后完成对不可见类数据的定位与识别。一些常见的开集目标检测方法包括：
+- 基于无监督学习的开集检测器：通过聚类、弱监督等手段实现开集检测，如**OSODD**, **Detic**, **VLDet**
+- 基于多模态学习的开集检测器：
+1. 基于**Referring**的开集检测器：借助多模态视觉-语言模型实现检测，如**ViLD**, **RegionCLIP**, **VL-PLM**, **Grad-OVD**
+2. 基于**Grounding**的开集检测器：把开集检测任务建模为边界框提取+短语定位任务，如**OVR-CNN**, **MDETR**, **GLIP**, **DetCLIP**, **DetCLIPv2**, **Grounding DINO**
 
 
 ### ⚪ [人体姿态估计](https://0809zheng.github.io/2020/05/08/pose-estimation.html)
@@ -443,6 +481,13 @@ $$
 - 其他结构：如**SRGAN**, **ESRGAN**引入生成对抗网络；**LIIF**学习二维图像的连续表达形式。
 
 图像超分辨率的评估指标主要包括峰值信噪比**PSNR**和结构相似度**SSIM**。
+
+### ⚪ [<font color=blue>图像到图像翻译 (Image-to-Image Translation)</font>](https://0809zheng.github.io/2020/05/23/image_translation.html)
+
+**图像到图像翻译**旨在学习一个映射使得图像可以从源图像域变换到目标图像域，同时保留图像内容。根据是否提供了一对一的学习样本对，将图像到图像翻译任务划分为**有配对数据(paired data)**和**无配对数据(unpaired data)**两种情况。
+- 有配对数据(监督图像翻译)是指在训练数据集中具有一对一的数据对；即给定联合分布$p(X,Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**Pix2Pix**, **BicycleGAN**, **LPTN**。
+- 无配对数据(无监督图像翻译)是指模型在多个独立的数据集之间训练，能够从多个数据集合中自动地发现集合之间的关联，从而学习出映射函数；即给定边缘分布$p(X)$和$p(Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**, **CUT**, **SimDCL**。
+
 
 ### ⚪ [<font color=blue>时空动作检测 (Spatio-Temporal Action Detection)</font>](https://0809zheng.github.io/2021/07/15/stad.html)
 
@@ -477,6 +522,12 @@ $$
 - 基于体素(**Voxel-based**)的方法：将点云转换为三维体素表示，如**VoxNet**, **OctNet**。
 - 基于点(**Point-based**)的方法：直接处理原始点云，如**PointNet**, **PointNet++**, **PointCNN**, **DGCNN**, **PCT**。
 
+### ⚪ [<font color=blue>目标计数 (Object Counting)</font>](https://0809zheng.github.io/2023/05/01/counting.html)
+
+**目标计数**任务旨在从图像或视频中统计特定目标实例的数量。本文主要讨论基于**回归**的计数方式，即直接学习图像到目标数量或目标密度图的映射关系，通用的目标技术方案包括：
+1. **少样本计数 (Few-Shot Counting)**：提供目标样本**exemplar**在查询图像中进行匹配，如**GMN**, **FamNet**, **LaoNet**, **CFOCNet**, **SAFECount**, **BMNet+**, **Counting-DETR**, **CounTR**, **LOCA**, **SPDCN**, **VCN**, **SAM Counting**, **CACViT**, **DAVE**, **SSD**。
+2. **无参考计数 (Reference-less Counting)**：自动挖掘和计数所有显著性目标，如**LC**, **RLC**, **MoVie**, **DSAA**, **CaOC**, **RepRPN-Counter**, **RCC**, **GCNet**, **ZSC**, **ABC123**, **OmniCount**。
+3. **文本引导计数 (Text-Guided Counting)**：通过预训练视觉语言模型进行目标计数，如**CountCLIP**, **CLIP-Count**, **CounTX**, **VLCounter**, **CLIP Counting**, **ExpressCount**。
 
 ## (2) 自然语言处理
 
@@ -494,8 +545,10 @@ $$
 - [Fourier Neural Operator for Parametric Partial Differential Equations](https://0809zheng.github.io/2021/06/28/fno.html)：(arXiv2010)为偏微分方程设计的傅里叶神经算子。
 - [Advancing mathematics by guiding human intuition with AI](https://0809zheng.github.io/2022/01/08/mathai.html)：(Nature 2021.12)用人工智能引导人类直觉推进数学发展。
 - [Noether Networks: Meta-Learning Useful Conserved Quantities](https://0809zheng.github.io/2022/06/19/noether.html)：(arXiv2112)Noether网络：通过元学习学习有用的守恒量。
+- [Competition-Level Code Generation with AlphaCode](https://0809zheng.github.io/2022/03/13/alphacode.html)：(arXiv2203)AlphaCode: 竞赛级别的代码生成。
 - [Discovering faster matrix multiplication algorithms with reinforcement learning](https://0809zheng.github.io/2022/11/21/alphatensor.html)：(Nature 2022.10)AlphaTensor：通过强化学习发现更快的矩阵乘法算法。
 - [Faster sorting algorithms discovered using deep reinforcement learning](https://0809zheng.github.io/2023/06/07/alphadev.html)：(Nature 2023.06)AlphaDev：通过深度强化学习发现更快的排序算法。
+
 
 
 # 4. 参考文献与扩展阅读
