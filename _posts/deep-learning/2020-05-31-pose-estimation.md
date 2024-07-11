@@ -11,9 +11,7 @@ tags: 深度学习
 
 **人体姿态估计 (Human Pose Estimation, HPE)**是指从图像、视频等输入信号中估计人体的姿态信息。姿态通常以关键点（**keypoint**，也称为关节点 **joint**，比如手肘、膝盖、肩膀）组成的人体骨骼（**skeleton**）表示。
 
-人体姿态估计与关键点检测的区别：
-
-
+人体姿态估计与关键点检测的区别：人体关键点检测是指在图像中直接预测若干预定义人体关键点的空间位置，当关键点部位被遮挡时则无法直接预测；而人体姿态估计在此基础上根据人体关节的先验知识和全局关系对被遮挡的关键点位置进行估计，从而获得完整的人体姿态预测结果。
 
 **本文目录**：
 1. **2D**单人姿态估计
@@ -29,8 +27,8 @@ tags: 深度学习
 # 1. 2D单人姿态估计 2D Single Human Pose Estimation
 
 **2D**单人人体姿态估计通常是从已完成定位的人体图像中计算人体关节点的位置，并进一步生成**2D**人体骨架。这些方法可以进一步分为**基于回归(regression-based)**的方法与**基于检测(detection-based)**的方法。
-- 基于回归的方法：直接将输入图像映射为人体关节的**坐标**或人体模型的**参数**，如**DeepPose**, **TFPose**。
-- 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标；如**CPM**, **Hourglass**, **Chained**, **MCA**, **FPM**, **HRNet**, **Lite Pose**, **TokenPose**, **ViTPose**。
+- 基于回归的方法：直接将输入图像映射为人体关节的**坐标**或人体模型的**参数**，如**DeepPose**, **TFPose**, **PCT**。
+- 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标；如**CPM**, **Hourglass**, **Chained**, **MCA**, **FPM**, **HRNet**, **Lite-HRNet**, **HR-NAS**, **Lite Pose**, **TokenPose**, **ViTPose**。
 
 ## （1）基于回归的2D单人姿态估计 Regression-based 2D SHPE
 
@@ -51,6 +49,14 @@ tags: 深度学习
 **TFPose**通过将卷积神经网络与**Transformer**结构相结合，直接并行地预测所有关键点坐标序列。**Transformer**解码器将一定数量的关键点查询向量和编码器输出特征作为输入，并通过一个多层前馈网络预测最终的关键点坐标。
 
 ![](https://pic.imgdb.cn/item/629df817094754312978e61a.jpg)
+
+### ⚪ Pose as Compositional Tokens (PCT)
+
+- paper：[<font color=blue>Human Pose as Compositional Tokens</font>](https://0809zheng.github.io/2023/03/21/pct.html)
+
+**PCT**通过**VQ-VAE**学习关节点坐标的离散编码表，然后使用预训练的人体姿态编码器把人体图像编码到同一个特征空间，并通过查表的方式重构人体姿态坐标。
+
+![](https://pic.imgdb.cn/item/668e337ed9c307b7e96cb6db.png)
 
 ## （2）基于检测的2D单人姿态估计 Detection-based 2D SHPE
 
@@ -151,6 +157,23 @@ if __name__ == "__main__":
 **HRNet**不断地去融合不同尺度上的信息，其整体结构分成多个层级，但是始终保留着最精细的空间层级信息，通过融合下采样然后做上采样的层，来获得更多的上下文以及语义层面的信息。
 
 ![](https://pic.imgdb.cn/item/64a510fb1ddac507cc221282.jpg)
+
+### ⚪ Lite-HRNet
+
+- paper：[<font color=blue>Lite-HRNet: A Lightweight High-Resolution Network</font>](https://0809zheng.github.io/2021/05/12/litehrnet.html)
+
+**Lite-HRNet**首先在**HRNet**中通过**Shuffle Block**替换残差模块；进一步发现**Shuffle Block**中的1x1卷积成为了计算瓶颈，于是采用**SENet**模块替换1x1卷积进行特征聚合。
+
+![](https://pic.imgdb.cn/item/668e3f3cd9c307b7e97c4648.png)
+
+### ⚪ HR-NAS
+
+- paper：[<font color=blue>HR-NAS: Searching Efficient High-Resolution Neural Architectures with Lightweight Transformers</font>](https://0809zheng.github.io/2021/06/20/hrnas.html)
+
+本文设计了一个简单的轻量级视觉**Transformer**模块，然后在**HRNet**结构基础上进行神经结构搜索，将原本的3x3卷积模块扩展成了3x3,5x5,7x7,轻量级视觉**Transformer**模块等四种模块拼接的模块，然后搜索这四种模块的比例和通道数。
+
+![](https://pic.imgdb.cn/item/668e4e8dd9c307b7e992fe19.png)
+
 
 ### ⚪ Lite Pose
 
@@ -366,7 +389,7 @@ $$
 
 # 4. 人体姿态估计的技巧 Bag of Tricks
 
-## （1）数据增强
+## （1）数据预处理
 
 ### ⚪ Augmentation by Information Dropping (AID)
 - paper：[<font color=blue>AID: Pushing the Performance Boundary of Human Pose Estimation with Information Dropping Augmentation</font>](https://0809zheng.github.io/2021/04/22/aid.html)
@@ -424,7 +447,7 @@ $$
 
 
 ### ⚪ Differentiable Spatial to Numerical Transform (DSNT)
-- paper：[<font color=blue>Numerical Coordinate Regression with Convolutional Neural Networks</font>](https://0809zheng.github.io/2021/04/25/softargmax.html)
+- paper：[<font color=blue>Numerical Coordinate Regression with Convolutional Neural Networks</font>](https://0809zheng.github.io/2021/05/03/dstn.html)
 
 **DSNT**通过构造坐标矩阵，并与归一化的热图计算$F$范数，从而把热图转换为关节点坐标。
 
@@ -456,6 +479,14 @@ $$
 
 ![](https://pic.imgdb.cn/item/64d1a3731ddac507ccfb3e92.jpg)
 
+### ⚪ Symmetric Integral Keypoints Regression (SIKR)
+- paper：[<font color=blue>AlphaPose: Whole-Body Regional Multi-Person Pose Estimation and Tracking in Real-Time</font>](https://0809zheng.github.io/2022/12/08/alphapose.html)
+
+**IPR**通过**L1**损失在反向传播时梯度形式是不对称的，梯度计算会对每个热图像素乘上它的坐标值，因此坐标值较大的像素梯度变化幅度更大。**SIKR**直接对反向传播时的梯度进行修改，调整为坐标对称的形式：
+
+$$
+\frac{\partial L_{reg}}{\partial p_x} = A_{grad} \cdot sign(x-\hat{\mu}) \cdot sign(\hat{\mu} - \mu)
+$$
 
 ## （3）训练技巧
 
@@ -476,6 +507,24 @@ $$
 $$
 
 其中$J_{2D}$是模型预测的关键点，$Y_{2D}$是**Ground Truth**，该公式约束了每个关键点之间的空间关系，能帮助学习到骨骼长度关系，避免预测出一些诡异的不存在的姿态。
+
+### ⚪ Heatmap Distribution Matching (HDM)
+- paper：[<font color=blue>Heatmap Distribution Matching for Human Pose Estimation</font>](https://0809zheng.github.io/2022/12/09/hdm.html)
+
+**HDM**把人工渲染高斯热图的监督信息替换为更简单的监督信号，通过插值的方式直接将连续空间上的坐标用相邻的离散像素计算表示。损失函数直接优化预测热图与监督热图的**Wasserstein**距离。
+
+![](https://pic.imgdb.cn/item/668fa6b0d9c307b7e9156f43.png)
+
+### ⚪ Pose Equivariant Contrastive Learning (PeCLR)
+- paper：[<font color=blue>PeCLR: Self-Supervised 3D Hand Pose Estimation from monocular RGB via Equivariant Contrastive Learning</font>](https://0809zheng.github.io/2021/06/25/peclr.html)
+
+**PeCLR**是一个适用于姿态估计任务的具有几何变换等变性的对比学习目标函数，该目标不直接作用于正样本对的特征$z_i,z_j$，而是这两个特征做几何变换的逆变换。
+
+$$
+L_{i,j} = - \log \frac{\exp(sim(t_i^{-1}(z_i),t_i^{-1}(z_j))/\tau)} {\sum_{k=1:2N,k\neq i} \exp(sim(t_i^{-1}(z_i),t_i^{-1}(z_k))/\tau)}
+$$
+
+![](https://pic.imgdb.cn/item/668f8120d9c307b7e9dd0d07.png)
 
 ### ⚪ Self-Correctable and Adaptable Inference (SCAI)
 - paper：[<font color=blue>Self-Correctable and Adaptable Inference for Generalizable Human Pose Estimation</font>](https://0809zheng.github.io/2023/03/20/scai.html)
