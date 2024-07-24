@@ -39,4 +39,6 @@ tags: 游记
 
 ![](https://pic.imgdb.cn/item/669d081cd9c307b7e9d514a0.png)
 
+![](https://pic.imgdb.cn/item/66a0db80d9c307b7e9404346.png)
+
 杰之曰，游格林尼治，乃一难忘之历史文化之旅也。其间，吾深感航海精神之伟大与坚韧，复领略英国乡村之宁静与秀美。
