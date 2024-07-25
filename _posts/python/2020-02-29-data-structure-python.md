@@ -1,7 +1,7 @@
 ---
 layout: post
 title: '数据结构与算法(Python)'
-date: 2020-04-01
+date: 2020-02-29
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e89be33504f4bcb040382b2.jpg'
 tags: Python
@@ -16,11 +16,11 @@ tags: Python
 
 ### ⚪ 目录：
 
-1. 时间复杂度
-2. 线性表：顺序表、链表(单向链表, 双向链表, 单向循环链表)、栈、队列(双端队列)
-5. 排序：冒泡排序、选择排序、插入排序、希尔排序、快速排序、归并排序、堆排序、计数排序、桶排序、基数排序
-6. 搜索：二分查找
-7. 树：二叉树、堆
+1. [时间复杂度](https://0809zheng.github.io/2020/04/01/data-structure-python.html#1-%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6)
+2. [线性表](https://0809zheng.github.io/2020/04/01/data-structure-python.html#2-%E7%BA%BF%E6%80%A7%E8%A1%A8)：顺序表、链表(单向链表, 双向链表, 单向循环链表)、栈、队列(双端队列)
+5. [排序](https://0809zheng.github.io/2020/04/01/data-structure-python.html#3-%E6%8E%92%E5%BA%8F-sorting)：冒泡排序、选择排序、插入排序、希尔排序、快速排序、归并排序、堆排序、计数排序、桶排序、基数排序
+6. [搜索](https://0809zheng.github.io/2020/04/01/data-structure-python.html#4-%E6%90%9C%E7%B4%A2)：二分查找
+7. [树](https://0809zheng.github.io/2020/04/01/data-structure-python.html#5-%E6%A0%91)：二叉树、堆、四叉树与八叉树
 
 # 1. 时间复杂度
 衡量一个算法的优劣，单看运行时间是不可靠的；程序的运行离不开计算机环境（包括硬件与操作系统）。
@@ -786,20 +786,20 @@ def quick_sort(alist, start, end):
     if start >= end:
         return
 		
-    mid_value = alist[start]
+    pivot = alist[start]
     low = start
     high = end
 	
     while low < high:
-        while low < high and alist[high] >= mid_value:
+        while low < high and alist[high] >= pivot:
             high -= 1
         alist[low] = alist[high]
 		
-        while low < high and alist[low] < mid_value:
+        while low < high and alist[low] < pivot:
             low += 1
         alist[high] = alist[low]
 		
-    alist[low] = mid_value
+    alist[low] = pivot
 	
     quick_sort(alist, start, low-1)  # 注意不能用alist的切片，因为这是一个新列表！
     quick_sort(alist, low+1, end)
@@ -813,6 +813,42 @@ def quick_sort(alist, start, end):
 从一开始快速排序平均需要花费$O(n\log(n))$时间的描述并不明显。但是不难观察到的是分区运算，数组的元素都会在每次循环中走访过一次，使用$O(n)$的时间。在使用结合（**concatenation**）的版本中，这项运算也是$O(n)$。
 
 在最好的情况，每次我们运行一次分区，我们会把一个数列分为两个几近相等的片段。这个意思就是每次递归调用处理一半大小的数列。因此，在到达大小为一的数列前，我们只要作$\log(n)$次嵌套的调用。这个意思就是调用树的深度是$O(\log(n))$。但是在同一层次结构的两个程序调用中，不会处理到原来数列的相同部分；因此，程序调用的每一层次结构总共全部仅需要$O(n)$的时间（每个调用有某些共同的额外耗费，但是因为在每一层次结构仅仅只有$O(n)$个调用，这些被归纳在$O(n)$系数中）。结果是这个算法仅需使用$O(n\log(n))$时间。
+
+### ⚪ 优化快速排序
+
+快速排序的平均时间复杂度是$O(n\log(n))$，但是最坏时间复杂度为$O(n^2)$。下面介绍一些改进快排的技巧。
+
+在快速排序选择**pivot**时，默认为从前向后（或从后向前）选择。可以考虑从当前区间中随机地选择一个元素作为**pivot**，并交换到队首（或队尾）：
+
+```python
+#    pivot = alist[start]
+    """
+    优化pivot选择方法: 随机选择[start, end]中的任意元素
+                      并交换到start位置处
+    """
+    idx = random.choice(range(start, end+1))
+    alist[start], alist[idx] = alist[idx], alist[start]
+    pivot = alist[start]
+```
+
+在快排中，把**pivot**安放在合适的位置后，若**pivot**前后两侧存在与**pivot**数值相同的元素，则可以跳过这些元素，以减少排序时间：
+
+```python
+#    quick_sort(alist, start, low-1)
+#    quick_sort(alist, low+1, end)
+    """
+    优化排序区间: 跳过与pivot相同的元素
+    """
+    cur = low - 1
+    while cur > start and alist[cur] == alist[low]:
+        cur -= 1
+    quick_sort(alist, start, cur)
+    cur = low + 1
+    while cur < end and alist[cur] == alist[low]:
+        cur += 1
+    quick_sort(alist, cur, end)
+```
+
 
 ## （6）归并排序
 **归并排序**是采用分治法的一个非常典型的应用。归并排序的思想就是先递归分解数组，再合并数组。
@@ -1350,3 +1386,30 @@ class heap(object):
 
 最大堆插入和删除元素的时间复杂度为 $O(\log K)$，$K$ 为当前二叉堆中的元素总数。时间复杂度主要花费在 **sink** 或者 **swim** 上，而不管上浮还是下沉，最多也就是树（堆）的高度，也就是 $\log$ 级别。
 
+## （3）四叉树与八叉树
+
+### ⚪ 四叉树
+
+**四叉树（Quadtree）**或四元树也被称为**Q**树（**Q-Tree**），是二叉树在二维的引申，广泛应用于图像处理、空间数据索引、**2D**中的快速碰撞检测、存储稀疏数据等。
+
+四叉树的定义是每个节点下至多可以有四个子节点。通常把一部分二维空间细分为四个象限或区域并，把该区域里的相关信息存入到四叉树节点中。这个区域可以是正方形、矩形或是任意形状。
+
+![](https://pic.imgdb.cn/item/649d18bf1ddac507cc069b58.jpg)
+
+四叉树的每一个节点代表一个矩形区域（如上图黑色的根节点代表最外围黑色边框的矩形区域），每一个矩形区域又可划分为四个小矩形区域，这四个小矩形区域作为四个子节点所代表的矩形区域。
+
+### ⚪ 八叉树
+
+**八叉树（Octree）**是二叉树在三维的引申，主要应用于**3D**图形处理、游戏编程、激光雷达点云处理等。
+
+八叉树中每个内部节点最多可以有**8**个子节点。就像二叉树把空间分成两个部分一样，八叉树把空间最多分成**8**个部分，用于存储空间大的三维点。如果八叉树的所有内部节点恰好包含**8**个子节点，则称为全八叉树。
+
+![](https://pic.imgdb.cn/item/649d1a2a1ddac507cc0898f7.jpg)
+
+八叉树的构建流程：
+1. 通过设置分辨率来计算最大递归深度，分辨率描述最低一级的八叉树的最小体素的尺寸，因此八叉树的深度是分辨率和点云数据的函数。
+2. 找出场景的最大尺寸，并以此尺寸建立第一个立方体。
+3. 依序将单位元元素丢入能被包含且没有子节点的立方体。
+4. 若没达到最大递归深度，就进行细分八等份，再将该立方体所装的单位元元素全部分担给八个子立方体。
+5. 若发现子立方体所分配到的单位元元素数量不为零且跟父立方体是一样的，则该子立方体停止细分，因为跟据空间分割理论，细分的空间所得到的分配必定较少，若是一样数目，则再怎么切数目还是一样，会造成无穷切割的情形。
+6. 重复3，直到达到最大递归深度。
