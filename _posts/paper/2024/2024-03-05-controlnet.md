@@ -24,7 +24,7 @@ $$
 **ControlNet**冻结原始模块的参数$\Theta$，并拷贝该模块为具有参数$\Theta_c$的可训练版本。将拷贝模块通过两个零卷积$$\mathcal{Z}$$（参数初始化为$0$的$1\times 1$卷积）连接到原模块：
 
 $$
-y_c = \mathcal{F}(x; \Theta) + \mathcal{Z}(\mathcal{F}(\mathcal{Z}(x; \Theta_1); \Theta); \Theta_2)
+y_c = \mathcal{F}(x; \Theta) + \mathcal{Z}(\mathcal{F}(x+\mathcal{Z}(c; \Theta_1); \Theta_c); \Theta_2)
 $$
 
 ![](https://pic.imgdb.cn/item/66a8aaf9d9c307b7e901e311.png)
