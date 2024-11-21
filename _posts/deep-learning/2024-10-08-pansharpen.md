@@ -471,7 +471,7 @@ $$
 2. 模糊核$u$的正则化项：采用**TGV2**作为正则化器，保留模糊核的高阶平滑度，同时拒绝远离峰值的非平凡系数：
 
 $$
-f_2(u) = \min _{\mathbf {p}} \left \{{ \alpha _{1}\|\mathbf {\nabla } \mathbf {u}-\mathbf {p}\|_{2,1}+\alpha _{2}\|\mathcal {E}(\mathbf {p})\|_{2,1} }\right \}+\mathbf {I}_{\mathbb {S}}(\mathbf {u})
+f_2(u) = \min _{\mathbf {p}} \left \{ \alpha_1\|\mathbf {\nabla } \mathbf {u}-\mathbf {p}\|_{2,1}+\alpha_2\|\mathcal {E}(\mathbf {p})\|_{2,1}\right \}+\mathbf {I}_{\mathbb {S}}(\mathbf {u})
 $$
 
 3. **HRMS** 图像和 **PAN** 图像之间的正则化项：根据受局部线性模型启发的变分观点，最小化来自另一个通道的每个高频分量块的最接近的线性仿射函数来近似目标通道的每个高频分量块的总体损失 ($\mathcal{L}$是拉普拉斯算子)：
