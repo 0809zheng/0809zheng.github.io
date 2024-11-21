@@ -13,10 +13,11 @@ tags: 深度学习
 
 表型图像分析广泛应用于植物学、医学、遗传学等领域，以帮助研究人员理解生物体的特征与其基因型和环境之间的关系。通过分析这些图像数据，研究人员可以进行更详细的表型评估，有助于加速生物研究和育种等应用。
 
-本文主要记录了笔者阅读的表型图像分析相关工作，并按照顶会的投递顺序进行整理。值得一提的是，相关工作均是通过[**OpenReview**](https://openreview.net/)在顶会出分的时候进行整理的，并不代表该工作最后**被接收**。检索关键词包括：**phenotype, plant, argi, bio**。
+本文前序章节记录了一些**前沿的**表型图像分析相关工作，并按照顶会的投递顺序进行整理。（值得一提的是，相关工作均是通过[**OpenReview**](https://openreview.net/)在顶会出分的时候进行整理的，并不代表该工作最后**被接收**。检索关键词包括：**phenotype, plant, argi, bio**。）本文最后一章汇总了表型图像分析领域的**视觉基础模型**相关工作。
 
 - **ICLR 2025 Submissions**
 1. CLIBD: Bridging Vision and Genomics for Biodiversity Monitoring at Scale
+- **Vision Foundation Model of Plant Phenotyping**
 
 
 
@@ -32,3 +33,12 @@ tags: 深度学习
 **CLIBD**在推理时可以在零样本设置下对新物种进行评估。为了预测分类标签，计算输入图像与从可用物种中采样的 DNA 嵌入之间的余弦相似度，使用与最接近的键匹配的分类标签（目、科、属、种）作为预测。
 
 ![](https://pic.imgdb.cn/item/67371781d29ded1a8c856edd.png)
+
+
+## 👉 Vision Foundation Model of Plant Phenotyping
+
+### ⚪ [<font color=blue>Adapting Vision Foundation Models for Plant Phenotyping</font>](https://0809zheng.github.io/2024/11/02/avfm.html)
+
+本文研究了视觉基础模型对植物表型任务的适应性。作者对三个植物表型任务（叶片计数、实例分割和疾病分类）进行了实验，对**MAE**、**DINO**和**DINOv2**三个基础模型进行了微调，同时评估两种不同的微调方法：**LoRA**和解码器微调。实验结果表明，视觉基础模型可以有效地适应多种植物表型任务，其性能与专门为每种任务设计**SoTA**模型相似。但是在某些情况下，微调的基础模型比特定任务的**SoTA**模型执行得稍微差一些。
+
+![](https://pic.imgdb.cn/item/673ece96d29ded1a8cba1a40.png)
