@@ -18,8 +18,8 @@ tags: 深度学习
 像素级融合是直接在原始遥感图像各像素上的直接融合处理，其目的是为了获得质量更高的融合图像，如提升观测图像的分辨率、增强原始图像的清晰度等。像素级全色图像锐化方法通常分为:
 1. 成分替换法(**CS-based**)：使用全色图像对多光谱图像的成分进行替换，如**Brovey**变换, **PCA**变换, **IHS**变换, **GS**变换, **GSA**, **CNMF**, **GFPCA**。
 2. 多分辨率分析法(**MRA-based**)：对全色图像和多光谱图像不同尺度的高、低频成份进行融合，如**SFIM**变换, **Wavelet**变换, **MTF-GLP**, **MTF-GLP-HPM**。
-3. 模型优化法(**MO-based**)：建立并优化融合图像与全色图像和多光谱图像之间的能量函数，如**SFIM**, **Wavelet**。
-4. 深度学习方法(**DL-based**)：使用深度学习模型自动学习图像特征，从而实现图像分辨率的提升，如**PNN**, **PanNet**。
+3. 模型优化法(**MO-based**)：建立并优化融合图像与全色图像和多光谱图像之间的能量函数，如**SIRF**, **PSFG**$S^2$**LR**, **LGC**, **PGCP-PS**, **BPSM**, **F-BMP**。
+4. 深度学习方法(**DL-based**)：使用深度学习模型自动学习图像特征，从而实现图像分辨率的提升，如**PNN**, **PanNet**, **MSDCNN**, **GPPNN**, **SRPPNN**, **INNformer**, **PanFormer**, **SFIIN**, **MIDPS**, **PanFlowNet**, **Pan-Mamba**, **HFIN**。
 
 
 
@@ -406,13 +406,13 @@ $$
 2. 基于分数阶全变分的空间分数阶几何先验项：利用全色图像和目标图像之间的空间分数阶梯度特征一致性，将全色图像的空间结构信息转移到目标图像中：
 
 $$
-f_2(X,P) = \sum \limits _{i = 1}^{N} {{{\| {\nabla ^\alpha {{\mathbf{X}}_{i}} - {\nabla ^\alpha }{\mathbf{P}}} \|}_{1,2}}}
+f_2(X,P) = \sum_{i = 1}^{N} \| {\nabla ^\alpha \mathbf{X}_i - \nabla ^\alpha \mathbf{P}}\|_{1,2}
 $$
 
 3. 基于加权核范数的光谱空间低秩先验项：利用目标图像和多光谱图像中基于非局部块的低秩结构稀疏性，进一步保留图像的空间结构和光谱信息：
 
 $$
-f_3(X,M) = \sum \limits _{i = 1}^{N} {\sum \limits _{j = 1}^{B} {{{\| {{{\tilde {\mathbf{R}}}_{j}}({{\mathbf{X}}_{i}} - \text{UpSample}(M)_i)} \|}_{{{\omega }}, * }}} }
+f_3(X,M) = \sum_{i = 1}^{N} \sum_{j = 1}^{B} \| \tilde{\mathbf{R}}_j(\mathbf{X}_i - \text{UpSample}(M)_i) \|_{\omega, * } 
 $$
 
 
@@ -442,7 +442,7 @@ $$
 X=\text{UpSample}(M) +\widehat {\boldsymbol {x}}_{k,i}^{\mathrm {HM}}+\boldsymbol {O}_{k,i}^{\mathrm {HM}}
 $$
 
-其中$\widehat {\boldsymbol {x}}_{k,i}^{\mathrm {HM}}$是$X$的高频分量，可表示为字典基$D_h$和稀疏系数$\alpha_{k,i}$的组合$\widehat {\boldsymbol {x}}_{k,i}^{\mathrm {HM}}=D_h\alpha_{k,i}$；$\boldsymbol {O}_{k,i}^{\mathrm {HM}}$是多光谱图像超分辨率的偏移量。$D_h,\alpha_{k,i},\boldsymbol {O}_{k,i}^{\mathrm {HM}}$通过构造全色图像的超分辨率模型来近似。
+其中$$\widehat {\boldsymbol {x}}_{k,i}^{\mathrm {HM}}$$是$X$的高频分量，可表示为字典基$D_h$和稀疏系数$\alpha_{k,i}$的组合$$\widehat {\boldsymbol {x}}_{k,i}^{\mathrm {HM}}=D_h\alpha_{k,i}$$；$$\boldsymbol {O}_{k,i}^{\mathrm {HM}}$$是多光谱图像超分辨率的偏移量。$$D_h,\alpha_{k,i},\boldsymbol {O}_{k,i}^{\mathrm {HM}}$$通过构造全色图像的超分辨率模型来近似。
 
 
 ### ⚪ BPSM
@@ -509,6 +509,12 @@ $$
 
 ![](https://pic.imgdb.cn/item/673c78b7d29ded1a8cddb32e.png)
 
+### ⚪ [<font color=blue>GPPNN</font>](https://0809zheng.github.io/2024/10/17/gppnn.html)
+- (arXiv2103) Deep Gradient Projection Networks for Pan-sharpening
+
+**GPPNN**考虑**PAN**和**LRMS**图像的生成模型，并通过梯度投影算法解决相应的优化问题。优化问题的迭代步骤被泛化为**MS Block**和**PAN Block**两个网络块，对应于一次算法迭代。
+
+![](https://pic.imgdb.cn/item/673ef441d29ded1a8cdc9069.png)
 
 ### ⚪ [<font color=blue>SRPPNN</font>](https://0809zheng.github.io/2024/10/12/srppnn.html)
 - (IEEE TGRS 2021) Super-Resolution-Guided Progressive Pansharpening Based on a Deep Convolutional Neural Network
@@ -554,4 +560,34 @@ $$
 - 后融合模块：基于可逆神经网络的后融合模块将经过互信息最小化处理的特征向量投影到最终的融合图像。
 
 ![](https://pic.imgdb.cn/item/673dbfa7d29ded1a8cefc924.png)
+
+
+### ⚪ [<font color=blue>PanFlowNet</font>](https://0809zheng.github.io/2024/10/19/panflownet.html)
+- (arXiv2305) PanFlowNet: A Flow-Based Deep Network for Pan-sharpening
+
+**PanFlowNet**是一个基于流的生成网络，由一系列可逆的条件仿射耦合块**CACB**构成。**CACB**接受前一层的输出和条件信息（如**PAN**和**MS**图像）作为输入，并输出变换后的特征图。具体来说，**CACB**通过仿射变换对输入特征图$h_n=[h_n^1,h_n^2]$进行缩放和平移，变换参数$s,t$是由条件信息和前一层的输出共同决定：
+
+$$
+h_{n+1}^1 = h_n^1 \odot \exp(s_1(h_n^2))+t_1(h_n^2) \\
+h_{n+1}^2 = h_n^2 \odot \exp(s_2(h_{n+1}^1))+t_2(h_{n+1}^1)
+$$
+
+![](https://pic.imgdb.cn/item/673f15ead29ded1a8c02245d.png)
+
+
+### ⚪ [<font color=blue>Pan-Mamba</font>](https://0809zheng.github.io/2024/10/20/panmamba.html)
+- (arXiv2402) Pan-Mamba: Effective pan-sharpening with State Space Model
+
+**Pan-Mamba**模型首先使用卷积层将两种图像投影到特征空间，并沿空间维度扁平化为令牌；然后利用**Mamba**块的离散表示来更新隐藏状态，并生成输出；之后通过通道交换**Mamba**块和跨模态**Mamba**块实现特征的深度融合和冗余特征的过滤；最后通过反卷积层将融合后的特征重构为高分辨率多光谱图像。
+
+![](https://pic.imgdb.cn/item/673f1b56d29ded1a8c061be9.png)
+
+### ⚪ [<font color=blue>HFIN</font>](https://0809zheng.github.io/2024/10/18/hfin.html)
+- (CVPR 2024) Revisiting Spatial-Frequency Information Integration from a Hierarchical Perspective for Panchromatic and Multi-Spectral Image Fusion
+
+**HFIN**是一种分层频率集成网络，用于从**PAN**和**LRMS**图像中提取分层信息，促进空间-频率信息的集成。**HFIN**网络由空间与全局-局部傅里叶信息集成模块（**SGLI**）组成，**SGLI**实现了两个功能：信息分层和信息集成。
+- 信息分层：通过空间块、全局傅里叶块和局部傅里叶块分别提取空间特征、全局频率特征和局部频率特征。
+- 信息集成：首先通过空间-频率融合将空间信息与频率信息相结合，然后通过全局-局部融合进一步增强了全局傅里叶信息与局部傅里叶信息之间的关系。
+
+![](https://pic.imgdb.cn/item/673f1200d29ded1a8cff0a20.png)
 
