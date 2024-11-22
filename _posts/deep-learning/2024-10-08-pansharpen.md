@@ -197,7 +197,7 @@ def GS(pan, hs):
 ### ⚪ GSA
 - B. Aiazzi, S. Baronti, and M. Selva, “Improving component substitution Pansharpening through multivariate regression of MS+Pan data,” IEEE Transactions on Geoscience and Remote Sensing, vol. 45, no. 10, pp. 3230–3239, October 2007.
 
-**GSA (Generalized Spatial and Attribute) **通过结合空间和属性信息来实现全色图像和多光谱图像的融合。该方法的核心思想是通过计算每个像素的空间和光谱权重，并在融合过程中应用这些权重。
+**GSA (Generalized Spatial and Attribute)**通过结合空间和属性信息来实现全色图像和多光谱图像的融合。该方法的核心思想是通过计算每个像素的空间和光谱权重，并在融合过程中应用这些权重。
 1. 分析全色图像和多光谱图像在空间域上的梯度或边缘信息，计算每个像素的空间权重。通常，高梯度或高边缘强度区域赋予较高权重，因为这些区域包含重要的空间细节。
 2. 分析多光谱图像的光谱属性，计算每个像素的光谱权重。光谱权重用于保持多光谱图像的光谱信息。
 3. 使用计算得到的空间权重和光谱权重，按照一定的融合规则将全色图像和多光谱图像的像素进行组合，生成具有高空间分辨率的多光谱图像。
