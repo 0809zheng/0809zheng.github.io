@@ -120,7 +120,7 @@ $$
 
 通过适当设置卷积层和多头自注意力模型的参数取值，可以建设性地证明该定理。下面提供了一组充分条件：
 1. 卷积核的大小$N_K\times N_K\times N_K$和多头自注意力头的数量$N_H$满足$N_K=\sqrt[3]{N_H}$；
-2. 第$h$个自注意力头对应于卷积核的第$\delta$个位置，$\text{mask}_{mn}^h$为单位热向量，其中位置$\tau_{mn,p+\delta}$处取值为1，其他位置取值为0；
+2. 第$h$个自注意力头对应于卷积核的第$\delta$个位置，$$\text{mask}_{mn}^h$$为单位热向量，其中位置$\tau_{mn,p+\delta}$处取值为1，其他位置取值为0；
 3. 可学习参数$W_{\delta}=W_2^h,b_1=b_2$。
 
 需要强调的是，上述条件并不是满足定理的唯一条件集合。虽然这些问题在实际应用中要复杂得多，如卷积层具有可选的填充和步长参数；神经网络能够从大量的数据中自动学习网络参数，适当的最优参数也能与定理的条件相匹配。
@@ -150,7 +150,7 @@ $$
 - **动作识别任务**旨在沿着时序维度分析人体动作。预定义$C_{\text{act}}$个动作类别，则每个目标的动作识别任务的输出记为$$\boldsymbol{y}^{\text{act}} \in \mathbb{R}^{C_{\text{act}}}$$；
 - **身份识别任务**旨在识别不同感兴趣目标的身份。预定义$C_{\text{id}}$个目标身份，则每个目标的身份识别任务的输出记为$$\boldsymbol{y}^{\text{id}} \in \mathbb{R}^{C_{\text{id}}}$$。
 
-用$$\hat{\boldsymbol{Y}}=\left\{\hat{\boldsymbol{Y}}_i\right\}_{i=1}^{N_{\text{tar}}}$$表示预测集，其中第$i$个元素是$$\hat{\boldsymbol{Y}}_i=\left(\hat{p}_i,\boldsymbol{\hat{y}}^{\text{pose}}_i,\boldsymbol{\hat{y}}^{\text{act}}_i,\boldsymbol{\hat{y}}^{\text{id}}_i\right)$$。$\hat{p}_i$给出第$i$个查询向量找到目标的概率，$$\boldsymbol{\hat{y}}^{\text{pose}}_i$$给出对应的三维关节点联合坐标，$$\boldsymbol{\hat{y}}^{\text{act}}_i$$给出对应的动作类别，$$\boldsymbol{\hat{y}}^{\text{id}}_i$$给出对应的身份类别。同时提供了目标的真实标注集$$\boldsymbol{Y}$$，由于$N_{\text{tar}}$显著大于实际存在的目标数，因此将$$\boldsymbol{Y}$$的长度用空集填充至$N_{\text{tar}}$。由于预测序列是无序生成的，因此需要建立$$\boldsymbol{Y}$$与$$\hat{\boldsymbol{Y}}$$之间的最优二分匹配$$\tilde{\mathcal{M}}$$。$$\tilde{\mathcal{M}}$$取对$N_{\text{tar}}$个元素进行排列$$\mathcal{M} \in \boldsymbol{M}_{N_{\text{tar}}}$$的最低成本：
+用$$\hat{\boldsymbol{Y}}=\left\{\hat{\boldsymbol{Y}}_i\right\}_{i=1}^{N_{\text{tar}}}$$表示预测集，其中第$i$个元素是$$\hat{\boldsymbol{Y}}_i=\left(\hat{p}_i,\boldsymbol{\hat{y}}^{\text{pose}}_i,\boldsymbol{\hat{y}}^{\text{act}}_i,\boldsymbol{\hat{y}}^{\text{id}}_i\right)$$。$$\hat{p}_i$$给出第$i$个查询向量找到目标的概率，$$\boldsymbol{\hat{y}}^{\text{pose}}_i$$给出对应的三维关节点联合坐标，$$\boldsymbol{\hat{y}}^{\text{act}}_i$$给出对应的动作类别，$$\boldsymbol{\hat{y}}^{\text{id}}_i$$给出对应的身份类别。同时提供了目标的真实标注集$$\boldsymbol{Y}$$，由于$N_{\text{tar}}$显著大于实际存在的目标数，因此将$$\boldsymbol{Y}$$的长度用空集填充至$N_{\text{tar}}$。由于预测序列是无序生成的，因此需要建立$$\boldsymbol{Y}$$与$$\hat{\boldsymbol{Y}}$$之间的最优二分匹配$$\tilde{\mathcal{M}}$$。$$\tilde{\mathcal{M}}$$取对$N_{\text{tar}}$个元素进行排列$$\mathcal{M} \in \boldsymbol{M}_{N_{\text{tar}}}$$的最低成本：
 
 $$
     \tilde{\mathcal{M}} = \mathop{\arg \min}_{\mathcal{M} \in \boldsymbol{M}_{N_{\text{tar}}}} \sum_{i}^{N_{\text{tar}}} \mathcal{L}_{\text{assign}}\left(\boldsymbol{Y}_i,\hat{\boldsymbol{Y}}_{\tilde{\mathcal{M}}(i)}\right)
@@ -322,7 +322,7 @@ $$
 
 上表还报告了这些方法对于不同人体动作类别的识别精度。结果表明，这些方法对于身体变化差异较小的动作（如挥手和拳击）的识别能力较弱。对于有明显区别的动作（如跳跃），方法的识别精度相对稳定。至于躺下这种动作，其对应雷达信号的分布与其他动作的信号差距较大，因此这些方法很容易将其区分开。此外，所有方法通常在区分站立这个动作时具有最高的相对识别精度。
 
-所提方法在人体动作识别任务上的平均混淆矩阵如图所示。混淆矩阵中的每一行表示真实的动作类别，每一列表示预测的动作类别，颜色深浅表示识别准确度。由于电磁波的辐射特性，不同动作类别的雷达信号之间的混淆程度通常取决于人体目标在雷达平面上的等效投影面积。结果表明，挥手和拉伸等动作的识别准确率相对较低（约86\%），并且它们往往被错误地识别为彼此。这是因为这两种动作的人体状态相似，只是目标手臂的伸展程度略有不同。目标的细微差异可能不会导致雷达信号的明显变化，因此方法很难区分它们。至于站立和躺下这两种很容易根据人体躯干的重心进行物理区分的动作，识别精度要高得多，90\%以上的类别样本被正确识别。
+所提方法在人体动作识别任务上的平均混淆矩阵如图所示。混淆矩阵中的每一行表示真实的动作类别，每一列表示预测的动作类别，颜色深浅表示识别准确度。由于电磁波的辐射特性，不同动作类别的雷达信号之间的混淆程度通常取决于人体目标在雷达平面上的等效投影面积。结果表明，挥手和拉伸等动作的识别准确率相对较低（约86%），并且它们往往被错误地识别为彼此。这是因为这两种动作的人体状态相似，只是目标手臂的伸展程度略有不同。目标的细微差异可能不会导致雷达信号的明显变化，因此方法很难区分它们。至于站立和躺下这两种很容易根据人体躯干的重心进行物理区分的动作，识别精度要高得多，90%以上的类别样本被正确识别。
 
 ![](https://pic.imgdb.cn/item/674eecf9d0e0a243d4dcd1d0.png)
 
