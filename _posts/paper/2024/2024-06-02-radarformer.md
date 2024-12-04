@@ -108,7 +108,7 @@ $$
     \boldsymbol{F}^H(\boldsymbol{S})= \sum_{h=1}^{N_H} \text{softmax}\left(\boldsymbol{S}W_1^h\boldsymbol{S}^T\right)\cdot \boldsymbol{S}\cdot W_2^h +b_2
 $$
 
-由于Softmax函数将输入矩阵的每一列转换为归一化的概率分布，将Softmax$\left(\boldsymbol{S}W_1^h\boldsymbol{S}^T\right)$重写为一个掩码序列$\left[\text{mask}_{1}^h,...,\text{mask}_{mn}^h,...,\text{mask}_{MN}^h\right]$。最后将多头自注意力的输出特征表示为：
+由于Softmax函数将输入矩阵的每一列转换为归一化的概率分布，将Softmax$\left(\boldsymbol{S}W_1^h\boldsymbol{S}^T\right)$重写为一个掩码序列$$\left[\text{mask}_{1}^h,...,\text{mask}_{mn}^h,...,\text{mask}_{MN}^h\right]$$。最后将多头自注意力的输出特征表示为：
 
 $$
     \boldsymbol{F}^H(\boldsymbol{S})= \sum_{h=1}^{N_H}\sum_{mn=1}^{MN} \text{mask}_{mn}^h\cdot \boldsymbol{S}\left(mn,t\right)\cdot W_2^h +b_2  \tag{3}
