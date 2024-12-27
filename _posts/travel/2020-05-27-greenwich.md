@@ -3,12 +3,13 @@ layout: post
 title: '（英国篇）格林尼治：计时与经度之始'
 date: 2020-05-27
 author: 郑之杰
-cover: 'https://pic.imgdb.cn/item/669d0ec8d9c307b7e9dc8103.png'
+cover: 'https://pic.imgdb.cn/item/676e94bad0e0a243d4ebbed6.png'
 tags: 游记
 ---
 
 > (British Chapter) Greenwich: Beginning of Time and Longitude.
 
+![](https://pic.imgdb.cn/item/676e94bad0e0a243d4ebbed6.png)
 
 **格林尼治（Greenwich）**，乃大伦敦之属邑也，位伦敦之东南，泰晤士河之阴，乃一融航海、天文、皇室、市集风情于一炉之小镇也。
 
