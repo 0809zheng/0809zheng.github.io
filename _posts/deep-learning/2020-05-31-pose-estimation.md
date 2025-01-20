@@ -28,11 +28,11 @@ tags: 深度学习
 
 **2D**单人人体姿态估计通常是从已完成定位的人体图像中计算人体关节点的位置，并进一步生成**2D**人体骨架。这些方法可以进一步分为**基于回归(regression-based)**的方法与**基于检测(detection-based)**的方法。
 - 基于回归的方法：直接将输入图像映射为人体关节的**坐标**或人体模型的**参数**，如**DeepPose**, **TFPose**, **PCT**。
-- 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标；如**CPM**, **Hourglass**, **Chained**, **MCA**, **FPM**, **HRNet**, **Lite-HRNet**, **HR-NAS**, **Lite Pose**, **TokenPose**, **ViTPose**。
+- 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标；如**CPM**, **Hourglass**, **Chained**, **MCA**, **FPM**, **HRNet**, **TokenPose**, **ViTPose**。
 
 ## （1）基于回归的2D单人姿态估计 Regression-based 2D SHPE
 
-基于回归的方法直接预测人体各关节点的**联合坐标**。这类方法可以端到端的训练，速度更快，并且可以得到子像素级(**sub-pixel**)的精度；但由于映射是高度非线性的，学习较为困难，且缺乏鲁棒性。
+基于回归的方法直接预测人体各关节点的**联合坐标**。这类方法可以端到端的训练，速度更快，并且没有量化误差；但由于映射是高度非线性的，学习较为困难，且缺乏鲁棒性。
 
 ### ⚪ DeepPose
 
@@ -63,8 +63,6 @@ tags: 深度学习
 基于检测的方法使用**热图**来指示关节的真实位置。如下图所示，每个关键点占据一个热图通道，表示为以目标关节位置为中心的二维高斯分布。
 
 ![](https://pic.downk.cc/item/5fb37ddeb18d62711306f2a6.jpg)
-
-由于热图能够保存空间位置信息，这类方法鲁棒性更好；但从中估计关节点坐标的准确性较差（热图大小往往是原图的等比例缩放，通过在输出热图上按通道找最大的响应位置，精度是**pixel**级别），并且阻碍了端到端的训练。同时基于热图的方法需要网络始终保留热图尺寸的中间层特征图，会使网络整体具有较大的参数量，不适合移动端部署。
 
 把关节点坐标转换成热图的过程如下：
 
@@ -106,6 +104,11 @@ if __name__ == "__main__":
                             ])
     test_targets = generator.generate(test_coords)
 ```
+
+
+基于热图的方法通过显式地渲染高斯热图，让模型学习输出的目标分布，也可以看成模型单纯地在学习一种滤波方式，将输入图像滤波为最终希望得到的高斯热图，这极大地简化了模型的学习难度，且非常契合卷积网络的特性（卷积本身就可以看成一种滤波器）；并且这种方式规定了学习的分布，能够保存空间位置信息，对于各种情况（遮挡、动态模糊、截断等）要鲁棒得多。
+
+这类方法从中估计关节点坐标的准确性较差（热图大小往往是原图的等比例缩放，通过在输出热图上按通道找最大的响应位置，精度是**pixel**级别），并且阻碍了端到端的训练。同时基于热图的方法需要网络始终保留热图尺寸的中间层特征图，会使网络整体具有较大的参数量，不适合移动端部署。
 
 ### ⚪ Convolutional Pose Machine (CPM)
 
@@ -158,30 +161,6 @@ if __name__ == "__main__":
 
 ![](https://pic.imgdb.cn/item/64a510fb1ddac507cc221282.jpg)
 
-### ⚪ Lite-HRNet
-
-- paper：[<font color=blue>Lite-HRNet: A Lightweight High-Resolution Network</font>](https://0809zheng.github.io/2021/05/12/litehrnet.html)
-
-**Lite-HRNet**首先在**HRNet**中通过**Shuffle Block**替换残差模块；进一步发现**Shuffle Block**中的1x1卷积成为了计算瓶颈，于是采用**SENet**模块替换1x1卷积进行特征聚合。
-
-![](https://pic.imgdb.cn/item/668e3f3cd9c307b7e97c4648.png)
-
-### ⚪ HR-NAS
-
-- paper：[<font color=blue>HR-NAS: Searching Efficient High-Resolution Neural Architectures with Lightweight Transformers</font>](https://0809zheng.github.io/2021/06/20/hrnas.html)
-
-本文设计了一个简单的轻量级视觉**Transformer**模块，然后在**HRNet**结构基础上进行神经结构搜索，将原本的3x3卷积模块扩展成了3x3,5x5,7x7,轻量级视觉**Transformer**模块等四种模块拼接的模块，然后搜索这四种模块的比例和通道数。
-
-![](https://pic.imgdb.cn/item/668e4e8dd9c307b7e992fe19.png)
-
-
-### ⚪ Lite Pose
-
-- paper：[<font color=blue>Lite Pose: Efficient Architecture Design for 2D Human Pose Estimation</font>](https://0809zheng.github.io/2021/05/01/litepose.html)
-
-对于轻量级姿态估计模型而言，多分支高分辨率的结构是比较冗余的。**Lite Pose**采用带有残差连接的单分支网络：
-
-![](https://pic.imgdb.cn/item/64d0a3561ddac507cce88190.jpg)
 
 ### ⚪ TokenPose
 
@@ -479,6 +458,15 @@ $$
 
 ![](https://pic.imgdb.cn/item/64d1a3731ddac507ccfb3e92.jpg)
 
+### ⚪ Confidence-Aware Learning (CAL)
+- paper：[<font color=blue>Low-resolution Human Pose Estimation</font>](https://0809zheng.github.io/2021/10/13/cal.html)
+
+**CAL**采用偏移量学习方法，同时预测粗略位置和偏移量。通过在粗略位置上添加偏移量来获得最终预测，从而缓解量化误差问题。
+- **CAL**引入了高斯加权的热图，通过将二值热图与高斯分布相乘，为靠近真实关节位置的像素赋予更高的权重，从而提高粗略位置预测的准确性。
+- **CAL**提出了高斯偏移量加权方法。通过收集预测热图中粗略位置与真实位置之间的相对偏移量，并使用高斯混合模型（**GMM**）对其进行建模，生成混合高斯掩码（**MGM**）来加权偏移量损失。
+
+![](https://pic1.imgdb.cn/item/678e0a99d0e0a243d4f5dfd8.png)
+
 ### ⚪ Symmetric Integral Keypoints Regression (SIKR)
 - paper：[<font color=blue>AlphaPose: Whole-Body Regional Multi-Person Pose Estimation and Tracking in Real-Time</font>](https://0809zheng.github.io/2022/12/08/alphapose.html)
 
@@ -488,7 +476,46 @@ $$
 \frac{\partial L_{reg}}{\partial p_x} = A_{grad} \cdot sign(x-\hat{\mu}) \cdot sign(\hat{\mu} - \mu)
 $$
 
-## （3）训练技巧
+## （3）轻量化
+
+### ⚪ Lite-HRNet
+
+- paper：[<font color=blue>Lite-HRNet: A Lightweight High-Resolution Network</font>](https://0809zheng.github.io/2021/05/12/litehrnet.html)
+
+**Lite-HRNet**首先在**HRNet**中通过**Shuffle Block**替换残差模块；进一步发现**Shuffle Block**中的1x1卷积成为了计算瓶颈，于是采用**SENet**模块替换1x1卷积进行特征聚合。
+
+![](https://pic.imgdb.cn/item/668e3f3cd9c307b7e97c4648.png)
+
+### ⚪ HR-NAS
+
+- paper：[<font color=blue>HR-NAS: Searching Efficient High-Resolution Neural Architectures with Lightweight Transformers</font>](https://0809zheng.github.io/2021/06/20/hrnas.html)
+
+本文设计了一个简单的轻量级视觉**Transformer**模块，然后在**HRNet**结构基础上进行神经结构搜索，将原本的3x3卷积模块扩展成了3x3,5x5,7x7,轻量级视觉**Transformer**模块等四种模块拼接的模块，然后搜索这四种模块的比例和通道数。
+
+![](https://pic.imgdb.cn/item/668e4e8dd9c307b7e992fe19.png)
+
+
+### ⚪ Lite Pose
+
+- paper：[<font color=blue>Lite Pose: Efficient Architecture Design for 2D Human Pose Estimation</font>](https://0809zheng.github.io/2021/05/01/litepose.html)
+
+对于轻量级姿态估计模型而言，多分支高分辨率的结构是比较冗余的。**Lite Pose**采用带有残差连接的单分支网络：
+
+![](https://pic.imgdb.cn/item/64d0a3561ddac507cce88190.jpg)
+
+### ⚪ MoveNet
+
+- paper：[<font color=blue>Next-Generation Pose Detection with MoveNet and TensorFlow</font>](https://0809zheng.github.io/2021/10/14/movenet.html)
+
+**MoveNet**整体的结构如图所示。**Backbone**部分是带三层**deconv**的**MobileNetv2**。**Neck**部分使用了**FPN**来做不同尺度的特征学习和融合。**Head**部分有四个预测头，分别是：
+- **Center Heatmap** $[B, 1, H, W]$：预测每个人的几何中心，主要用于存在性检测；
+- **Keypoint Regression** $[B, 2K, H, W]$：基于中心点来回归**17**个关节点坐标值；
+- **Keypoint Heatmap** $[B, K, H, W]$：每种类型的关键点使用一张**Heatmap**进行检测；
+- **Offset Regression** $[B, 2K, H, W]$：回归**Keypoint Heatmap**中各高斯核中心跟真实坐标的偏移值。
+
+![](https://pic1.imgdb.cn/item/678e1248d0e0a243d4f5e366.png)
+
+## （4）训练技巧
 
 ### ⚪ Online Knowledge Distillation (OKDHP)
 - paper：[<font color=blue>Online Knowledge Distillation for Efficient Pose Estimation</font>](https://0809zheng.github.io/2021/04/26/okdhp.html)
@@ -525,6 +552,15 @@ L_{i,j} = - \log \frac{\exp(sim(t_i^{-1}(z_i),t_i^{-1}(z_j))/\tau)} {\sum_{k=1:2
 $$
 
 ![](https://pic.imgdb.cn/item/668f8120d9c307b7e9dd0d07.png)
+
+### ⚪ Residual Log-likelihood Estimation (RLE)
+- paper：[<font color=blue>Human Pose Regression with Residual Log-likelihood Estimation</font>](https://0809zheng.github.io/2021/07/24/rle.html)
+
+给定输入图像$I$，回归模型预测一个分布$P_Θ(x\mid I)$，其中$x$表示关键点的坐标。本文提出了残差对数似然估计（**RLE**）。假设存在一个简单的分布$Q(\overline{x})$，通过引入归一化流学习$P_{opt}(\overline{x})-Q(\overline{x})$的残差来优化目标分布，从而减少对复杂分布的直接建模难度。
+
+![](https://pic1.imgdb.cn/item/678e01e4d0e0a243d4f5dcce.png)
+
+
 
 ### ⚪ Self-Correctable and Adaptable Inference (SCAI)
 - paper：[<font color=blue>Self-Correctable and Adaptable Inference for Generalizable Human Pose Estimation</font>](https://0809zheng.github.io/2023/03/20/scai.html)
