@@ -27,7 +27,7 @@ tags: 深度学习
 # 1. 2D单人姿态估计 2D Single Human Pose Estimation
 
 **2D**单人人体姿态估计通常是从已完成定位的人体图像中计算人体关节点的位置，并进一步生成**2D**人体骨架。这些方法可以进一步分为**基于回归(regression-based)**的方法与**基于检测(detection-based)**的方法。
-- 基于回归的方法：直接将输入图像映射为人体关节的**坐标**或人体模型的**参数**，如**DeepPose**, **TFPose**, **PCT**。
+- 基于回归的方法：直接将输入图像映射为人体关节的**坐标**或人体模型的**参数**，如**DeepPose**, **TFPose**, **Poseur**, **PCT**。
 - 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标；如**CPM**, **Hourglass**, **Chained**, **MCA**, **FPM**, **HRNet**, **TokenPose**, **ViTPose**。
 
 ## （1）基于回归的2D单人姿态估计 Regression-based 2D SHPE
@@ -49,6 +49,16 @@ tags: 深度学习
 **TFPose**通过将卷积神经网络与**Transformer**结构相结合，直接并行地预测所有关键点坐标序列。**Transformer**解码器将一定数量的关键点查询向量和编码器输出特征作为输入，并通过一个多层前馈网络预测最终的关键点坐标。
 
 ![](https://pic.imgdb.cn/item/629df817094754312978e61a.jpg)
+
+### ⚪ Poseur
+
+- paper：[<font color=blue>Poseur: Direct Human Pose Regression with Transformers</font>](https://0809zheng.github.io/2021/10/15/poseur.html)
+
+**Poseur**用$K$个**query token**作为可学习的关键点**token**，**Backbone**使用卷积网络来回归粗略预测的关键点坐标值；**Keypoint Encoder**将粗略预测的关键点坐标转换为位置编码，和可训练的类别嵌入向量融合成**query token**；**Query Decoder**接收**query token**和**Backbone**提供的多尺度特征图来更新查询**token**。
+
+![](https://pic1.imgdb.cn/item/6790620dd0e0a243d4f65c0d.png)
+
+
 
 ### ⚪ Pose as Compositional Tokens (PCT)
 
@@ -458,6 +468,13 @@ $$
 
 ![](https://pic.imgdb.cn/item/64d1a3731ddac507ccfb3e92.jpg)
 
+### ⚪ Sampling-Argmax
+- paper：[<font color=blue>Localization with Sampling-Argmax</font>](https://0809zheng.github.io/2021/10/16/samplingargmax.html)
+
+**Soft-Argmax** 仅约束概率图的期望值，而不约束其形状，导致模型在训练时缺乏像素级监督，影响性能。**Sampling-Argmax**提出了一种新的训练目标：最小化定位误差的期望值，而不是最小化期望值的误差，来隐式约束概率图的形状，从而提高定位精度。
+
+$$ L=d(y_t,E[y]) \to L=E_y[d(y_t,y)] $$
+
 ### ⚪ Confidence-Aware Learning (CAL)
 - paper：[<font color=blue>Low-resolution Human Pose Estimation</font>](https://0809zheng.github.io/2021/10/13/cal.html)
 
@@ -561,7 +578,6 @@ $$
 ![](https://pic1.imgdb.cn/item/678e01e4d0e0a243d4f5dcce.png)
 
 
-
 ### ⚪ Self-Correctable and Adaptable Inference (SCAI)
 - paper：[<font color=blue>Self-Correctable and Adaptable Inference for Generalizable Human Pose Estimation</font>](https://0809zheng.github.io/2023/03/20/scai.html)
 
@@ -569,6 +585,17 @@ $$
 
 ![](https://pic.imgdb.cn/item/652fb8abc458853aef3efc5c.jpg)
 
+### ⚪ POse Matching Network (POMNet)
+- paper：[<font color=blue>Pose for Everything: Towards Category-Agnostic Pose Estimation</font>](https://0809zheng.github.io/2021/10/17/pomnet.html)
+
+本文提出了一个名为 **Category-Agnostic Pose Estimation (CAPE)** 的新任务，目标是开发一种能够处理任意类别物体姿态估计的模型，仅需少量标注样本即可检测新类别的关键点。
+
+作者设计了一个名为 **POse Matching Network (POMNet)** 的框架，将姿态估计问题转化为关键点匹配问题，**POMNet**由三个部分组成：
+- 特征提取器：提取查询图像和支持图像的特征；
+- 关键点交互模块：通过高效的注意力机制增强支持关键点特征；
+- 匹配头：在查询图像中找到与增强后的关键点特征最匹配的位置，并以热图形式输出预测结果。
+
+![](https://pic1.imgdb.cn/item/6790b6ddd0e0a243d4f6936b.png)
 
 
 # 5. 人体姿态估计的评估指标 Pose Estimation Evaluation
