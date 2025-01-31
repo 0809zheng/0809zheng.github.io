@@ -18,8 +18,8 @@ tags: 深度学习
 2. [**2D**多人姿态估计](https://0809zheng.github.io/2020/05/31/pose-estimation.html#2-2d%E5%A4%9A%E4%BA%BA%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1-2d-multiple-human-pose-estimation)
 3. [**3D**人体姿态估计](https://0809zheng.github.io/2020/05/31/pose-estimation.html#3-3d%E4%BA%BA%E4%BD%93%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1-3d-human-pose-estimation)
 4. [人体姿态估计的技巧](https://0809zheng.github.io/2020/05/31/pose-estimation.html#4-%E4%BA%BA%E4%BD%93%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1%E7%9A%84%E6%8A%80%E5%B7%A7-bag-of-tricks)
-5. 人体姿态估计的评估指标
-6. 人体姿态估计数据集
+5. [人体姿态估计的评估指标](https://0809zheng.github.io/2020/05/31/pose-estimation.html#5-%E4%BA%BA%E4%BD%93%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1%E7%9A%84%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87-pose-estimation-evaluation)
+6. [人体姿态估计数据集](https://0809zheng.github.io/2020/05/31/pose-estimation.html#6-%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1%E6%95%B0%E6%8D%AE%E9%9B%86)
 
 ### ⭐ 扩展阅读：
 - [<font color=blue>Monocular Human Pose Estimation: A Survey of Deep Learning-based Methods</font>](https://0809zheng.github.io/2020/11/17/pose.html)：(arXiv2006)单目人体姿态估计的深度学习方法综述。
