@@ -191,7 +191,7 @@ if __name__ == "__main__":
 # 2. 2D多人姿态估计 2D Multiple Human Pose Estimation
 
 与单人姿态估计相比，多人姿态估计需要同时完成**检测**和**估计**任务。根据完成任务的顺序不同，多人姿态估计方法分为**自上而下(top-down)**的方法和**自下而上(bottom-up)**的方法。
-- 自上而下的方法先做**检测**再做**估计**。即先通过目标检测的方法在输入图像中检测出不同的人体，再使用单人姿态估计方法对每个人进行姿态估计；如**RMPE**, **CPN**, **MSPN**。
+- 自上而下的方法先做**检测**再做**估计**。即先通过目标检测的方法在输入图像中检测出不同的人体，再使用单人姿态估计方法对每个人进行姿态估计；如**RMPE**, **CPN**, **MSPN**, **RTMPose**。
 - 自下而上的方法先做**估计**再做**检测**。即先在图像中估计出所有人体关节点，再将属于不同人的关节点进行关联和组合；如**DeepCut**, **DeeperCut**, **Associative Embedding**, **OpenPose**。
 
 ![](https://pic.imgdb.cn/item/649bd8b31ddac507cc9c3cc5.jpg)
@@ -226,6 +226,13 @@ if __name__ == "__main__":
 
 ![](https://pic.imgdb.cn/item/64a50a0a1ddac507cc132f0a.jpg)
 
+### ⚪ RTMPose
+
+- paper：[<font color=blue>RTMPose: Real-Time Multi-Person Pose Estimation based on MMPose</font>](https://0809zheng.github.io/2023/03/31/rtmpose.html)
+
+**RTMPose** 使用一个骨干网络、一个卷积层、一个全连接层和一个门控注意力单元(**Gated Attention Unit, GAU**)提取$K$个关键点的特征。然后采用**SimCC**把二维姿态估计任务看作两个分类任务，分别预测关键点的水平和垂直坐标。
+
+![](https://pic1.imgdb.cn/item/679c5c1fd0e0a243d4f8be70.png)
 
 ## （2）自下而上的2D多人姿态估计 Bottom-up 2D MHPE
 
@@ -403,6 +410,12 @@ $$
 
 ![](https://pic.imgdb.cn/item/64ae57211ddac507ccbf5622.jpg)
 
+### ⚪ SmoothNet
+- paper：[<font color=blue>SmoothNet: A Plug-and-Play Network for Refining Human Poses in Videos</font>](https://0809zheng.github.io/2021/10/18/smoothnet.html)
+
+**SmoothNet** 是一个专门用于姿态估计抖动缓解的时序细化网络。它通过学习人体运动的自然平滑特性，利用长时序关系对每个关节进行建模，从而显著降低姿态估计中的抖动误差。为了进一步提升性能，**SmoothNet** 引入了运动信息，显式地建模速度和加速度。
+
+![](https://pic1.imgdb.cn/item/679c8e00d0e0a243d4f8c13d.png)
 
 ## （2）量化误差消除
 
@@ -584,6 +597,13 @@ $$
 **SCAI**是一种自监督的推理方法，能在完全没有标注的测试样本上进行训练，逐步修正预测结果，带来显著的性能提升。**SCAI**方法的输入是姿态模型预测的**Heatmap**，通过近端关节点热图预测远端关节点热图，学习预测结果的误差并进行反馈。
 
 ![](https://pic.imgdb.cn/item/652fb8abc458853aef3efc5c.jpg)
+
+### ⚪ DWPose
+- paper：[<font color=blue>Effective Whole-body Pose Estimation with Two-stages Distillation</font>](https://0809zheng.github.io/2023/07/31/dwpose.html)
+
+**DWPose**是一种两阶段姿态蒸馏方法，用于提升全身姿态估计的效率和精度。在第一阶段利用教师模型的中间特征和最终输出对轻量级学生模型进行蒸馏，并采用权重衰减策略逐步减少蒸馏的权重。第二阶段蒸馏是一种自蒸馏方法，学生模型通过自身的输出对头部进行**Logit** 蒸馏。
+
+![](https://pic1.imgdb.cn/item/679c7858d0e0a243d4f8bfe5.png)
 
 ### ⚪ POse Matching Network (POMNet)
 - paper：[<font color=blue>Pose for Everything: Towards Category-Agnostic Pose Estimation</font>](https://0809zheng.github.io/2021/10/17/pomnet.html)
