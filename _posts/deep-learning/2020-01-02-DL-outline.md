@@ -16,7 +16,7 @@ tags: 深度学习
 
 本文目录：
 - **深度神经网络的类型**
-1. **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、卷积神经网络中的注意力机制、轻量级卷积神经网络
+1. **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、卷积神经网络中的注意力机制、卷积神经网络中的自注意力机制、轻量级卷积神经网络
 2. **循环神经网络**：循环神经网络的基本概念、序列到序列模型、序列到序列模型中的注意力机制
 3. **自注意力网络**：自注意力机制、**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、预训练语言模型、
 4. **深度生成模型**：生成对抗网络、变分自编码器、流模型
@@ -26,9 +26,12 @@ tags: 深度学习
 2. **深度学习的方法**：半监督学习、自监督学习、度量学习、多任务学习、主动学习、迁移学习
 3. **深度学习的技巧**：长尾分布、对抗训练、大模型的参数高效微调
 - **深度学习的应用**
-1. **计算机视觉**：图像识别、目标检测、开放集合目标检测、图像分割、图像超分辨率、图像到图像翻译、时空动作检测、人脸检测, 识别与验证、行人检测与属性识别、点云分类、目标计数
-2. **自然语言处理**：
-3. **AI for Science**
+1. **High-Level视觉**：图像识别、目标检测、开放集合目标检测、图像分割、点云分类、目标计数
+2. **Low-Level视觉**：图像超分辨率、全色锐化
+3. **AIGC**：图像到图像翻译、布局引导图像生成
+4. **Human-Centric感知**：人脸检测, 识别与验证、行人检测与属性识别、时空动作检测、射频人体感知
+5. **自然语言处理**：
+6. **AI for Science**
 
 # 1. 深度神经网络的类型
 
@@ -61,6 +64,13 @@ tags: 深度学习
 - 通道+空间：(**并联**)**scSE**, **BAM**, **SA-Net**, **Triplet Attention**; (**串联**)**CBAM**; (**融合**)**SCNet**, **Coordinate Attention**, **SimAM** 
 - 其他注意力：**DCANet**, **WE**, **ATAC**, **AFF**, **AW-Convolution**, **BA^2M**, **Interflow**, **CSRA**
 
+### ⚪ [<font color=Blue>卷积神经网络中的自注意力机制(Self-Attention Mechanism)</font>](https://0809zheng.github.io/2020/11/21/SAinCNN.html)
+
+卷积神经网络中的**自注意力机制**表现为**非局部滤波**操作，通过计算任意两个位置之间的关系直接捕捉远程依赖，而不用局限于相邻点，相当于构造了一个**和特征图尺寸一样大**的卷积核，从而可以捕捉更多信息。
+
+卷积神经网络中的自注意力机制包括：
+- 增强特征提取能力：**Non-local Net**, **DANet**, **A^2-Net**, **AAConv**, **RNL**, **DMSANet**, **SAN**, **PSA**, **SNL**。 
+- 降低计算复杂度：**CCNet**, **GCNet**, **EMANet**, **ISANet**, **ANNNet**, **LightNL**, **NLSA**, **Hamburger**。
 
 ### ⚪ [卷积神经网络的可视化](https://0809zheng.github.io/2020/12/16/custom.html)
 
@@ -159,6 +169,8 @@ $$ p_{\theta}(x) = \int p_{\theta}(x,z) dz = \int p_{\theta}(x|z)p(z) dz  $$
 
 ### ⚪ 自回归模型 (Auto-Regressive)
 
+条件分布的乘积
+
 从最严格的角度来看，图像应该是一个离散的分布，因为它是由有限个像素组成的，而每个像素的取值也是离散的、有限的，因此可以通过离散分布来描述。这个思路的成果就是PixelRNN一类的模型了，我们称之为“自回归流”，其特点就是无法并行，所以计算量特别大。所以，我们更希望用连续分布来描述图像。当然，图像只是一个场景，其他场景下我们也有很多连续型的数据，所以连续型的分布的研究是很有必要的。
 
 的本质，就是希望用一个我们知道的概率模型来拟合所给的数据样本，也就是说，我们得写出一个带参数θ的分布qθ(x)。然而，我们的神经网络只是“万能函数拟合器”，却不是“万能分布拟合器”，也就是它原则上能拟合任意函数，但不能随意拟合一个概率分布，因为概率分布有“非负”和“归一化”的要求。这样一来，我们能直接写出来的只有离散型的分布，或者是连续型的高斯分布。
@@ -172,7 +184,7 @@ $$ \begin{aligned} \mathop{ \min}_{G} \mathop{\max}_{D}  \Bbb{E}_{x \text{~} P_{
 生成对抗网络的设计是集目标函数、网络结构、优化过程于一体的，**GAN**的各种变体也是基于对这些方面的改进：
 - 改进目标函数：基于分布散度(如**f-GAN**, **BGAN**, **Softmax GAN**, **RGAN**, **LSGAN**, **WGAN-div**, **GAN-QP**, **Designing GAN**)、基于积分概率度量(如**WGAN**, **WGAN-GP**, **DRAGAN**, **SN-GAN**, **GN-GAN**, **GraN-GAN**, **c-transform**, **McGAN**, **MMD GAN**, **Fisher GAN**)
 - 改进网络结构：调整神经网络(如**DCGAN**, **SAGAN**, **BigGAN**, **Self-Modulation**, **StyleGAN1,2,3**, **TransGAN**)、引入编码器(如**VAE-GAN**, **BiGAN**, **VQGAN**)、使用能量模型(如**EBGAN**, **LSGAN**, **BEGAN**, **MAGAN**, **MEG**)、由粗到细的生成(如**LAPGAN**, **StackGAN**, **PGGAN**, **SinGAN**)
-- 改进优化过程：**TTUR**, **Dirac-GAN**, **VDB**, **Cascading Rejection**, **ADA**, **Hubness Prior**
+- 改进优化过程：**TTUR**, **Dirac-GAN**, **VDB**, **Cascading Rejection**, **ADA**, **Hubness Prior**, **R3GAN**
 - 其他应用：条件生成(如**CGAN**, **InfoGAN**, **ACGAN**, **Projection Discriminator**)、[<font color=Blue>图像到图像翻译</font>](https://0809zheng.github.io/2020/05/23/image_translation.html)(有配对数据, 如**Pix2Pix**, **BicycleGAN**, **LPTN**; 无配对数据, 如**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**, **CUT**, **SimDCL**)、超分辨率(如**SRGAN**, **ESRGAN**)、图像修补(如**Context Encoder**, **CCGAN**, **SPADE**)、机器学习应用(如**Semi-Supervised GAN**, **AnoGAN**, **ClusterGAN**)
 
 ### ⚪ [<font color=Blue>变分自编码器 (Variational Autoencoder)</font>](https://0809zheng.github.io/2022/04/01/vae.html)
@@ -217,15 +229,11 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 
 **递归神经网络**是循环神经网络在有向无环图上的扩展，主要用来建模自然语言句子的语义。给定一个句子的语法结构（一般为树状结构），可以使用递归神经网络来按照句法的组合关系来合成一个句子的语义。句子中每个短语成分又可以分成一些子成分，即每个短语的语义都可以由它的子成分语义组合而来，并进而合成整句的语义。
 
-![](https://pic.downk.cc/item/5ea14499c2a9a83be5c09f98.jpg)
-
 典型的递归神经网络包括递归神经张量网络、矩阵-向量递归网络、**Tree LSTM**。
 
 ### ⚪ [<font color=Blue>记忆增强神经网络 (Memory Augmented Neural Network)</font>](https://0809zheng.github.io/2020/04/23/memory-network.html)
 
 **记忆增强神经网络**在神经网络中引入外部记忆单元来提高网络容量。记忆网络的模块包括：主网络$C$负责信息处理以及与外界的交互；外部记忆单元$M$用来存储信息；读取模块$R$根据主网络生成的查询向量从外部记忆单元读取信息；写入模块$W$根据主网络生成的查询向量和要写入的信息更新外部记忆单元。读取或写入操作通常使用注意力机制实现。
-
-![](https://pic.downk.cc/item/5ea1641fc2a9a83be5e6cfc3.jpg)
 
 典型的记忆增强神经网络包括端到端记忆网络、神经图灵机。
 
@@ -233,8 +241,6 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 
 
 **图神经网络**是用于处理图结构的神经网络，其核心思想是学习一个函数映射$f(\cdot)$，图中的节点$v_i$通过该映射可以聚合它自己的特征$x_i$与它的邻居特征$x_{j \in N(v_i)}$来生成节点$v_i$的新表示。
-
-![](https://pic.downk.cc/item/5ea59bbdc2a9a83be5281d20.jpg)
 
 **GNN**可以分为两大类，基于空间（**spatial-based**）和基于谱（**spectral-based**）。
 - 基于空间的**GNN**直接根据邻域聚合特征信息，把图粗化为高级子结构，可用于提取图的各级表示和执行下游任务。如**NN4G**, **DCNN**, **DGC**, **MoNET**, **GraphSAGE**, **GAT**, **GIN**。
@@ -385,7 +391,7 @@ $$
 参数高效微调方法有以下几种形式：
 - 增加额外参数(**addition**)：在原始模型中引入额外的可训练参数，如**Adapter**, **AdapterFusion**, **AdapterDrop**, **P-Tuning**, **Prompt Tuning**, **Prefix-Tuning**, **P-Tuning v2**, **Ladder Side-Tuning**
 - 选取部分参数(**specification**)：指定原始模型中的部分参数可训练，如**BitFit**, **Child-Tuning**
-- 重参数化(**reparameterization**)：将微调过程重参数化为低维子空间的优化，如**Diff Pruning**, **LoRA**, **AdaLoRA**, **QLoRA**, **GLoRA**
+- 重参数化(**reparameterization**)：将微调过程重参数化为低维子空间的优化，如**Diff Pruning**, **LoRA**, **AdaLoRA**, **QLoRA**, **GLoRA**, **LoRA+**, **LoRA-GA**
 - 混合方法：如**MAM Adapter**, **UniPELT**
 
 - [深度学习的可解释性](https://0809zheng.github.io/2020/04/28/explainable-DL.html)
@@ -399,7 +405,7 @@ $$
 
 # 3. 深度学习的应用
 
-## (1) 计算机视觉
+## (1) High-Level视觉
 
 ### ⚪ [<font color=Blue>图像识别 (Image Recognition)</font>](https://0809zheng.github.io/2020/05/06/image-classification.html)
 
@@ -409,6 +415,40 @@ $$
 3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**, **ConvNeXt v1-2**
 4. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
 5. 其他结构：**Noisy Student**, **SCAN**, **NFNet**, **ResNet-RS**
+
+### ⚪ [<font color=blue>目标检测 (Object Detection)</font>](https://0809zheng.github.io/2020/05/08/object-detection.html)
+
+**目标检测**任务是指在图像中检测出可能存在的目标；包括**定位**和**分类**两个子任务：其中定位是指确定目标在图像中的具体位置，分类是确定目标的具体类别。
+
+传统的目标检测算法首先在图像中生成候选区域，然后对每个候选区域提取特征向量，最后对每个候选区域提取的特征进行分类。常用的候选区域生成方法包括滑动窗口、**Felzenszwalb**算法、选择搜索算法。常用的特征描述子包括图像梯度向量、方向梯度直方图**HOG**、尺度不变特征变换**SIFT**、可变形部位模型**DPM**。
+
+基于深度学习的目标检测模型包括：
+- **两阶段**的目标检测模型：首先在图像中生成可能存在目标的候选区域，然后对这些候选区域进行预测。如**R-CNN**, **Fast RCNN**, **Faster RCNN**, **SPP-Net**, **FPN**, **Libra RCNN**, **Cascade RCNN**, **Sparse RCNN**
+- **单阶段**的目标检测模型：把图像中的每一个位置看作潜在的候选区域，直接进行预测。如**OverFeat**, **YOLOv1-3**, **SSD**, **RetinaNet**, **Guided Anchoring**, **ASFF**, **EfficientDet**, **YOLT**, **Poly-YOLO**, **YOLOv4**, **YOLOv5**, **RTMDet**
+- **Anchor-Free**的目标检测模型：把目标检测任务视作关键点检测等其它形式的任务，直接对目标的位置进行预测。(**anchor-point**方法) **FCOS**, **YOLOX**, **YOLOv6**, **YOLOv7**, **YOLOv8**, **YOLOv9**, **YOLOv10**; (**key-point**方法) **CornerNet**, **CenterNet**, **RepPoints**
+- 基于**Transformer**的目标检测模型：**DETR**, **Deformable DETR**
+
+目标检测的常用评估指标包括准确率、召回率、**F-score**、**P-R**曲线、平均准确率**AP**、类别平均准确率**mAP**。
+
+**非极大值抑制**算法是目标检测等任务中常用的后处理方法，能够过滤掉多余的检测边界框。提高**NMS**算法精度的方法包括**Soft-NMS**, **IoU-Guided NMS**, **Weighted NMS**, **Softer-NMS**, **Adaptive NMS**, **DIoU-NMS**。提高**NMS**算法效率的方法包括**CUDA NMS**, **Fast NMS**, **Cluster NMS**, **Matrix NMS**。
+
+目标检测中的损失函数包括边界框的**分类**损失和**回归**损失。
+- 分类损失用于区分边界框的类别，即边界框内目标的类别，对于两阶段的检测方法还包含边界框的正负类别；常用的分类损失函数包括**Cross-Entropy loss**, **Focal loss**, **Generalized Focal Loss**, **Varifocal Loss**, **GHM**, **Poly loss**。
+- 回归损失衡量预测边界框坐标$x_{pred}$和**GT**边界框坐标$x_{gt}$之间的差异，常用的回归损失函数包括**L1 / L2 loss**, **Smooth L1 loss**, **Dynamic SmoothL1 Loss**, **Balanced L1 loss**, **IoU loss**, **GIoU loss**, **DIoU loss**, **CIoU loss**, **EIoU loss**, **SIoU loss**, **MPDIoU loss**。
+
+**标签分配**策略是指在训练目标检测器时，为特征图不同位置的预测样本分配合适的标签（即区分**anchor**是正样本还是负样本），用于计算损失。标签分配根据非负即正划分为**硬标签分配(hard LA)**和**软标签分配(soft LA)**。
+- 硬标签分配策略是指根据阈值把样本划分为正样本或者负样本。依据在训练阶段是否动态调整阈值，硬标签分配策略又可以细分为静态和动态两种：
+1. **静态分配**策略主要依据于模型的先验知识（例如距离阈值和**iou**阈值等）来选取不同的正负样本；
+2. **动态分配**策略依据在训练阶段采用不同的统计量来动态地设置阈值，并划分正负样本；如**DLA**, **MCA**, **HAMBox**, **ATSS**, **SimOTA**, **DSLA**。
+- 软标签分配策略则会根据预测结果与**GT**计算正负权重，在候选正样本(中心点落在**GT**框内)的基础上依据正负样本权重分配正负样本，且在训练的过程中动态调整分配权重。常见的软标签分配策略包括**Noisy Anchor**, **AutoAssign**, **SAPD**, **TOOD**。
+
+### ⚪ [<font color=blue>开放集合目标检测 (Open-Set Object Detection)</font>](https://0809zheng.github.io/2023/11/01/opensetdet.html)
+
+**开集目标检测**是指在可见类的数据上进行训练，然后完成对不可见类数据的定位与识别。一些常见的开集目标检测方法包括：
+- 基于无监督学习的开集检测器：通过聚类、弱监督等手段实现开集检测，如**OSODD**, **Detic**, **VLDet**
+- 基于多模态学习的开集检测器：
+1. 基于**Referring**的开集检测器：借助多模态视觉-语言模型实现检测，如**ViLD**, **RegionCLIP**, **VL-PLM**, **Grad-OVD**
+2. 基于**Grounding**的开集检测器：把开集检测任务建模为边界框提取+短语定位任务，如**OVR-CNN**, **MDETR**, **GLIP**, **DetCLIP**, **DetCLIPv2**, **Grounding DINO**
 
 ### ⚪ [<font color=Blue>图像分割 (Image Segmentation)</font>](https://0809zheng.github.io/2020/05/07/semantic-segmentation.html)
 
@@ -430,45 +470,21 @@ $$
 - 基于区域的损失：**Sensitivity-Specifity Loss**, **IoU Loss**, **Lovász Loss**, **Dice Loss**, **Tversky Loss**, **Focal Tversky Loss**, **Asymmetric Similarity Loss**, **Generalized Dice Loss**, **Penalty Loss**
 - 基于边界的损失：**Boundary Loss**, **Hausdorff Distance Loss**
 
-### ⚪ [<font color=blue>目标检测 (Object Detection)</font>](https://0809zheng.github.io/2020/05/08/object-detection.html)
+### ⚪ [<font color=blue>点云分类 (Point Cloud Classification)</font>](https://0809zheng.github.io/2023/04/01/pointcloud.html)
 
-**目标检测**任务是指在图像中检测出可能存在的目标；包括**定位**和**分类**两个子任务：其中定位是指确定目标在图像中的具体位置，分类是确定目标的具体类别。
+**点云分类**即点云形状分类，是一种重要的点云理解任务。该任务的方法通常首先学习每个点的嵌入，然后使用聚合方法从整个点云中提取全局形状嵌入，并通过分类器进行分类。根据神经网络输入的数据格式，三维点云分类方法可分为：
+- 基于多视图(**Multi-view based**)的方法：将点云投影为多个二维图像，如**MVCNN**, **MHBN**。
+- 基于体素(**Voxel-based**)的方法：将点云转换为三维体素表示，如**VoxNet**, **OctNet**。
+- 基于点(**Point-based**)的方法：直接处理原始点云，如**PointNet**, **PointNet++**, **PointCNN**, **DGCNN**, **PCT**。
 
-传统的目标检测算法首先在图像中生成候选区域，然后对每个候选区域提取特征向量，最后对每个候选区域提取的特征进行分类。常用的候选区域生成方法包括滑动窗口、**Felzenszwalb**算法、选择搜索算法。常用的特征描述子包括图像梯度向量、方向梯度直方图**HOG**、尺度不变特征变换**SIFT**、可变形部位模型**DPM**。
+### ⚪ [<font color=blue>目标计数 (Object Counting)</font>](https://0809zheng.github.io/2023/05/01/counting.html)
 
-基于深度学习的目标检测模型包括：
-- **两阶段**的目标检测模型：首先在图像中生成可能存在目标的候选区域，然后对这些候选区域进行预测。如**R-CNN**, **Fast RCNN**, **Faster RCNN**, **SPP-Net**, **FPN**, **Libra RCNN**, **Cascade RCNN**, **Sparse RCNN**
-- **单阶段**的目标检测模型：把图像中的每一个位置看作潜在的候选区域，直接进行预测。如**OverFeat**, **YOLOv1-3**, **SSD**, **RetinaNet**, **Guided Anchoring**, **ASFF**, **EfficientDet**, **YOLT**, **Poly-YOLO**, **YOLOv4**, **YOLOv5**, **RTMDet**
-- **Anchor-Free**的目标检测模型：把目标检测任务视作关键点检测等其它形式的任务，直接对目标的位置进行预测。(**anchor-point**方法) **FCOS**, **YOLOX**, **YOLOv6**, **YOLOv7**, **YOLOv8**, **YOLOv9**, **YOLOv10**; (**key-point**方法) **CornerNet**, **CenterNet**, **RepPoints**
-- 基于**Transformer**的目标检测模型：**DETR**, **Deformable DETR**
+**目标计数**任务旨在从图像或视频中统计特定目标实例的数量。本文主要讨论基于**回归**的计数方式，即直接学习图像到目标数量或目标密度图的映射关系，通用的目标技术方案包括：
+1. **少样本计数 (Few-Shot Counting)**：提供目标样本**exemplar**在查询图像中进行匹配，如**GMN**, **FamNet**, **LaoNet**, **CFOCNet**, **SAFECount**, **BMNet+**, **Counting-DETR**, **CounTR**, **LOCA**, **SPDCN**, **VCN**, **SAM Counting**, **CACViT**, **DAVE**, **SSD**。
+2. **无参考计数 (Reference-less Counting)**：自动挖掘和计数所有显著性目标，如**LC**, **RLC**, **MoVie**, **DSAA**, **CaOC**, **RepRPN-Counter**, **RCC**, **GCNet**, **ZSC**, **ABC123**, **OmniCount**。
+3. **文本引导计数 (Text-Guided Counting)**：通过预训练视觉语言模型进行目标计数，如**CountCLIP**, **CLIP-Count**, **CounTX**, **VLCounter**, **CLIP Counting**, **ExpressCount**。
 
-目标检测的常用评估指标包括准确率、召回率、**F-score**、**P-R**曲线、平均准确率**AP**、类别平均准确率**mAP**。
-
-**非极大值抑制**算法是目标检测等任务中常用的后处理方法，能够过滤掉多余的检测边界框。提高**NMS**算法精度的方法包括**Soft-NMS**, **IoU-Guided NMS**, **Weighted NMS**, **Softer-NMS**, **Adaptive NMS**, **DIoU-NMS**。提高**NMS**算法效率的方法包括**CUDA NMS**, **Fast NMS**, **Cluster NMS**, **Matrix NMS**。
-
-目标检测中的损失函数包括边界框的**分类**损失和**回归**损失。其中分类损失用于区分边界框的类别，即边界框内目标的类别，对于两阶段的检测方法还包含边界框的正负类别；常用的分类损失函数包括**Cross-Entropy loss**, **Focal loss**, **Generalized Focal Loss**, **Varifocal Loss**, **GHM**, **Poly loss**。
-
-而回归损失衡量预测边界框坐标$x_{pred}$和**GT**边界框坐标$x_{gt}$之间的差异，常用的回归损失函数包括**L1 / L2 loss**, **Smooth L1 loss**, **Dynamic SmoothL1 Loss**, **Balanced L1 loss**, **IoU loss**, **GIoU loss**, **DIoU loss**, **CIoU loss**, **EIoU loss**, **SIoU loss**, **MPDIoU loss**。
-
-**标签分配**策略是指在训练目标检测器时，为特征图不同位置的预测样本分配合适的标签（即区分**anchor**是正样本还是负样本），用于计算损失。标签分配根据非负即正划分为**硬标签分配(hard LA)**和**软标签分配(soft LA)**。
-- 硬标签分配策略是指根据阈值把样本划分为正样本或者负样本。依据在训练阶段是否动态调整阈值，硬标签分配策略又可以细分为静态和动态两种：
-1. **静态分配**策略主要依据于模型的先验知识（例如距离阈值和**iou**阈值等）来选取不同的正负样本；
-2. **动态分配**策略依据在训练阶段采用不同的统计量来动态地设置阈值，并划分正负样本；如**DLA**, **MCA**, **HAMBox**, **ATSS**, **SimOTA**, **DSLA**。
-- 软标签分配策略则会根据预测结果与**GT**计算正负权重，在候选正样本(中心点落在**GT**框内)的基础上依据正负样本权重分配正负样本，且在训练的过程中动态调整分配权重。常见的软标签分配策略包括**Noisy Anchor**, **AutoAssign**, **SAPD**, **TOOD**。
-
-### ⚪ [<font color=blue>开放集合目标检测 (Open-Set Object Detection)</font>](https://0809zheng.github.io/2023/11/01/opensetdet.html)
-
-**开集目标检测**是指在可见类的数据上进行训练，然后完成对不可见类数据的定位与识别。一些常见的开集目标检测方法包括：
-- 基于无监督学习的开集检测器：通过聚类、弱监督等手段实现开集检测，如**OSODD**, **Detic**, **VLDet**
-- 基于多模态学习的开集检测器：
-1. 基于**Referring**的开集检测器：借助多模态视觉-语言模型实现检测，如**ViLD**, **RegionCLIP**, **VL-PLM**, **Grad-OVD**
-2. 基于**Grounding**的开集检测器：把开集检测任务建模为边界框提取+短语定位任务，如**OVR-CNN**, **MDETR**, **GLIP**, **DetCLIP**, **DetCLIPv2**, **Grounding DINO**
-
-
-### ⚪ [人体姿态估计](https://0809zheng.github.io/2020/05/08/pose-estimation.html)
-
-- [三维人体模型](https://0809zheng.github.io/2021/01/07/3dhuman.html)
-- [人体姿态估计的评估指标](https://0809zheng.github.io/2020/11/26/eval-pose-estimate.html)
+## (2) Low-Level视觉
 
 ### ⚪ [<font color=blue>图像超分辨率 (Super Resolution)</font>](https://0809zheng.github.io/2020/08/27/SR.html)
 
@@ -482,6 +498,16 @@ $$
 
 图像超分辨率的评估指标主要包括峰值信噪比**PSNR**和结构相似度**SSIM**。
 
+### ⚪ [<font color=blue>全色锐化 (Panchromatic Sharpening)</font>](https://0809zheng.github.io/2024/10/08/pansharpen.html)
+
+**全色锐化**是指将全色图像的高分辨率空间细节信息与多光谱图像的丰富光谱信息进行融合，得到高质量、理想的高空间分辨率多光谱图像。像素级全色图像锐化方法通常分为:
+1. 成分替换法(**CS-based**)：使用全色图像对多光谱图像的成分进行替换，如**Brovey**变换, **PCA**变换, **IHS**变换, **GS**变换, **GSA**, **CNMF**, **GFPCA**。
+2. 多分辨率分析法(**MRA-based**)：对全色图像和多光谱图像不同尺度的高、低频成份进行融合，如**SFIM**变换, **Wavelet**变换, **MTF-GLP**, **MTF-GLP-HPM**。
+3. 模型优化法(**MO-based**)：建立并优化融合图像与全色图像和多光谱图像之间的能量函数，如**SIRF**, **PSFG**$S^2$**LR**, **LGC**, **PGCP-PS**, **BPSM**, **F-BMP**。
+4. 深度学习方法(**DL-based**)：使用深度学习模型自动学习图像特征，从而实现图像分辨率的提升，如**PNN**, **PanNet**, **MSDCNN**, **GPPNN**, **SRPPNN**, **INNformer**, **PanFormer**, **SFIIN**, **MIDPS**, **PanFlowNet**, **Pan-Mamba**, **HFIN**。
+
+## (3) AIGC (AI-Generated Content)
+
 ### ⚪ [<font color=blue>图像到图像翻译 (Image-to-Image Translation)</font>](https://0809zheng.github.io/2020/05/23/image_translation.html)
 
 **图像到图像翻译**旨在学习一个映射使得图像可以从源图像域变换到目标图像域，同时保留图像内容。根据是否提供了一对一的学习样本对，将图像到图像翻译任务划分为**有配对数据(paired data)**和**无配对数据(unpaired data)**两种情况。
@@ -489,13 +515,41 @@ $$
 - 无配对数据(无监督图像翻译)是指模型在多个独立的数据集之间训练，能够从多个数据集合中自动地发现集合之间的关联，从而学习出映射函数；即给定边缘分布$p(X)$和$p(Y)$，学习条件映射$f_{x \to y}=p(Y\|X)$和$f_{y \to x}=p(X\|Y)$。代表方法有**CoGAN**, **PixelDA**, **CycleGAN**, **DiscoGAN**, **DualGAN**, **UNIT**, **MUNIT**, **TUNIT**, **StarGAN**, **StarGAN v2**, **GANILLA**, **NICE-GAN**, **CUT**, **SimDCL**。
 
 
-### ⚪ [<font color=blue>时空动作检测 (Spatio-Temporal Action Detection)</font>](https://0809zheng.github.io/2021/07/15/stad.html)
+### ⚪ [<font color=blue>布局引导图像生成 (Layout-to-Image Generation)</font>](https://0809zheng.github.io/2024/03/01/grounded_generator.html)
 
-**时空动作检测**旨在识别视频中目标动作出现的区间和对应的类别，并在空间范围内用一个包围框标记出人物的空间位置。按照处理方式不同，时空动作检测可方法以分为：
+**布局引导图像生成**是图像感知任务（如目标检测、图像分割）的逆过程，即根据给定的布局生成对应的图像。根据布局控制条件的输入形式，布局引导的图像生成模型包括：
+- 文本级**L2I**模型：通过将空间布局转换成文本**token**实现布局控制，如**ReCo**, **LayoutDiffusion**, **GeoDiffusion**, **DetDiffusion**。
+- 像素级**L2I**模型：通过提供像素级空间对齐条件实现布局控制，如**GLIGEN**, **LayoutDiffuse**, **ControlNet**, **InstanceDiffusion**。
 
-- **帧级的检测器(frame-level detector)**：每次检测时输入单帧图像，得到单帧图像上的检测结果；之后把检测结果沿时间维度进行连接，得到视频检测结果。如**T-CNN**。
-- **管级的检测器(tubelet-level detector)**：每次检测时输入多帧连续视频帧，对每帧上预定义的检测框进行修正，并对不同输入的结果在时序上进行连接。如**ACT-detector**, **MOC-detector**。
+## (4) Human-Centric感知
 
+
+### ⚪ [<font color=blue>人体姿态估计 (Human Pose Estimation)</font>](https://0809zheng.github.io/2020/05/31/pose-estimation.html)
+
+**人体姿态估计**是指从图像、视频等输入信号中估计人体的姿态信息。姿态通常以关键点组成的人体骨骼表示。
+
+**2D**单人人体姿态估计通常是从已完成定位的人体图像中计算人体关节点的位置，并进一步生成**2D**人体骨架。这些方法可以进一步分为：
+- 基于回归的方法：直接将输入图像映射为人体关节的**坐标**或人体模型的**参数**，如**DeepPose**, **TFPose**, **Poseur**, **PCT**。
+- 基于检测的方法：将输入图像映射为**图像块(patch)**或人体关节位置的**热图(heatmap)**，从而将身体部位作为检测目标；如**CPM**, **Hourglass**, **Chained**, **MCA**, **FPM**, **HRNet**, **TokenPose**, **ViTPose**。
+
+与单人姿态估计相比，多人姿态估计需要同时完成**检测**和**估计**任务。根据完成任务的顺序不同，多人姿态估计方法分为：
+- 自上而下的方法：先做**检测**再做**估计**。即先通过目标检测的方法在输入图像中检测出不同的人体，再使用单人姿态估计方法对每个人进行姿态估计；如**RMPE**, **CPN**, **MSPN**, **RTMPose**。
+- 自下而上的方法：先做**估计**再做**检测**。即先在图像中估计出所有人体关节点，再将属于不同人的关节点进行关联和组合；如**DeepCut**, **DeeperCut**, **Associative Embedding**, **OpenPose**。
+
+**3D**人体姿态估计是从图片或视频中估计出关节点的三维坐标，与**2D**人体姿态估计相比，**3D**人体姿态估计需要估计**深度**信息。**3D**人体姿态估计方法可以分为：
+- 直接回归的方法：直接把图像映射为**3D**关节点，如**DconvMP**, **VNect**, **ORPM**, **Volumetric Prediction**, **3DMPPE**。
+- **2D→3D**的方法：从**2D**姿态估计结果中估计深度信息，如**2D+Matching**, **SimpleBasline-3D**。
+- 基于模型的方法：引入人体模型，如**SMPLify**, **SMPLify-X**。
+
+人体姿态估计中的技巧包括：
+- 数据处理：一些常用的数据预处理和后处理方法，如**AID**, **PoseAug**, **UDP**, **SmoothNet**。
+- 量化误差消除：在**Heatmap-based**方法中经过下采样的特征图会产生**量化误差**，消除方法包括**DARK**, **PIP-Net**, **SimCC**, **DSNT**, **IPR**, **Debiased IPR**, **Sampling-Argmax**, **CAL**, **SIKR**。
+- 轻量化：探索轻量化姿态估计网络，如**Lite-HRNet**, **HR-NAS**, **Lite Pose**, **MoveNet**。
+- 训练技巧：一些常用的姿态估计训练技巧，如**OKDHP**, **Bone Loss**, **HDM**, **PeCLR**, **RLE**, **SCAI**, **DWPose**, **POMNet**。
+
+二维人体姿态估计中常用的评估指标包括**PCP**, **PCK**, **OKS**, **AP**, **mAP**。三维人体姿态估计中常用的评估指标包括**MPJPE**。
+
+常用的二维人体姿态估计数据集包括**LSP**, **FLIC**, **MPII**, **MS COCO**, **AIC**。常用的三维人体姿态估计数据集包括**Human3.6M**, **MPI-INF-3DHP**, **CMU Panoptic**, **AMASS**。
 
 ### ⚪ [<font color=blue>人脸检测, 识别与验证 (Face Detection, Recognition, and Verification)</font>](https://0809zheng.github.io/2020/05/10/face-recognition.html)
 
@@ -511,37 +565,48 @@ $$
 
 **行人属性识别**是指从行人图像中挖掘具有高级语义的属性信息；常用的行人属性识别方法包括**DeepSAR**, **DeepMAR**, **HydraPlus-Net**。
 
-### ⚪ [<font color=blue>文本检测与识别 (Text Detection and Recognition)</font>](https://0809zheng.github.io/2020/05/15/text-detection-recognition.html)
+### ⚪ [<font color=blue>时空动作检测 (Spatio-Temporal Action Detection)</font>](https://0809zheng.github.io/2021/07/15/stad.html)
 
-**文本检测**是指找出图像中的文字区域；文本识别是指对定位好的文字区域进行识别，将图像中的文字区域进转化为字符信息。常用的文本检测与识别方法包括**EAST**, **CRNN**, **Mask TextSpotter**。
+**时空动作检测**旨在识别视频中目标动作出现的区间和对应的类别，并在空间范围内用一个包围框标记出人物的空间位置。按照处理方式不同，时空动作检测可方法以分为：
 
-### ⚪ [<font color=blue>点云分类 (Point Cloud Classification)</font>](https://0809zheng.github.io/2023/04/01/pointcloud.html)
+- **帧级的检测器(frame-level detector)**：每次检测时输入单帧图像，得到单帧图像上的检测结果；之后把检测结果沿时间维度进行连接，得到视频检测结果。如**T-CNN**。
+- **管级的检测器(tubelet-level detector)**：每次检测时输入多帧连续视频帧，对每帧上预定义的检测框进行修正，并对不同输入的结果在时序上进行连接。如**ACT-detector**, **MOC-detector**。
 
-**点云分类**即点云形状分类，是一种重要的点云理解任务。该任务的方法通常首先学习每个点的嵌入，然后使用聚合方法从整个点云中提取全局形状嵌入，并通过分类器进行分类。根据神经网络输入的数据格式，三维点云分类方法可分为：
-- 基于多视图(**Multi-view based**)的方法：将点云投影为多个二维图像，如**MVCNN**, **MHBN**。
-- 基于体素(**Voxel-based**)的方法：将点云转换为三维体素表示，如**VoxNet**, **OctNet**。
-- 基于点(**Point-based**)的方法：直接处理原始点云，如**PointNet**, **PointNet++**, **PointCNN**, **DGCNN**, **PCT**。
+### ⚪ [<font color=blue>射频人体感知(RF-based Human Perception)</font>](https://0809zheng.github.io/2024/06/01/rfbased.html)
 
-### ⚪ [<font color=blue>目标计数 (Object Counting)</font>](https://0809zheng.github.io/2023/05/01/counting.html)
+**射频人体感知**又称为**可见光谱外的人体感知**，是指使用雷达系统进行人体感知应用。雷达系统向检测环境中发射电磁波信号，照射人体目标，并接收反射信号用于执行下游任务。与光学系统相比，雷达系统可以在低能见度等特殊环境中工作，并且可以提供更好的隐私保护性。在特定频段工作的雷达系统还可以穿透墙壁等非金属障碍物，从而实现隐蔽场景下的人体感知。
 
-**目标计数**任务旨在从图像或视频中统计特定目标实例的数量。本文主要讨论基于**回归**的计数方式，即直接学习图像到目标数量或目标密度图的映射关系，通用的目标技术方案包括：
-1. **少样本计数 (Few-Shot Counting)**：提供目标样本**exemplar**在查询图像中进行匹配，如**GMN**, **FamNet**, **LaoNet**, **CFOCNet**, **SAFECount**, **BMNet+**, **Counting-DETR**, **CounTR**, **LOCA**, **SPDCN**, **VCN**, **SAM Counting**, **CACViT**, **DAVE**, **SSD**。
-2. **无参考计数 (Reference-less Counting)**：自动挖掘和计数所有显著性目标，如**LC**, **RLC**, **MoVie**, **DSAA**, **CaOC**, **RepRPN-Counter**, **RCC**, **GCNet**, **ZSC**, **ABC123**, **OmniCount**。
-3. **文本引导计数 (Text-Guided Counting)**：通过预训练视觉语言模型进行目标计数，如**CountCLIP**, **CLIP-Count**, **CounTX**, **VLCounter**, **CLIP Counting**, **ExpressCount**。
+根据发射信号的工作频段不同，射频人体感知方法可以细分为基于毫米波雷达的方法、基于**WiFi**阵列的方法与基于穿墙雷达的方法。（部分工作简写为标题首字母）
+- 基于毫米波雷达的方法：工作频段30-300GHZ，人体目标被视为散射体，可以捕获细粒度的人体细节，如**mm-Pose**, **HMRER-SRNN**, **ITL**, **1-D-DAN**。
+- 基于**WiFi**阵列的方法：工作频段2.4-5GHZ，人体目标被视为反射体，可以通过深度学习技术学习人体统计信息，如**RF-Pose**, **RF-Pose3D**, **RF-Avatar**, **TWPIRT-MMEDP**, **Person-in-WiFi**, **RF-Action**, **WiPose**, **RF-ReID**, **TGUL**。
+- 基于穿墙雷达的方法：工作频段0-3GHZ，超宽带穿墙雷达系统可用于非接触式穿墙人体感知，如**UDA-MDHMC**, **ADA-MDHAC**, **SCGRNN**, **TWHPR-UWB**, **UWB-Pose**, **TWHMR-TLEL**, **HPR-TWRI**, **UHCE-TWRI**, **TWHPR-CMLSSL**, **RPSNet**, **MIMDSN**, **RadarFormer**。
 
-## (2) 自然语言处理
+## (5) 自然语言处理
 
 ### ⚪ [1](https://0809zheng.github.io/2020/08/27/SR.html)
 
 - [词嵌入](https://0809zheng.github.io/2020/04/29/word-embedding.html)
 - [文本摘要](https://0809zheng.github.io/2020/05/13/text-summary.html)
-- [图像描述](https://0809zheng.github.io/2020/05/14/image-caption.html)
 - [连接时序分类](https://0809zheng.github.io/2020/06/11/ctc.html)
 - [音乐生成](https://0809zheng.github.io/2020/10/26/musicgen.html)
 
+## (6) 多模态
 
-## (3) AI for Science
+- [图像描述](https://0809zheng.github.io/2020/05/14/image-caption.html)
 
+### ⚪ [<font color=blue>文本检测与识别 (Text Detection and Recognition)</font>](https://0809zheng.github.io/2020/05/15/text-detection-recognition.html)
+
+**文本检测**是指找出图像中的文字区域；文本识别是指对定位好的文字区域进行识别，将图像中的文字区域进转化为字符信息。常用的文本检测与识别方法包括**EAST**, **CRNN**, **Mask TextSpotter**。
+
+
+
+
+
+
+
+## (7) AI for Science
+
+- [A universal SNP and small-indel variant caller using deep neural networks](https://0809zheng.github.io/2024/08/29/deepvariant.html)：(Nature Biotechnology 2018)使用深度神经网络的通用单核苷酸多态性和插入/缺失变异比对器。
 - [Fourier Neural Operator for Parametric Partial Differential Equations](https://0809zheng.github.io/2021/06/28/fno.html)：(arXiv2010)为偏微分方程设计的傅里叶神经算子。
 - [Advancing mathematics by guiding human intuition with AI](https://0809zheng.github.io/2022/01/08/mathai.html)：(Nature 2021.12)用人工智能引导人类直觉推进数学发展。
 - [Noether Networks: Meta-Learning Useful Conserved Quantities](https://0809zheng.github.io/2022/06/19/noether.html)：(arXiv2112)Noether网络：通过元学习学习有用的守恒量。
@@ -552,6 +617,14 @@ $$
 
 
 # 4. 参考文献与扩展阅读
+
+### ⚪ Life-Long Deep Learning
+
+深度学习技术发展日新月异，快速并持续地获取新技术的发展十分关键。按照个人时间充裕程度，学习深度学习技术的渠道可以分为以下三种：
+1. 时间充裕指数⭐⭐⭐：推荐每天刷[**arxiv**](https://arxiv.org/)获取最新研究论文，或者借助[**Cool Papers**](https://papers.cool/)辅助刷**arxiv**论文。
+2. 时间充裕指数⭐⭐：推荐关注顶会的出分和放榜时间，通过[**OpenReview**](https://openreview.net/)等工具获取相关顶会的投递和接收论文，可以使用[**Paper Copilot**](https://papercopilot.com/)工具查看顶会论文的得分排名等统计信息。
+3. 时间充裕指数⭐：推荐关注一些深度学习相关的自媒体，利用随便化时间从公众号、知乎、B站等渠道获取最新技术动态，不过能获取的大都是知名大佬的作品或网红论文，不建议作为主要学习方式。
+
 
 ### ⚪ 深度学习的相关课程
 - [Deep Learning \| Coursera （Andrew Ng）](https://www.coursera.org/specializations/deep-learning)
@@ -569,3 +642,6 @@ $$
 ### ⚪ 深度学习的相关博客
 - 企业博客：[OpenAI](https://openai.com/blog/)、[DeepMind](https://www.deepmind.com/blog)、[DeepLearning.AI](https://www.deepmind.com/blog)
 - 个人博客：[Lil’Log](https://lilianweng.github.io/)、[科学空间](https://spaces.ac.cn/)
+
+
+

@@ -7,17 +7,17 @@ cover: 'https://pic.downk.cc/item/5ebab802101ccd402bd8d03b.jpg'
 tags: 深度学习
 ---
 
-> Person Pose Estimation.
+> Human Pose Estimation.
 
 **人体姿态估计 (Human Pose Estimation, HPE)**是指从图像、视频等输入信号中估计人体的姿态信息。姿态通常以关键点（**keypoint**，也称为关节点 **joint**，比如手肘、膝盖、肩膀）组成的人体骨骼（**skeleton**）表示。
 
 人体姿态估计与关键点检测的区别：人体关键点检测是指在图像中直接预测若干预定义人体关键点的空间位置，当关键点部位被遮挡时则无法直接预测；而人体姿态估计在此基础上根据人体关节的先验知识和全局关系对被遮挡的关键点位置进行估计，从而获得完整的人体姿态预测结果。
 
 **本文目录**：
-1. **2D**单人姿态估计
-2. **2D**多人姿态估计
-3. **3D**人体姿态估计
-4. 人体姿态估计的技巧
+1. [**2D**单人姿态估计](https://0809zheng.github.io/2020/05/31/pose-estimation.html#1-2d%E5%8D%95%E4%BA%BA%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1-2d-single-human-pose-estimation)
+2. [**2D**多人姿态估计](https://0809zheng.github.io/2020/05/31/pose-estimation.html#2-2d%E5%A4%9A%E4%BA%BA%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1-2d-multiple-human-pose-estimation)
+3. [**3D**人体姿态估计](https://0809zheng.github.io/2020/05/31/pose-estimation.html#3-3d%E4%BA%BA%E4%BD%93%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1-3d-human-pose-estimation)
+4. [人体姿态估计的技巧](https://0809zheng.github.io/2020/05/31/pose-estimation.html#4-%E4%BA%BA%E4%BD%93%E5%A7%BF%E6%80%81%E4%BC%B0%E8%AE%A1%E7%9A%84%E6%8A%80%E5%B7%A7-bag-of-tricks)
 5. 人体姿态估计的评估指标
 6. 人体姿态估计数据集
 
@@ -385,7 +385,7 @@ $$
 
 # 4. 人体姿态估计的技巧 Bag of Tricks
 
-## （1）数据预处理
+## （1）数据处理
 
 ### ⚪ Augmentation by Information Dropping (AID)
 - paper：[<font color=blue>AID: Pushing the Performance Boundary of Human Pose Estimation with Information Dropping Augmentation</font>](https://0809zheng.github.io/2021/04/22/aid.html)
