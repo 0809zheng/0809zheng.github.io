@@ -3,13 +3,13 @@ layout: post
 title: 'SmoothNet: A Plug-and-Play Network for Refining Human Poses in Videos'
 date: 2021-10-18
 author: 郑之杰
-cover: 'https://pic1.imgdb.cn/item/6790b51ad0e0a243d4f69241.png'
+cover: 'https://pic1.imgdb.cn/item/679cb66dd0e0a243d4f8c676.png'
 tags: 论文阅读
 ---
 
 > SmoothNet：一种用于视频中人体姿态细化的即插即用网络.
 
-- paper：[SmoothNet: A Plug-and-Play Network for Refining Human Poses in Videos](https://arxiv.org/abs/2207.10387)
+- paper：[SmoothNet: A Plug-and-Play Network for Refining Human Poses in Videos](https://arxiv.org/abs/2112.13715)
 
 ## TL; DR
 
