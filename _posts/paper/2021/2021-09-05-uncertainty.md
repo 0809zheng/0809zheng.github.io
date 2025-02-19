@@ -85,3 +85,48 @@ $$ \mathcal{L}(W,\sigma_1,...,\sigma_K) = \sum_{k=1}^{K}\frac{1}{2\sigma_k^2}\ma
 作者通过实验验证，所提自动设置损失权重的方法能够使单个任务上具有最好的表现：
 
 ![](https://pic.imgdb.cn/item/61320e4644eaada739c071ef.jpg)
+
+该损失的**Pytorch**实现如下：
+
+```python
+import torch
+import torch.nn as nn
+from torch import optim
+
+class AutomaticWeightedLoss(nn.Module):
+    """
+    Params：
+        num: int，the number of loss
+        x: multi-task loss
+    """
+    def __init__(self, num=2):
+        super(AutomaticWeightedLoss, self).__init__()
+        params = torch.ones(num, requires_grad=True)
+        self.params = torch.nn.Parameter(params)
+
+    def forward(self, *x):
+        loss_sum = 0
+        for i, loss in enumerate(x):
+            loss_sum += 0.5 / (self.params[i] ** 2) * loss + torch.log(1 + self.params[i] ** 2)
+        return loss_sum
+
+awl = AutomaticWeightedLoss(2)	# we have 2 losses
+
+# learnable parameters
+optimizer = optim.Adam([
+                {'params': model.parameters()},
+                {'params': awl.parameters(), 'weight_decay': 0}
+            ])
+
+for i in range(epoch):
+    for data, label in data_loader:
+        # forward and calculate losses
+        loss1 = ...
+        loss2 = ...
+        # weigh losses
+        loss_sum = awl(loss1, loss2)
+        # backward
+        optimizer.zero_grad()
+        loss_sum.backward()
+        optimizer.step()
+```
