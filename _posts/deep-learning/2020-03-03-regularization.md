@@ -306,27 +306,63 @@ $$ E_{q(w)}(y)=\int_{q(w)}^{} {f(x;w)q(w)dw} ≈\frac{1}{M}\sum_{m=1}^{M} {f(x;w
 
 **数据增强**(**data augmentation**)是指通过对样本集中的样本进行额外的操作（通常是加入随机噪声），增加样本集的数据量，提高训练模型的鲁棒性，减少过拟合的风险。
 
-关于数据增强的更多讨论可参考：[]()。
 
 ## ⚪ 梯度裁剪 Gradient Clipping
 
-**梯度裁剪**是根据梯度的模长来对更新量做一个缩放，控制更新量的模长不超过一个常数:
-
-$$
-\theta \leftarrow \theta - \eta \text{clip} \left( \nabla_{\theta}f(\theta) , - maxVal, maxVal \right)
-$$
-
-```python
-losses.backward()
-torch.nn.utils.clip_grad_norm_(model.parameters(), clip_max_norm)
-optimizer.step()
-```
+**梯度裁剪**用来防止梯度爆炸问题，尤其是在训练深度神经网络时。这种情况常发生在梯度的范数（即大小）变得非常大，导致权重更新过大，从而使得网络训练不稳定。
 
 论文[<font color=blue>Why gradient clipping accelerates training: A theoretical justification for adaptivity</font>](https://0809zheng.github.io/2020/09/28/clip.html)指出，梯度裁剪相当于为模型引入$(L_0,L_1)$-**Smooth**约束：
 
 $$
 ||\nabla_{\theta}f(\theta+\Delta \theta) - \nabla_{\theta}f(\theta)|| \leq \left(L_0+L_1 ||\nabla_{\theta}f(\theta)||\right) ||\Delta \theta||
 $$
+
+梯度裁剪有两种实现方式：
+
+### （1）数值裁剪 clip_grad_value
+
+直接将每个梯度值裁剪到给定的范围内:
+
+$$
+\theta \leftarrow \theta - \eta \text{Clip} \left( \nabla_{\theta}f(\theta) , - \text{maxVal}, \text{maxVal} \right)
+$$
+
+```python
+losses.backward()
+torch.nn.utils.clip_grad_value_(
+    model.parameters(),
+    clip_value,
+    foreach=None, # 使用更快的基于 foreach 的实现
+)
+optimizer.step()
+```
+
+### （2）范数裁剪 clip_grad_norm
+
+通过将梯度的范数裁剪到一个最大值 **maxNorm** 来控制梯度大小。首先计算所有参数的梯度的**L2**范数：
+
+$$
+\text{totalNorm} = \sqrt{\sum_i ||\text{grad}_i||_2^2}
+$$
+
+如果 **totalNorm** 小于等于 **maxNorm**，则不需要裁剪，梯度保持不变；如果 **totalNorm** 大于 **maxNorm**，则按比例将所有梯度缩放，以使新梯度的整体范数等于 **maxNorm**：
+
+$$
+\text{grad}_i = \text{grad}_i \times \min\left(1, \frac{\text{maxNorm}}{\text{totalNorm}}\right)
+$$
+
+```python
+losses.backward()
+torch.nn.utils.clip_grad_norm_(
+    model.parameters(),
+    clip_max_norm,
+    norm_type=2.0, # 所用 p 范数的类型
+    error_if_nonfinite=False, # 梯度的总范数为nan,inf时是否抛出错误
+    foreach=None, # 使用更快的基于 foreach 的实现
+)
+optimizer.step()
+```
+
 
 ## ⚪ Early Stopping
 **Early Stop**是指训练时当观察到验证集上的错误不再下降，就停止迭代。具体停止迭代的时机，可参考[Early stopping-but when?](https://link.springer.com/chapter/10.1007/978-3-642-35289-8_5)。
