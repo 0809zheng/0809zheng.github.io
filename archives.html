@@ -38,8 +38,9 @@ layout: default
 
           <!-- 文章标题，字体颜色设置为灰色 -->
           <a href="{{ post.url }}" style="color: #808080; text-decoration: none; flex: 1 1 0; min-width: 0;">
-            {{ post.date | date:"%b-%-d" }} {{ post.title }}
+            [{{ post.date | date:"%b-%-d" }}] {{ post.title }}
           </a>
+            
         </div>
       </li>
        
