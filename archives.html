@@ -27,19 +27,19 @@ layout: default
        
       <li style="margin-bottom: 20px;">
         <!-- 修改标签样式，把标签放到标题前面 -->
-        <!-- 将标签放在标题前面 -->
-        <div style="display: flex; flex-wrap: wrap; align-items: center;">
+        <!-- 将标签和标题放在同一行 -->
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
           <!-- 显示文章标签 -->
           {% if post.tags %}
-            <div class="post-tags" style="margin-right: 10px;">
+            <div class="post-tags" style="display: flex; flex-wrap: wrap; gap: 5px;">
               {% for tag in post.tags %}
-                <a href="/tags/{{ tag | slugify }}" style="color: #00BFFF; text-decoration: none; padding: 2px 5px; margin-right: 5px; background: transparent;">{{ tag }}</a>
+                <a href="/tags/{{ tag | slugify }}" style="color: #00BFFF; text-decoration: none; padding: 2px 5px; background: transparent;">{{ tag }}</a>
               {% endfor %}
             </div>
           {% endif %}
 
           <!-- 文章标题，字体颜色设置为灰色 -->
-          <a href="{{ post.url }}" style="color: #808080; text-decoration: none;">{{ post.date | date:"%b-%-d-%Y" }}  {{ post.title }}</a>
+          <a href="{{ post.url }}" style="color: #808080; text-decoration: none;">{{ post.date | date:"%b-%-d-%Y" }} {{ post.title }}</a>
         </div>
       </li>
        
