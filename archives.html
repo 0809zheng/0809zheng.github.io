@@ -1,0 +1,35 @@
+---
+title: Archives
+layout: default
+---
+
+{% include header.html %}
+
+<div class="g-banner tags-banner {{ site.postPatterns | prepend: 'post-pattern-' }} {{ site.theme-color | prepend: 'bgcolor-' }}" data-theme="{{ site.theme-color }}">
+    <h2>ARCHIVES</h2>
+</div>
+
+
+<main class="tags-content" style="margin-top: 0px">
+  <ul class="tags-list" style="padding:40px">
+    {% for post in site.posts %}
+      
+        {% unless post.next %}
+          <h3 style="margin-bottom: 8px">{{ post.date | date: "%b-%Y" }}</h3>
+        {% else %}
+        {% capture year %}{{ post.date | date: "%b, %Y" }}{% endcapture %}
+        {% capture nyear %}{{ post.next.date | date: "%b, %Y" }}{% endcapture %}
+        
+        {% if year != nyear %}
+           <h3 style="margin-bottom: 8px">{{ post.date | date: "%b-%Y" }}</h3>
+        {% endif %}
+        {% endunless %}
+       
+       <li> 
+           <a href="{{ post.url }}" style="color: black">{{ post.date | date:"%b-%-d-%Y" }}  {{ post.title }}</a>
+       </li>
+       
+    {% endfor %}
+  </ul>
+</main>
+{% include footer.html %}
