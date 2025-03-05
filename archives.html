@@ -25,21 +25,23 @@ layout: default
         {% endif %}
         {% endunless %}
        
-       <li> 
-        <!-- 显示文章标签 -->
-        {% if post.tags %}
-          <ul class="post-tags" style="display: inline-block; margin: 0; padding: 0;">
-            {% for tag in post.tags %}
-              <li style="display: inline; list-style: none; margin-right: 5px;">
-                <a href="/tags/{{ tag | slugify }}" style="color: blue;">{{ tag }}</a>
-              </li>
-            {% endfor %}
-          </ul>
-        {% endif %}
+      <li style="margin-bottom: 20px;">
+        <!-- 修改标签样式，把标签放到标题前面 -->
+        <!-- 将标签放在标题前面 -->
+        <div style="display: flex; flex-wrap: wrap; align-items: center;">
+          <!-- 显示文章标签 -->
+          {% if post.tags %}
+            <div class="post-tags" style="margin-right: 10px;">
+              {% for tag in post.tags %}
+                <a href="/tags/{{ tag | slugify }}" style="color: #00BFFF; text-decoration: none; padding: 2px 5px; margin-right: 5px; background: transparent;">{{ tag }}</a>
+              {% endfor %}
+            </div>
+          {% endif %}
 
-        <!-- 文章标题 -->
-        <a href="{{ post.url }}" style="color: #808080;">{{ post.date | date:"%b-%-d-%Y" }}  {{ post.title }}</a>
-       </li>
+          <!-- 文章标题，字体颜色设置为灰色 -->
+          <a href="{{ post.url }}" style="color: #808080; text-decoration: none;">{{ post.date | date:"%b-%-d-%Y" }}  {{ post.title }}</a>
+        </div>
+      </li>
        
     {% endfor %}
   </ul>
