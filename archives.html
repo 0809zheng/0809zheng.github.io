@@ -29,7 +29,7 @@ layout: default
           {% if post.tags %}
             <div class="post-tags" style="margin-right: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
               {% for tag in post.tags %}
-                <a href="/tags/{{ tag | slugify }}" style="color: #00BFFF; text-decoration: none; padding: 2px 5px; background: transparent; white-space: nowrap;">{{ tag }}</a>
+                <a href="/tags.html#{{ tag | slugify }}" style="color: #00BFFF; text-decoration: none; padding: 2px 5px; background: transparent; white-space: nowrap;">{{ tag }}</a>
               {% endfor %}
             </div>
           {% endif %}
