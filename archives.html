@@ -27,19 +27,18 @@ layout: default
         <div style="display: flex; align-items: baseline; flex-wrap: wrap;">
           <!-- 显示文章标签 -->
           {% if post.tags %}
-            {% assign tag_colors = "ADD8E6,90EE90,FFB6C1,FFFFE0,DDA0DD,FFDAB9,EE82EE,AFEEEE" | split: "," %}
             <div class="post-tags" style="margin-right: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
               {% for tag in post.tags %}
-                {% assign color = tag_colors[forloop.index0 | modulo: tag_colors.size] %}
-                <a href="{{ '/tags/' | append: tag | slugify }}" style="color: #{{ color }}; text-decoration: none; padding: 2px 5px; white-space: nowrap;">{{ tag }}</a>
+                <a href="/tags/{{ tag | slugify }}" style="color: #00BFFF; text-decoration: none; padding: 2px 5px; background: transparent; white-space: nowrap;">{{ tag }}</a>
               {% endfor %}
             </div>
           {% endif %}
 
           <!-- 文章标题，字体颜色设置为灰色 -->
           <a href="{{ post.url }}" style="color: #808080; text-decoration: none; flex: 1 1 0; min-width: 0;">
-            ({{ post.date | date:"%b-%-d-%Y" }}) {{ post.title }}
+            [{{ post.date | date:"%b-%-d" }}] {{ post.title }}
           </a>
+            
         </div>
       </li>
       
