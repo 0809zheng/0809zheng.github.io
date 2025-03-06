@@ -9,22 +9,20 @@ layout: default
     <h2>ARCHIVES</h2>
 </div>
 
-
 <main class="tags-content" style="margin-top: 0px">
-  <ul class="tags-list" style="padding:40px">
+  <ul class="tags-list" style="padding: 40px;">
     {% for post in site.posts %}
-      
-        {% unless post.next %}
-          <h3 style="margin-bottom: 8px">{{ post.date | date: "%b-%Y" }}</h3>
-        {% else %}
+      {% unless post.next %}
+        <h3 style="margin-bottom: 8px;">{{ post.date | date: "%b-%Y" }}</h3>
+      {% else %}
         {% capture year %}{{ post.date | date: "%b, %Y" }}{% endcapture %}
         {% capture nyear %}{{ post.next.date | date: "%b, %Y" }}{% endcapture %}
         
         {% if year != nyear %}
-           <h3 style="margin-bottom: 8px">{{ post.date | date: "%b-%Y" }}</h3>
+          <h3 style="margin-bottom: 8px;">{{ post.date | date: "%b-%Y" }}</h3>
         {% endif %}
-        {% endunless %}
-       
+      {% endunless %}
+
       <li style="margin-bottom: 20px;">
         <div style="display: flex; align-items: baseline; flex-wrap: wrap;">
           <!-- 显示文章标签 -->
@@ -33,7 +31,7 @@ layout: default
             <div class="post-tags" style="margin-right: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
               {% for tag in post.tags %}
                 {% assign color = tag_colors[forloop.index0 | modulo: tag_colors.size] %}
-                <a href="/tags/{{ tag | slugify }}" style="color: #{{ color }}; text-decoration: none; padding: 2px 5px; background: transparent; white-space: nowrap;">{{ tag }}</a>
+                <a href="{{ '/tags/' | append: tag | slugify }}" style="color: #{{ color }}; text-decoration: none; padding: 2px 5px; white-space: nowrap;">{{ tag }}</a>
               {% endfor %}
             </div>
           {% endif %}
@@ -44,8 +42,9 @@ layout: default
           </a>
         </div>
       </li>
-       
+      
     {% endfor %}
   </ul>
 </main>
+
 {% include footer.html %}
