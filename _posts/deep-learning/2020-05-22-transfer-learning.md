@@ -1,10 +1,10 @@
 ---
 layout: post
-title: 'Transfer Learning：迁移学习'
+title: '迁移学习(Transfer Learning)'
 date: 2020-05-22
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5efc584614195aa5940f63f1.jpg'
-tags: 机器学习
+tags: 深度学习
 ---
 
 > Transfer Learning.
