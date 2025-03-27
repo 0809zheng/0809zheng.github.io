@@ -19,8 +19,9 @@ tags: 深度学习
 **归一化（Normalization）**泛指把数据特征的不同维度转换到相同尺度的方法。深度学习中常用的归一化方法包括：
 1. 基础归一化方法：最小-最大值归一化、标准化、白化、逐层归一化
 2. 深度学习中的特征归一化：局部响应归一化**LRN**、批归一化**BN**、层归一化**LN**、实例归一化**IN**、组归一化**GN**、切换归一化**SN**
-3. 改进特征归一化：（改进**BN**）**Batch Renormalization**, **AdaBN**, **L1-Norm BN**, **GBN**, **SPADE**；（改进**LN**）**RMS Norm**；（改进**IN**）**FRN**, **AdaIN**
+3. 改进特征归一化：（改进**BN**）**Batch Renormalization**, **AdaBN**, **L1-Norm BN**, **GBN**, **SPADE**；（改进**LN**）**RMS Norm**, **Pre-LN**, **Mix-LN**, **LayerNorm Scaling**；（改进**IN**）**FRN**, **AdaIN**
 4. 深度学习中的参数归一化：权重归一化**WN**、余弦归一化**CN**、谱归一化**SN**
+5. 不使用归一化的方法：**Fixup**, **SkipInit**, **ReZero**, **DyT**
 
 
 
@@ -502,7 +503,38 @@ $$
 
 **center**操作（减均值或**reshift**操作）类似于全连接层的**bias**项，储存到的是关于预训练任务的一种先验分布信息；而把这种先验分布信息直接储存在模型中，反而可能会导致模型的迁移能力下降。
 
+### ⚪ Pre-LN
+- paper：[<font color=Blue>On Layer Normalization in the Transformer Architecture</font>](https://0809zheng.github.io/2020/11/26/preln.html)
 
+**Post-LN**是指把**LayerNorm**放在自注意力+残差连接之后：
+
+$$
+x_{t+1} = \text{LayerNorm}(x_t + \text{SelfAttn}_t(x_t))
+$$
+
+而**Pre-LN**是指把**LayerNorm**放在自注意力之前：
+
+$$
+x_{t+1} = x_t + \text{SelfAttn}_t(\text{LayerNorm}(x_t))
+$$
+
+**Pre-LN**结构通常更容易训练，但最终效果一般比**Post-LN**差。
+
+### ⚪ Mix-LN
+- paper：[<font color=Blue>Mix-LN: Unleashing the Power of Deeper Layers by Combining Pre-LN and Post-LN</font>](https://0809zheng.github.io/2024/12/18/mixln.html)
+
+**Mix-LN**在模型的早期层（前$aL$层）应用**Post-LN**，在深度层（后$(1-a)L$层）应用**Pre-LN**。
+
+这样做的目的是利用**Post-LN**在深度层增强梯度流动的优势，同时利用**Pre-LN**在早期层稳定梯度的优势。通过这种方式，**Mix-LN**在中间和深度层实现了更健康的梯度范数，促进了整个网络的平衡训练，从而提高了模型的整体性能。
+
+![](https://pic1.imgdb.cn/item/67e501590ba3d5a1d7e50f60.png)
+
+### ⚪ LayerNorm Scaling
+- paper：[<font color=Blue>The Curse of Depth in Large Language Models</font>](https://0809zheng.github.io/2025/02/09/cod.html)
+
+**LayerNorm Scaling**通过按深度的平方根对**Layer Normalization**的输出进行缩放，有效控制了深度层输出方差的增长，确保了所有层都能有效地参与学习:
+
+![](https://pic1.imgdb.cn/item/67e5104d0ba3d5a1d7e51533.png)
 
 ## （3）改进Instance Norm
 
@@ -654,3 +686,58 @@ model = add_sn(model)
 
 值得一提的是，谱归一化是对模型的每一层权重都进行的操作，使得网络的每一层都满足**Lipschitz**约束；这种约束有时太过强硬，通常只希望整个模型满足**Lipschitz**约束，而不必强求每一层都满足。
 
+# 5. 不使用归一化的方法
+
+近些年有一些方法尝试不引入归一化策略来训练深度学习模型。
+
+### ⚪ Fixup
+- paper：[<font color=Blue>Fixup Initialization: Residual Learning Without Normalization</font>](https://0809zheng.github.io/2020/11/09/fixup.html)
+
+在没有归一化的残差网络中，输出方差会随着深度呈指数增长，从而导致梯度爆炸。
+
+**Fixup**的核心思想是通过重新调整残差分支的权重初始化，使得每个残差分支对网络输出的更新幅度与网络深度无关。具体步骤如下：
+1. 初始化分类层和残差分支的最后一层权重为$0$：这有助于稳定训练初期的输出。
+2. 对残差分支内的权重层进行重新缩放：具体来说，将残差分支内的权重层按 $L^{-\frac{1}{2(m-2)}}$ 缩放，其中 $L$ 是网络深度，$m$ 是残差分支内的层数。这种缩放方式可以确保每个残差分支对网络输出的更新幅度为 $Θ(η/L)$，从而使得整个网络的更新幅度为 $Θ(η)$。
+3. 添加标量乘数和偏置：在每个残差分支中添加一个标量乘数（初始化为$1$），并在每个卷积层、线性层和激活层前添加一个标量偏置（初始化为$0$）。这些参数有助于进一步调整网络的表示能力。
+
+![](https://pic1.imgdb.cn/item/67e5178f0ba3d5a1d7e51957.png)
+
+### ⚪ SkipInit
+- paper：[<font color=Blue>Batch Normalization Biases Residual Blocks Towards the Identity Function in Deep Networks</font>](https://0809zheng.github.io/2021/02/01/skipinit.html)
+
+由于归一化操作，残差分支的输出方差被抑制到接近$1$，从而使得残差块的输出主要由跳跃连接决定，即网络函数接近恒等函数。这种特性确保了网络在初始化时具有良好的梯度传播，便于训练。
+
+基于上述分析，作者提出了**SkipInit**初始化方法。该方法的核心思想是在每个残差分支的末尾引入一个可学习的标量乘数$α$，并在初始化时将其设置为$0$或一个较小的常数$1/\sqrt{d}$（$d$是残差块的数量）。这样在初始化时，残差分支的贡献被显著缩小，使得残差块的输出接近跳跃连接，从而实现了与批归一化类似的效果。
+
+$$
+x_{t+1} = x_t + \alpha \cdot F_t(x_t)
+$$
+
+![](https://pic1.imgdb.cn/item/67e51c7c0ba3d5a1d7e51d91.png)
+
+### ⚪ ReZero
+- paper：[<font color=Blue>ReZero is All You Need: Fast Convergence at Large Depth</font>](https://0809zheng.github.io/2021/03/13/rezero.html)
+
+与**SkipInit**类似，**ReZero**通过在每个残差连接处引入一个初始化为零的可训练参数，实现了动态等距性，从而显著加速了深度网络的训练。
+
+$$
+x_{t+1} = x_t + \alpha_t \cdot F_t(x_t)
+$$
+
+动态等距性要求网络的输入-输出雅可比矩阵的所有奇异值接近1，即输入信号的所有扰动都能在网络中以相似的方式传播。**ReZero**通过将每个残差块的初始输出设置为输入本身，确保了在训练开始时网络的雅可比矩阵的奇异值为1。
+
+![](https://pic1.imgdb.cn/item/67e520230ba3d5a1d7e5210e.png)
+
+
+### ⚪ Dynamic Tanh（DyT）
+- paper：[<font color=Blue>Transformers without Normalization</font>](https://0809zheng.github.io/2025/03/13/dyt.html)
+
+作者发现，在训练好的**Transformer**模型中，归一化层的输入-输出映射呈现出类似**tanh**函数的**S**形曲线。这种映射不仅对输入激活值进行了缩放，还对极端值进行了压缩。
+
+**DyT**的核心思想是通过一个可学习的标量参数$α$和**tanh**函数来动态调整输入激活值，以代替网络中的**LayerNorm**：
+
+$$
+\text{DyT}(x)=γ⋅\tanh(αx)+β
+$$
+
+![](https://pic1.imgdb.cn/item/67e532c10ba3d5a1d7e52758.png)
