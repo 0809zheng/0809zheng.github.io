@@ -13,9 +13,9 @@ tags: 深度学习
 1. 在大量无标签的语料库上进行特定任务的**预训练**；
 2. 在下游任务的语料库上进行**微调**。
 
-本文首先介绍预训练语言模型的发展，并介绍常用的预训练语言模型。
+本文首先介绍语言的特征表示，并介绍预训练语言模型的发展。
 
-# 1. 预训练语言模型的发展
+# 1. 语言的特征表示
 自然语言处理中对于语言的特征表示应能够从文本语料库中学习到内在语言规则和常识知识，如词义、句法结构、词类、语用学信息等。一种好的语言特征表示应具有与具体任务无关的通用含义，又能够针对具体的任务提供有用的信息。目前对语言的特征表示有两种形式，即**上下文无关的嵌入(non-contextual embedding)**和**上下文相关的嵌入(contextual embedding)**。
 
 ![](https://pic.imgdb.cn/item/60ebf3395132923bf857acf4.jpg)
@@ -36,8 +36,28 @@ tags: 深度学习
 2. 可以提供一个更好的下游任务**初始化模型**，提高下游任务的表现并加速收敛；
 3. 可以看作一种**正则化**，防止模型在小数据集上过拟合。
 
-# 2. 常用的预训练语言模型
-根据预训练的任务不同，预训练语言模型可以划分为以下几类：
+# 2. 预训练语言模型的发展
+
+### (1) 预训练语言模型的结构
+
+**Transformer**模型是编码-解码端 （**Encoder-Decoder**）的架构。但是当前对于语言模型的分类，将语言模型分为三个类型：**编码端（Encoder-Only）**，**解码端（Decoder-Only）**和**编码-解码端（Encoder-Decoder）**。
+
+**① 编码端（Encoder-Only）架构**
+
+编码端架构（如**BERT, RoBERTa**）可以生成上下文向量表征，但不能直接用于生成文本。这些上下文向量表征通常用于**自然语言理解**任务（形式为分类任务，如文本分类、情感分类）。该架构的优势是对于文本的上下文信息有更好的理解，因此该模型架构才会多用于理解任务。该架构的优点是对于每个$x_i$，上下文向量表征可以双向地依赖于左侧上下文$(x_{1:i−1})$和右侧上下文$(x_{i+1:L})$。但是缺点在于不能自然地生成文本，且需要更多的特定训练目标（如掩码语言建模）。
+
+**② 解码端（Decoder-Only）架构**
+
+解码器架构（如**GPT**系列）是常见的自回归语言模型，通常用于**自然语言生成**任务：给定一个提示$x_{1:i}$，它们可以生成上下文向量表征，并对下一个词元$x_{i+1}$  （以及递归地，整个完成$x_{i+1:L}$） 生成一个概率分布。与编码端架构比，其优点为能够自然地生成文本，有简单的训练目标（最大似然）。缺点也很明显，对于每个$x_i$，上下文向量表征只能单向地依赖于左侧上下文$(x_{1:i−1})$。
+
+**③ 编码-解码端（Encoder-Decoder）架构**
+
+编码-解码端架构（如**BART, T5**）在某种程度上结合了两者的优点：它们可以使用双向上下文向量表征来处理输入$x_{1:L}$，并且可以生成输出$y_{1:L}$。该模型的具有编码端、解码端两个架构的共同的优点，对于每个$x_i$，上下文向量表征可以双向地依赖于左侧上下文$(x_{1:i−1})$和右侧上下文$(x_{i+1:L})$，可以自由的生成文本数据。缺点就是需要更多的特定训练目标。
+
+
+### (2) 预训练语言模型的任务
+
+预训练语言模型的预训练任务通常有以下几类：
 - **概率语言建模 Language Modeling(LM)**
 
 概率语言建模是自然语言处理中最常见的无监督任务，通常指**自回归(autoregressive)**或单向语言建模，即给定前面所有词预测下一个词：
@@ -60,7 +80,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 排列语言建模是指在输入序列的随机排列上进行语言建模。给定输入序列，从所有可能的序列排列中随机抽样一个排列。将该排列序列中的一些**token**选定为目标，训练模型根据其余**token**和目标的正常位置(**natural position**)来预测这些目标**token**。
 
-
+### (3) 常见的预训练语言模型
 
 | 预训练模型 | 结构 | 预训练任务 | 参数量(M百万,B十亿) |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---: | :---: | :----: |
@@ -74,6 +94,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 | [REALM](https://0809zheng.github.io/2020/12/27/realm.html) | Transformer编码器 | MLM+知识检索(Knowledge Retrieval) | $330$M |
 | [MASS](https://0809zheng.github.io/2021/08/18/mass.html) | Transformer | Seq2Seq MLM | $220$M-$11$B |
 | [UniLM](https://0809zheng.github.io/2021/08/17/unilm.html) | Transformer编码器 | Seq2Seq MLM | $340$M |
+| [BART](https://0809zheng.github.io/2021/03/14/bart.html) | Transformer | Seq2Seq MLM | $139$M-$406$M |
 | [T5](https://0809zheng.github.io/2021/01/08/t5.html) | Transformer | Seq2Seq MLM | $220$M-$11$B |
 | [T5.1.1](https://0809zheng.github.io/2021/01/09/t511.html) | Transformer | Seq2Seq MLM | $220$M-$11$B |
 | [mT5](https://0809zheng.github.io/2021/01/10/mt5.html) | Transformer | Seq2Seq MLM | $300$M-$13$B |
@@ -81,21 +102,6 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 | [DeBERTa](https://0809zheng.github.io/2021/04/02/deberta.html) | Transformer编码器 | E-MLM(Disentangled Attention+Enhanced Mask Decoder) | $390$M |
 | [XLNet](https://0809zheng.github.io/2021/08/19/xlnet.html) | Transformer编码器 | PLM | $110$-$340$M |
 
-### ⭐ 讨论：预训练语言模型的架构
-
-**Transformer**模型是编码-解码端 （**Encoder-Decoder**）的架构。但是当前对于语言模型的分类，将语言模型分为三个类型：**编码端（Encoder-Only）**，**解码端（Decoder-Only）**和**编码-解码端（Encoder-Decoder）**。
-
-**① 编码端（Encoder-Only）架构**
-
-编码端架构（如**BERT, RoBERTa**）可以生成上下文向量表征，但不能直接用于生成文本。这些上下文向量表征通常用于**自然语言理解**任务（形式为分类任务，如文本分类、情感分类）。该架构的优势是对于文本的上下文信息有更好的理解，因此该模型架构才会多用于理解任务。该架构的优点是对于每个$x_i$，上下文向量表征可以双向地依赖于左侧上下文$(x_{1:i−1})$和右侧上下文$(x_{i+1:L})$。但是缺点在于不能自然地生成完成文本，且需要更多的特定训练目标（如掩码语言建模）。
-
-**② 解码端（Decoder-Only）架构**
-
-解码器架构（如**GPT**系列）是常见的自回归语言模型，通常用于**自然语言生成**任务：给定一个提示$x_{1:i}$，它们可以生成上下文向量表征，并对下一个词元$x_{i+1}$  （以及递归地，整个完成$x_{i+1:L}$） 生成一个概率分布。与编码端架构比，其优点为能够自然地生成完成文本，有简单的训练目标（最大似然）。缺点也很明显，对于每个$x_i$，上下文向量表征只能单向地依赖于左侧上下文$(x_{1:i−1})$。
-
-**③ 编码-解码端（Encoder-Decoder）架构**
-
-编码-解码端架构（如**BART, T5**）在某种程度上结合了两者的优点：它们可以使用双向上下文向量表征来处理输入$x_{1:L}$，并且可以生成输出$y_{1:L}$。该模型的具有编码端、解码端两个架构的共同的优点，对于每个$x_i$，上下文向量表征可以双向地依赖于左侧上下文$(x_{1:i−1})$和右侧上下文$(x_{i+1:L})$，可以自由的生成文本数据。缺点就是需要更多的特定训练目标。
 
 # ⚪ 参考文献
 - [Pre-trained Models for Natural Language Processing: A Survey](https://arxiv.org/abs/2003.08271)：(arXiv2003)一篇预训练模型的综述。
@@ -107,6 +113,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 - [<font color=Blue>XLNet: Generalized Autoregressive Pretraining for Language Understanding</font>](https://0809zheng.github.io/2021/08/19/xlnet.html)：(arXiv1906)XLNet：使用排列语言建模训练语言模型。
 - [<font color=Blue>RoBERTa: A Robustly Optimized BERT Pretraining Approach</font>](https://0809zheng.github.io/2021/08/16/roberta.html)：(arXiv1907)RoBERTa：鲁棒优化的BERT预训练方法。
 - [<font color=Blue>ALBERT: A Lite BERT for Self-supervised Learning of Language Representations</font>](https://0809zheng.github.io/2021/01/14/albert.html)：(arXiv1909)ALBERT：一种轻量型的BERT模型。
+- [<font color=Blue>BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension</font>](https://0809zheng.github.io/2021/03/14/bart.html)：(arXiv1910)BART: 用于自然语言生成、翻译和理解的去噪序列到序列预训练模型。
 - [<font color=Blue>Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer</font>](https://0809zheng.github.io/2021/01/08/t5.html)：(arXiv1910)T5：编码器-解码器结构的预训练语言模型。
 - [<font color=Blue>Language Models are Unsupervised Multitask Learners</font>](https://0809zheng.github.io/2021/01/11/gpt2.html)：(2019)GPT2：语言模型是无监督的多任务模型。
 - [<font color=Blue>REALM: Retrieval-Augmented Language Model Pre-Training</font>](https://0809zheng.github.io/2020/12/27/realm.html)：(arXiv2002)REALM：通过检索增强预训练语言模型。
