@@ -123,6 +123,11 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 ### (2) 预训练语言模型如何存储知识？
 
+预训练语言模型的知识存储在**Transformer**的模型参数里。从**Transformer**的结构看，模型参数由两部分构成：自注意力层（约占总参数的三分之一）和全连接层（约占总参数的三分之二）。自注意力层主要用于计算**token**或知识间的相关性，并对全局信息进行整合，更可能是在建立知识之间的联系，大概率不会存储具体的知识点；则可以推论出模型的知识主体是存储在全连接层结构中。
+
+[<font color=Blue>Transformer Feed-Forward Layers Are Key-Value Memories</font>](https://0809zheng.github.io/2021/05/05/kvm.html)一文指出，把全连接层看作键-值记忆单元（$FF(x)=f(x⋅K^\top )⋅V$），其中第一层的参数$K$作为输入序列的模式检测器，第二层的参数$V$存储了对应模式下输出词汇表上的概率分布。
+
+![](https://pic1.imgdb.cn/item/67f784d088c538a9b5c87c5b.png)
 
 
 # ⚪ 参考文献
@@ -145,6 +150,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 - [<font color=Blue>DeBERTa: Decoding-enhanced BERT with Disentangled Attention</font>](https://0809zheng.github.io/2021/04/02/deberta.html)：(arXiv2006)DeBERTa：使用分解注意力机制和增强型掩膜解码器改进预训练语言模型。
 - [<font color=Blue>mT5: A massively multilingual pre-trained text-to-text transformer</font>](https://0809zheng.github.io/2021/01/10/mt5.html)：(arXiv2010)mT5：多语言版本的预训练语言模型T5。
 - [<font color=Blue>When Do You Need Billions of Words of Pretraining Data?</font>](https://0809zheng.github.io/2021/03/31/plmdata.html)：(arXiv2011)什么时候需要数十亿单词的预训练数据？
+- [<font color=Blue>Transformer Feed-Forward Layers Are Key-Value Memories</font>](https://0809zheng.github.io/2021/05/05/kvm.html)：(arXiv2012)Transformer全连接层是键值记忆单元。
 - [<font color=Blue>BERTnesia: Investigating the capture and forgetting of knowledge in BERT</font>](https://0809zheng.github.io/2021/06/26/bertnesia.html)：(arXiv2106)BERTnesia：探究 BERT 中知识的捕获与遗忘。
 - [<font color=Blue>Scaling Language Models: Methods, Analysis & Insights from Training Gopher</font>](https://0809zheng.github.io/2021/12/30/gopher.html)：(arXiv2112)扩展语言模型：训练 Gopher 的方法、分析和见解。
 - [<font color=Blue>Jurassic-1: Technical details and evaluation</font>](https://0809zheng.github.io/2021/12/31/jurassic1.html)：(AI21 Labs)Jurassic-1：技术细节与评估。
