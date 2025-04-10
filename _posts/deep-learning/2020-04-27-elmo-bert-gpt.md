@@ -107,7 +107,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 # 3. 理解预训练语言模型
 
-### (1) 预训练语言模型学到的知识
+### (1) 预训练语言模型学到了哪些知识？
 
 预训练语言模型从文本数据中学习到的知识包括语言类知识和世界知识两大类。
 - **语言类知识**是指词法、词性、句法、语义等有助于人类或机器理解自然语言的知识，又包括浅层语言知识和抽象语言知识。
@@ -117,7 +117,12 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 1. **事实型知识 (Factual Knowledge)**是指在这个世界上发生的一些真实事件，如“特朗普是现任美国总统”（这类知识可能会失效！）。
 2. **常识性知识 (Common Sense Knowledge)**是指这个世界存在的生活常识和规律，如“太阳从东方升起”。
 
-[<font color=Blue>BERTnesia: Investigating the capture and forgetting of knowledge in BERT</font>](https://0809zheng.github.io/2021/06/26/bertnesia.html)一文指出，预训练语言模型的知识不仅存储在最后一层，中间层也贡献了大量知识；并且随着模型层深增加，能够学习到的知识数量逐渐以指数级增加。在对模型进行微调时，世界知识可能会被遗忘，遗忘程度取决于微调目标和训练数据。
+[<font color=Blue>BERTnesia: Investigating the capture and forgetting of knowledge in BERT</font>](https://0809zheng.github.io/2021/06/26/bertnesia.html)一文指出，预训练语言模型学习到的世界知识不仅存储在最后一层，中间层也贡献了大量知识；并且随着模型层深增加，能够学习到的世界知识数量逐渐以指数级增加。在对模型进行微调时，世界知识可能会被遗忘，遗忘程度取决于微调目标和训练数据。
+
+[<font color=Blue>When Do You Need Billions of Words of Pretraining Data?</font>](https://0809zheng.github.io/2021/03/31/plmdata.html)一文指出，仅需约**1000**万至**1**亿词汇的预训练数据即可学习到可靠的语言类知识，但要掌握典型的世界知识则需要数十亿词汇的数据。大型预训练模型在大规模数据上性能提升的主要驱动力是世界知识。
+
+### (2) 预训练语言模型如何存储知识？
+
 
 
 # ⚪ 参考文献
@@ -139,6 +144,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 - [<font color=Blue>Language Models are Few-Shot Learners</font>](https://0809zheng.github.io/2020/07/13/gpt3.html)：(arXiv2005)GPT3：语言模型是少样本学习模型。
 - [<font color=Blue>DeBERTa: Decoding-enhanced BERT with Disentangled Attention</font>](https://0809zheng.github.io/2021/04/02/deberta.html)：(arXiv2006)DeBERTa：使用分解注意力机制和增强型掩膜解码器改进预训练语言模型。
 - [<font color=Blue>mT5: A massively multilingual pre-trained text-to-text transformer</font>](https://0809zheng.github.io/2021/01/10/mt5.html)：(arXiv2010)mT5：多语言版本的预训练语言模型T5。
+- [<font color=Blue>When Do You Need Billions of Words of Pretraining Data?</font>](https://0809zheng.github.io/2021/03/31/plmdata.html)：(arXiv2011)什么时候需要数十亿单词的预训练数据？
 - [<font color=Blue>BERTnesia: Investigating the capture and forgetting of knowledge in BERT</font>](https://0809zheng.github.io/2021/06/26/bertnesia.html)：(arXiv2106)BERTnesia：探究 BERT 中知识的捕获与遗忘。
 - [<font color=Blue>Scaling Language Models: Methods, Analysis & Insights from Training Gopher</font>](https://0809zheng.github.io/2021/12/30/gopher.html)：(arXiv2112)扩展语言模型：训练 Gopher 的方法、分析和见解。
 - [<font color=Blue>Jurassic-1: Technical details and evaluation</font>](https://0809zheng.github.io/2021/12/31/jurassic1.html)：(AI21 Labs)Jurassic-1：技术细节与评估。
