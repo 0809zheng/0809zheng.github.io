@@ -101,6 +101,8 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 | [RoBERTa](https://0809zheng.github.io/2021/08/16/roberta.html) | Transformer编码器 | E-MLM(Dynamic Masking) | $355$M |
 | [DeBERTa](https://0809zheng.github.io/2021/04/02/deberta.html) | Transformer编码器 | E-MLM(Disentangled Attention+Enhanced Mask Decoder) | $390$M |
 | [XLNet](https://0809zheng.github.io/2021/08/19/xlnet.html) | Transformer编码器 | PLM | $110$-$340$M |
+| [Gopher](https://0809zheng.github.io/2021/12/30/gopher.html) | Transformer解码器 | LM | $44$M-$280$B |
+| [Jurassic-1](https://0809zheng.github.io/2021/12/31/jurassic1.html) | Transformer解码器 | LM | $7$B-$178$B |
 
 
 # ⚪ 参考文献
@@ -122,4 +124,6 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 - [<font color=Blue>Language Models are Few-Shot Learners</font>](https://0809zheng.github.io/2020/07/13/gpt3.html)：(arXiv2005)GPT3：语言模型是少样本学习模型。
 - [<font color=Blue>DeBERTa: Decoding-enhanced BERT with Disentangled Attention</font>](https://0809zheng.github.io/2021/04/02/deberta.html)：(arXiv2006)DeBERTa：使用分解注意力机制和增强型掩膜解码器改进预训练语言模型。
 - [<font color=Blue>mT5: A massively multilingual pre-trained text-to-text transformer</font>](https://0809zheng.github.io/2021/01/10/mt5.html)：(arXiv2010)mT5：多语言版本的预训练语言模型T5。
+- [<font color=Blue>Scaling Language Models: Methods, Analysis & Insights from Training Gopher</font>](https://0809zheng.github.io/2021/12/30/gopher.html)：(arXiv2112)扩展语言模型：训练 Gopher 的方法、分析和见解。
+- [<font color=Blue>Jurassic-1: Technical details and evaluation</font>](https://0809zheng.github.io/2021/12/31/jurassic1.html)：(AI21 Labs)Jurassic-1：技术细节与评估。
 
