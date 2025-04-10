@@ -54,6 +54,7 @@ tags: 深度学习
 
 编码-解码端架构（如**BART, T5**）在某种程度上结合了两者的优点：它们可以使用双向上下文向量表征来处理输入$x_{1:L}$，并且可以生成输出$y_{1:L}$。该模型的具有编码端、解码端两个架构的共同的优点，对于每个$x_i$，上下文向量表征可以双向地依赖于左侧上下文$(x_{1:i−1})$和右侧上下文$(x_{i+1:L})$，可以自由的生成文本数据。缺点就是需要更多的特定训练目标。
 
+[<font color=Blue>On the Role of Bidirectionality in Language Model Pre-Training</font>](https://0809zheng.github.io/2022/07/12/plmrole.html)一文指出，如果是以**fine-tuning**方式解决下游任务，编码端架构效果更好；若是以**zero shot/few shot prompting**这种模式解决下游任务，解码端架构效果更好。这是因为解码端架构能够直接生成完整的序列，在少样本范式下更具优势；而编码端架构需要额外的推理步骤来处理**masked token**，在微调范式下能够充分利用上下文信息。
 
 ### (2) 预训练语言模型的任务
 
@@ -126,4 +127,5 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 - [<font color=Blue>mT5: A massively multilingual pre-trained text-to-text transformer</font>](https://0809zheng.github.io/2021/01/10/mt5.html)：(arXiv2010)mT5：多语言版本的预训练语言模型T5。
 - [<font color=Blue>Scaling Language Models: Methods, Analysis & Insights from Training Gopher</font>](https://0809zheng.github.io/2021/12/30/gopher.html)：(arXiv2112)扩展语言模型：训练 Gopher 的方法、分析和见解。
 - [<font color=Blue>Jurassic-1: Technical details and evaluation</font>](https://0809zheng.github.io/2021/12/31/jurassic1.html)：(AI21 Labs)Jurassic-1：技术细节与评估。
+- [<font color=Blue>On the Role of Bidirectionality in Language Model Pre-Training</font>](https://0809zheng.github.io/2022/07/12/plmrole.html)：(arXiv2205)探讨语言模型预训练中的双向性。
 
