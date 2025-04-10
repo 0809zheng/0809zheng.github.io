@@ -13,7 +13,7 @@ tags: 深度学习
 1. 在大量无标签的语料库上进行特定任务的**预训练**；
 2. 在下游任务的语料库上进行**微调**。
 
-本文首先介绍语言的特征表示，并介绍预训练语言模型的发展。
+本文首先介绍语言的特征表示，然后介绍预训练语言模型的发展，最后尝试理解预训练语言模型。
 
 # 1. 语言的特征表示
 自然语言处理中对于语言的特征表示应能够从文本语料库中学习到内在语言规则和常识知识，如词义、句法结构、词类、语用学信息等。一种好的语言特征表示应具有与具体任务无关的通用含义，又能够针对具体的任务提供有用的信息。目前对语言的特征表示有两种形式，即**上下文无关的嵌入(non-contextual embedding)**和**上下文相关的嵌入(contextual embedding)**。
@@ -105,6 +105,20 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 | [Gopher](https://0809zheng.github.io/2021/12/30/gopher.html) | Transformer解码器 | LM | $44$M-$280$B |
 | [Jurassic-1](https://0809zheng.github.io/2021/12/31/jurassic1.html) | Transformer解码器 | LM | $7$B-$178$B |
 
+# 3. 理解预训练语言模型
+
+### (1) 预训练语言模型学到的知识
+
+预训练语言模型从文本数据中学习到的知识包括语言类知识和世界知识两大类。
+- **语言类知识**是指词法、词性、句法、语义等有助于人类或机器理解自然语言的知识，又包括浅层语言知识和抽象语言知识。
+1. **浅层语言知识**是指词法、词性、句法等知识，通常存储在**Transformer**的低层和中层；
+2. **抽象语言知识**是指语义类知识，通常存储在**Transformer**的中层和高层。
+- **世界知识**是指真实事件或常识等有助于人类或机器理解真实世界的知识，又包括事实型知识和常识性知识。这类知识主要分布在**Transformer**的中层和高层，尤其聚集在中层。
+1. **事实型知识 (Factual Knowledge)**是指在这个世界上发生的一些真实事件，如“特朗普是现任美国总统”（这类知识可能会失效！）。
+2. **常识性知识 (Common Sense Knowledge)**是指这个世界存在的生活常识和规律，如“太阳从东方升起”。
+
+[<font color=Blue>BERTnesia: Investigating the capture and forgetting of knowledge in BERT</font>](https://0809zheng.github.io/2021/06/26/bertnesia.html)一文指出，预训练语言模型的知识不仅存储在最后一层，中间层也贡献了大量知识；并且随着模型层深增加，能够学习到的知识数量逐渐以指数级增加。在对模型进行微调时，世界知识可能会被遗忘，遗忘程度取决于微调目标和训练数据。
+
 
 # ⚪ 参考文献
 - [Pre-trained Models for Natural Language Processing: A Survey](https://arxiv.org/abs/2003.08271)：(arXiv2003)一篇预训练模型的综述。
@@ -125,6 +139,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 - [<font color=Blue>Language Models are Few-Shot Learners</font>](https://0809zheng.github.io/2020/07/13/gpt3.html)：(arXiv2005)GPT3：语言模型是少样本学习模型。
 - [<font color=Blue>DeBERTa: Decoding-enhanced BERT with Disentangled Attention</font>](https://0809zheng.github.io/2021/04/02/deberta.html)：(arXiv2006)DeBERTa：使用分解注意力机制和增强型掩膜解码器改进预训练语言模型。
 - [<font color=Blue>mT5: A massively multilingual pre-trained text-to-text transformer</font>](https://0809zheng.github.io/2021/01/10/mt5.html)：(arXiv2010)mT5：多语言版本的预训练语言模型T5。
+- [<font color=Blue>BERTnesia: Investigating the capture and forgetting of knowledge in BERT</font>](https://0809zheng.github.io/2021/06/26/bertnesia.html)：(arXiv2106)BERTnesia：探究 BERT 中知识的捕获与遗忘。
 - [<font color=Blue>Scaling Language Models: Methods, Analysis & Insights from Training Gopher</font>](https://0809zheng.github.io/2021/12/30/gopher.html)：(arXiv2112)扩展语言模型：训练 Gopher 的方法、分析和见解。
 - [<font color=Blue>Jurassic-1: Technical details and evaluation</font>](https://0809zheng.github.io/2021/12/31/jurassic1.html)：(AI21 Labs)Jurassic-1：技术细节与评估。
 - [<font color=Blue>On the Role of Bidirectionality in Language Model Pre-Training</font>](https://0809zheng.github.io/2022/07/12/plmrole.html)：(arXiv2205)探讨语言模型预训练中的双向性。
