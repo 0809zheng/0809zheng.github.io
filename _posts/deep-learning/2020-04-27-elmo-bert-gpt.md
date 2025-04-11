@@ -170,6 +170,21 @@ $$
 
 ### ② 微调LLM
 
+可以根据要修正的新知识来构建微调数据集，然后微调预训练的**LLM**模型。这个方法会带来灾难性遗忘问题，即模型可能会遗忘掉一些不应该遗忘的知识。
+
+[<font color=Blue>Modifying Memories in Transformer Models</font>](https://0809zheng.github.io/2022/07/14/modifymem.html)一文提出了一种约束优化方法，可以在不降低**Transformer**模型对未修改事实性能的前提下，显式修改模型中特定的事实性知识。给定一个预训练的**Transformer**模型，其参数为$θ_0$，存储了一系列事实$F$。目标是将$F$中的一小部分事实$S$替换为新的事实$M$，得到新的模型参数$θ^{new}$，使其存储$F^′ = (F \backslash S) ∪ M$。优化目标为：
+
+$$
+\begin{aligned}
+\min_{\theta \in \Theta} \quad  & \frac{1}{m} \sum_{x \in D_M} L(x; \theta) \\
+\text{subject to} \quad & \|\theta - \theta_0\|_\infty \leq \delta
+\end{aligned}
+$$
+
+上述优化问题可以通过投影梯度下降求解：
+1. 使用预训练模型初始化参数$θ_0$。
+2. 在每个迭代中，计算梯度并更新参数。
+3. 将更新后的参数投影到约束集合内，确保参数变化不超过$δ$。
 
 ### ③ 修改LLM的模型参数
 
@@ -195,6 +210,7 @@ $$
 - [<font color=Blue>mT5: A massively multilingual pre-trained text-to-text transformer</font>](https://0809zheng.github.io/2021/01/10/mt5.html)：(arXiv2010)mT5：多语言版本的预训练语言模型T5。
 - [<font color=Blue>When Do You Need Billions of Words of Pretraining Data?</font>](https://0809zheng.github.io/2021/03/31/plmdata.html)：(arXiv2011)什么时候需要数十亿单词的预训练数据？
 - [<font color=Blue>Transformer Feed-Forward Layers Are Key-Value Memories</font>](https://0809zheng.github.io/2021/05/05/kvm.html)：(arXiv2012)Transformer全连接层是键值记忆单元。
+- [<font color=Blue>Modifying Memories in Transformer Models</font>](https://0809zheng.github.io/2022/07/14/modifymem.html)：(arXiv2012)修正Transformer模型中的记忆。
 - [<font color=Blue>Knowledge Neurons in Pretrained Transformers</font>](https://0809zheng.github.io/2021/05/06/knowledgeneuron.html)：(arXiv2104)预训练Transformer中的知识神经元。
 - [<font color=Blue>BERTnesia: Investigating the capture and forgetting of knowledge in BERT</font>](https://0809zheng.github.io/2021/06/26/bertnesia.html)：(arXiv2106)BERTnesia：探究 BERT 中知识的捕获与遗忘。
 - [<font color=Blue>Scaling Language Models: Methods, Analysis & Insights from Training Gopher</font>](https://0809zheng.github.io/2021/12/30/gopher.html)：(arXiv2112)扩展语言模型：训练 Gopher 的方法、分析和见解。
