@@ -129,6 +129,18 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 ![](https://pic1.imgdb.cn/item/67f784d088c538a9b5c87c5b.png)
 
+[<font color=Blue>Knowledge Neurons in Pretrained Transformers</font>](https://0809zheng.github.io/2021/05/06/knowledgeneuron.html)一文进一步提出了“知识神经元”的概念，并采用一种基于集成梯度的知识归因方法来识别表达特定知识的神经元。给定一个输入提示 $x$ 和一个关系事实 $\langle h, r, t \rangle$（由已知词、关系词和目标词向量构成的三元组），模型的输出 $P_x(\hat{w}^{(l)}_i)$ 定义为预训练模型预测正确答案 $y^*$ 的概率：
+
+$$ P_x(\hat{w}^{(l)}_i) = p(y^* | x, w^{(l)}_i = \hat{w}^{(l)}_i) $$
+
+为了计算神经元 $w^{(l)}_i$ 的归因分数 $\text{Attr}(w^{(l)}_i)$，从 $w^{(l)}_i = 0$ 到 $w^{(l)}_i$ 的原始值，逐步计算梯度并进行积分：
+
+$$ \text{Attr}(w^{(l)}_i) = w^{(l)}_i \int_{0}^{1} \frac{\partial P_x(\alpha w^{(l)}_i)}{\partial w^{(l)}_i} \, d\alpha $$
+
+按照上述计算识别出归因分数大于某个阈值 $t$ 的神经元可以作为粗略的知识神经元集合。通过保留同一个事实的不同提示中广泛共享的神经元，可以进一步过滤掉“假阳性”神经元。
+
+![](https://pic1.imgdb.cn/item/67f78e5188c538a9b5c88abd.png)
+
 
 # ⚪ 参考文献
 - [Pre-trained Models for Natural Language Processing: A Survey](https://arxiv.org/abs/2003.08271)：(arXiv2003)一篇预训练模型的综述。
@@ -151,6 +163,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 - [<font color=Blue>mT5: A massively multilingual pre-trained text-to-text transformer</font>](https://0809zheng.github.io/2021/01/10/mt5.html)：(arXiv2010)mT5：多语言版本的预训练语言模型T5。
 - [<font color=Blue>When Do You Need Billions of Words of Pretraining Data?</font>](https://0809zheng.github.io/2021/03/31/plmdata.html)：(arXiv2011)什么时候需要数十亿单词的预训练数据？
 - [<font color=Blue>Transformer Feed-Forward Layers Are Key-Value Memories</font>](https://0809zheng.github.io/2021/05/05/kvm.html)：(arXiv2012)Transformer全连接层是键值记忆单元。
+- [<font color=Blue>Knowledge Neurons in Pretrained Transformers</font>](https://0809zheng.github.io/2021/05/06/knowledgeneuron.html)：(arXiv2104)预训练Transformer中的知识神经元。
 - [<font color=Blue>BERTnesia: Investigating the capture and forgetting of knowledge in BERT</font>](https://0809zheng.github.io/2021/06/26/bertnesia.html)：(arXiv2106)BERTnesia：探究 BERT 中知识的捕获与遗忘。
 - [<font color=Blue>Scaling Language Models: Methods, Analysis & Insights from Training Gopher</font>](https://0809zheng.github.io/2021/12/30/gopher.html)：(arXiv2112)扩展语言模型：训练 Gopher 的方法、分析和见解。
 - [<font color=Blue>Jurassic-1: Technical details and evaluation</font>](https://0809zheng.github.io/2021/12/31/jurassic1.html)：(AI21 Labs)Jurassic-1：技术细节与评估。
