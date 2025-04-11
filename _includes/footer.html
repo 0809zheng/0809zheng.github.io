@@ -11,25 +11,31 @@
   <section>Powered by <a href="//jekyllrb.com">Jekyll</a></section>
 </footer>
 
-<script>
+<!-- Use the defer attribute to improve script loading performance -->
+<script defer>
   // Function to detect device type and insert corresponding script
   function loadMapScript() {
+    var scriptSrc;
+
+    // Choose script URL based on screen width
+    if (window.innerWidth > 800) {
+      // Web version
+      scriptSrc = '//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=800&t=m&d=WWuzUTmOt8V9vdtIQd5uqrEcKsRg4IiPuy9gg21CQO8';
+    } else {
+      // Mobile version
+      scriptSrc = '//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=300&t=m&d=WWuzUTmOt8V9vdtIQd5uqrEcKsRg4IiPuy9gg21CQO8&co=2d78ad&cmo=3acc3a&cmn=ff5353&ct=ffffff';
+    }
+
+    // Create the script element with the chosen source
     var script = document.createElement('script');
     script.type = 'text/javascript';
     script.id = 'clustrmaps';
+    script.src = scriptSrc;
 
-    // Insert different script based on screen width
-    if (window.innerWidth > 800) {
-      // Web version
-      script.src = '//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=800&t=m&d=WWuzUTmOt8V9vdtIQd5uqrEcKsRg4IiPuy9gg21CQO8';
-    } else {
-      // Mobile version
-      script.src = '//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=300&t=m&d=WWuzUTmOt8V9vdtIQd5uqrEcKsRg4IiPuy9gg21CQO8&co=2d78ad&cmo=3acc3a&cmn=ff5353&ct=ffffff';
-    }
-
+    // Append the script element to the map-script container
     document.getElementById('map-script').appendChild(script);
   }
 
-  // Call function on page load to insert appropriate script
-  window.onload = loadMapScript;
+  // Execute loadMapScript function immediately once the page is loaded
+  document.addEventListener('DOMContentLoaded', loadMapScript);
 </script>
