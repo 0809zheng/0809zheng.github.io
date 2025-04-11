@@ -20,7 +20,7 @@ tags: 深度学习
 
 ![](https://pic.imgdb.cn/item/60ebf3395132923bf857acf4.jpg)
 
-### (1) Non-Contextual Embedding
+## (1) Non-Contextual Embedding
 
 上下文无关的嵌入通常是由**词嵌入(word embedding)**实现的，即把句子中的每一个**word**转化成一个词向量：$x \to e_x$。在这类方法中，不同句子中的相同**word**都会被嵌入为同一个词向量，然而相同**word**在不同的句子中位于不同的**token**位置，可能具有不同的含义，如下面两个句子：
 - It is safest to deposit your money in the **bank**.
@@ -30,7 +30,7 @@ tags: 深度学习
 
 基于上下文无关的嵌入方法可以被认为是早期的预训练语言模型，代表模型有**Word2Vec**,**CBOW**,**Glove**。这类模型结构简单，尽管是从无标注语料库中训练得到的，也能获得高质量的词向量；其学习到的词向量能够捕捉文本中潜在的语法和语义信息，但这类预训练词向量无法随上下文而动态变化，只是简单地学习"共现词频"，无法理解更高层次的文本概念，如多义性、句法特征、语义角色、指代等。
 
-### (2) Contextual Embedding
+## (2) Contextual Embedding
 上下文相关的嵌入是指根据当前文本的上下文，灵活地对每一个**token**位置(注意不是对每一个**word**)进行词嵌入；当文本不同时，同一个**word**也会具有不同的词嵌入向量。这通常是由一个神经网络编码器$f_{enc}(\cdot)$实现的：$[h_1,...,h_T]=f_{enc}([x_1,...,x_T])$。随着**LSTM**,**Transformer**等模型的引入，这种结合上下文信息的预训练语言模型获得了更多的关注。这类预训练语言模型能够根据预训练任务学习包含词的上下文信息的词表示，并用于不同的下游任务中。这类预训练语言模型的优点如下：
 1. 可以在大规模预训练语料库中学习到**通用语言表示**；
 2. 可以提供一个更好的下游任务**初始化模型**，提高下游任务的表现并加速收敛；
@@ -38,7 +38,7 @@ tags: 深度学习
 
 # 2. 预训练语言模型的发展
 
-### (1) 预训练语言模型的结构
+## (1) 预训练语言模型的结构
 
 **Transformer**模型是编码-解码端 （**Encoder-Decoder**）的架构。但是当前对于语言模型的分类，将语言模型分为三个类型：**编码端（Encoder-Only）**，**解码端（Decoder-Only）**和**编码-解码端（Encoder-Decoder）**。
 
@@ -56,7 +56,7 @@ tags: 深度学习
 
 [<font color=Blue>On the Role of Bidirectionality in Language Model Pre-Training</font>](https://0809zheng.github.io/2022/07/12/plmrole.html)一文指出，如果是以**fine-tuning**方式解决下游任务，编码端架构效果更好；若是以**zero shot/few shot prompting**这种模式解决下游任务，解码端架构效果更好。这是因为解码端架构能够直接生成完整的序列，在少样本范式下更具优势；而编码端架构需要额外的推理步骤来处理**masked token**，在微调范式下能够充分利用上下文信息。
 
-### (2) 预训练语言模型的任务
+## (2) 预训练语言模型的任务
 
 预训练语言模型的预训练任务通常有以下几类：
 - **概率语言建模 Language Modeling(LM)**
@@ -81,7 +81,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 排列语言建模是指在输入序列的随机排列上进行语言建模。给定输入序列，从所有可能的序列排列中随机抽样一个排列。将该排列序列中的一些**token**选定为目标，训练模型根据其余**token**和目标的正常位置(**natural position**)来预测这些目标**token**。
 
-### (3) 常见的预训练语言模型
+## (3) 常见的预训练语言模型
 
 | 预训练模型 | 结构 | 预训练任务 | 参数量(M百万,B十亿) |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---: | :---: | :----: |
@@ -107,7 +107,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 # 3. 理解预训练语言模型
 
-### (1) 预训练语言模型学到了哪些知识？
+## (1) 预训练语言模型学到了哪些知识？
 
 预训练语言模型从文本数据中学习到的知识包括语言类知识和世界知识两大类。
 - **语言类知识**是指词法、词性、句法、语义等有助于人类或机器理解自然语言的知识，又包括浅层语言知识和抽象语言知识。
@@ -121,7 +121,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 [<font color=Blue>When Do You Need Billions of Words of Pretraining Data?</font>](https://0809zheng.github.io/2021/03/31/plmdata.html)一文指出，仅需约**1000**万至**1**亿词汇的预训练数据即可学习到可靠的语言类知识，但要掌握典型的世界知识则需要数十亿词汇的数据。大型预训练模型在大规模数据上性能提升的主要驱动力是世界知识。
 
-### (2) 预训练语言模型如何存储知识？
+## (2) 预训练语言模型如何存储知识？
 
 预训练语言模型的知识存储在**Transformer**的模型参数里。从**Transformer**的结构看，模型参数由两部分构成：自注意力层（约占总参数的三分之一）和全连接层（约占总参数的三分之二）。自注意力层主要用于计算**token**或知识间的相关性，并对全局信息进行整合，更可能是在建立知识之间的联系，大概率不会存储具体的知识点；则可以推论出模型的知识主体是存储在全连接层结构中。
 
@@ -129,19 +129,7 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 ![](https://pic1.imgdb.cn/item/67f784d088c538a9b5c87c5b.png)
 
-[<font color=Blue>Knowledge Neurons in Pretrained Transformers</font>](https://0809zheng.github.io/2021/05/06/knowledgeneuron.html)一文进一步提出了“知识神经元”的概念，并采用一种基于集成梯度的知识归因方法来识别表达特定知识的神经元。给定一个输入提示 $x$ 和一个关系事实 $\langle h, r, t \rangle$（由已知词、关系词和目标词向量构成的三元组），模型的输出 $P_x(\hat{w}^{(l)}_i)$ 定义为预训练模型预测正确答案 $y^*$ 的概率：
-
-$$ P_x(\hat{w}^{(l)}_i) = p(y^* | x, w^{(l)}_i = \hat{w}^{(l)}_i) $$
-
-为了计算神经元 $w^{(l)}_i$ 的归因分数 $\text{Attr}(w^{(l)}_i)$，从 $w^{(l)}_i = 0$ 到 $w^{(l)}_i$ 的原始值，逐步计算梯度并进行积分：
-
-$$ \text{Attr}(w^{(l)}_i) = w^{(l)}_i \int_{0}^{1} \frac{\partial P_x(\alpha w^{(l)}_i)}{\partial w^{(l)}_i} \, d\alpha $$
-
-按照上述计算识别出归因分数大于某个阈值 $t$ 的神经元可以作为粗略的知识神经元集合。通过保留同一个事实的不同提示中广泛共享的神经元，可以进一步过滤掉“假阳性”神经元。
-
-![](https://pic1.imgdb.cn/item/67f78e5188c538a9b5c88abd.png)
-
-### (3) 预训练语言模型如何修改知识？
+## (3) 预训练语言模型如何修改知识？
 
 预训练语言模型中存储的事实型知识可能会过时（如美国总统换届），因此修正**LLM**模型里存储的错误或者过时的知识是有必要的。下面介绍三种修改知识的方法。
 
@@ -188,6 +176,48 @@ $$
 
 ### ③ 修改LLM的模型参数
 
+**讨论（2）**已经指出与训练语言模型的知识存储在全连接层（**FFN**）中，因此可以通过直接修改**LLM**里某些知识对应的模型参数来修正知识。这种方法涉及到两项关键技术：
+1. 如何在**LLM**参数空间中定位某条知识的具体存储位置；
+2. 如何修正模型参数，来将旧知识替换为新知识。
+
+### ⚪ [<font color=Blue>Knowledge Neurons in Pretrained Transformers</font>](https://0809zheng.github.io/2021/05/06/knowledgeneuron.html)
+
+本文提出了“知识神经元”的概念，并采用一种基于集成梯度的知识归因方法来识别表达特定知识的神经元。给定一个输入提示 $x$ 和一个关系事实 $\langle h, r, t \rangle$（由已知词、关系词和目标词向量构成的三元组），模型的输出 $P_x(\hat{w}^{(l)}_i)$ 定义为预训练模型预测正确答案 $y^*$ 的概率：
+
+$$ P_x(\hat{w}^{(l)}_i) = p(y^* | x, w^{(l)}_i = \hat{w}^{(l)}_i) $$
+
+为了计算神经元 $w^{(l)}_i$ 的归因分数 $\text{Attr}(w^{(l)}_i)$，从 $w^{(l)}_i = 0$ 到 $w^{(l)}_i$ 的原始值，逐步计算梯度并进行积分：
+
+$$ \text{Attr}(w^{(l)}_i) = w^{(l)}_i \int_{0}^{1} \frac{\partial P_x(\alpha w^{(l)}_i)}{\partial w^{(l)}_i} \, d\alpha $$
+
+按照上述计算识别出归因分数大于某个阈值 $t$ 的神经元可以作为粗略的知识神经元集合。通过保留同一个事实的不同提示中广泛共享的神经元，可以进一步过滤掉“假阳性”神经元。
+
+![](https://pic1.imgdb.cn/item/67f78e5188c538a9b5c88abd.png)
+
+利用知识神经元可以在不进行微调的情况下编辑预训练**Transformer**中的特定事实知识。
+- 更新事实：将预训练模型中学到的关系事实从⟨h, r, t⟩更新为⟨h, r, t′⟩（其中$t$为词嵌入，更新方式为$FFN = FFN-\lambda_1t+\lambda_2t^\prime$）。
+- 擦除关系：将识别和设置特定关系的知识神经元的值为零。
+
+### ⚪ [<font color=Blue>Locating and Editing Factual Associations in GPT</font>](https://0809zheng.github.io/2022/07/15/rome.html)
+
+本文通过因果干预分析定位模型中存储事实的具体位置：
+1. **干净运行**：将包含主题的事实性提示输入模型，收集所有隐藏状态激活值。
+2. **损坏运行**：在模型运行前，对主题词的嵌入向量添加噪声，破坏模型对主题的识别能力，然后收集损坏状态下的激活值。
+3. **恢复运行**：在损坏运行的基础上，选择性地恢复某些隐藏状态的干净值，观察这些状态对恢复原始预测的影响。
+
+![](https://pic1.imgdb.cn/item/67f8ff3188c538a9b5cb3328.png)
+
+基于因果干预分析的结果，作者提出了**Rank-One Model Editing（ROME）**方法，用于直接编辑模型中的事实关联。**ROME**作用于全连接层的第二层，更新规则如下：
+
+$$
+\begin{aligned}
+\hat{W} &= W + \Lambda (C^{-1} k^*)^T
+\end{aligned}
+$$
+
+其中，$W$ 是原始权重矩阵，$C=KK^\top$ 是输入嵌入的协方差矩阵，用于约束更新的幅度。$\Lambda$ 是一个向量，计算为新权重与原始权重的残差误差。
+
+![](https://pic1.imgdb.cn/item/67f9154488c538a9b5cb3fde.png)
 
 # ⚪ 参考文献
 - [Pre-trained Models for Natural Language Processing: A Survey](https://arxiv.org/abs/2003.08271)：(arXiv2003)一篇预训练模型的综述。
@@ -215,6 +245,7 @@ $$
 - [<font color=Blue>BERTnesia: Investigating the capture and forgetting of knowledge in BERT</font>](https://0809zheng.github.io/2021/06/26/bertnesia.html)：(arXiv2106)BERTnesia：探究 BERT 中知识的捕获与遗忘。
 - [<font color=Blue>Scaling Language Models: Methods, Analysis & Insights from Training Gopher</font>](https://0809zheng.github.io/2021/12/30/gopher.html)：(arXiv2112)扩展语言模型：训练 Gopher 的方法、分析和见解。
 - [<font color=Blue>Jurassic-1: Technical details and evaluation</font>](https://0809zheng.github.io/2021/12/31/jurassic1.html)：(AI21 Labs)Jurassic-1：技术细节与评估。
+- [<font color=Blue>Locating and Editing Factual Associations in GPT</font>](https://0809zheng.github.io/2022/07/15/rome.html)：(arXiv2202)定位和编辑GPT中的事实关联。
 - [<font color=Blue>On the Role of Bidirectionality in Language Model Pre-Training</font>](https://0809zheng.github.io/2022/07/12/plmrole.html)：(arXiv2205)探讨语言模型预训练中的双向性。
 - [<font color=Blue>Towards Tracing Factual Knowledge in Language Models Back to the Training Data</font>](https://0809zheng.github.io/2022/07/13/tda.html)：(arXiv2205)将语言模型中的事实知识追溯到训练数据。
 
