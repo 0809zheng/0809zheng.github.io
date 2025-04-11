@@ -141,6 +141,38 @@ $$ \text{Attr}(w^{(l)}_i) = w^{(l)}_i \int_{0}^{1} \frac{\partial P_x(\alpha w^{
 
 ![](https://pic1.imgdb.cn/item/67f78e5188c538a9b5c88abd.png)
 
+### (3) 预训练语言模型如何修改知识？
+
+预训练语言模型中存储的事实型知识可能会过时（如美国总统换届），因此修正**LLM**模型里存储的错误或者过时的知识是有必要的。下面介绍三种修改知识的方法。
+
+### ① 更换训练数据
+
+假设想要删除某一类知识，可以定位并删除对应的数据源，然后重新预训练整个模型。由于模型预训练的成本太高。所以这种方法比较适合对于某个特定类别数据的一次性大规模删除场合（如去除偏见和毒性等内容的处理），不适合少量多次的常规知识修正场景。
+
+实现该功能要求对于指定的某条知识，可以定位到是哪些训练数据导致**LLM**学会了这条知识，即实现数据归因（**Data Attribution**）功能。[<font color=Blue>Towards Tracing Factual Knowledge in Language Models Back to the Training Data</font>](https://0809zheng.github.io/2022/07/13/tda.html)一文设计了三种用于事实追踪（识别哪些训练样本教会了语言模型生成特定的事实性断言）的数据归因方法：
+- 梯度归因方法**TracIn**：在训练过程中，每当对训练样本 $z$ 进行梯度更新时，记录测试样本 $z_{\text{query}}$ 的损失变化；通过内积来估计影响力：
+
+$$
+I_t(z, z_{\text{query}}) = \nabla_{\theta} L(z_{\text{query}}, \theta_t)^\top \nabla_{\theta} L(z, \theta_t)
+$$
+
+- 嵌入归因方法：从**Transformer**语言模型中提取中间层的输出，通过余弦相似度计算训练样本 $z$ 和测试样本 $z_{\text{query}}$的关联性：
+
+$$
+I(z, z_{\text{query}}) = \frac{\text{LM}_{\text{inter}}(z)^\top \text{LM}_{\text{inter}}(z_{\text{query}})}{\|\text{LM}_{\text{inter}}(z)\| \|\text{LM}_{\text{inter}}(z_{\text{query}})\|}
+$$
+
+- 信息检索方法**BM25**：通过计算训练样本 $z$ 和测试样本 $z_{\text{query}}$之间的词项重叠来选择支持样本：
+
+$$
+I(z, z_{\text{query}}) = \sum_{t \in z_{\text{query}}} \log \left( \frac{N + 1}{N_t} \right) \times \left( \frac{(k_1 + 1) \cdot f(z, t)}{k_1 \cdot \left( (1 - b) + b \cdot \frac{L(z)}{L_{\text{avg}}} \right) + f(z, t) + 1} \right)
+$$
+
+### ② 微调LLM
+
+
+### ③ 修改LLM的模型参数
+
 
 # ⚪ 参考文献
 - [Pre-trained Models for Natural Language Processing: A Survey](https://arxiv.org/abs/2003.08271)：(arXiv2003)一篇预训练模型的综述。
@@ -168,4 +200,5 @@ $$ \text{Attr}(w^{(l)}_i) = w^{(l)}_i \int_{0}^{1} \frac{\partial P_x(\alpha w^{
 - [<font color=Blue>Scaling Language Models: Methods, Analysis & Insights from Training Gopher</font>](https://0809zheng.github.io/2021/12/30/gopher.html)：(arXiv2112)扩展语言模型：训练 Gopher 的方法、分析和见解。
 - [<font color=Blue>Jurassic-1: Technical details and evaluation</font>](https://0809zheng.github.io/2021/12/31/jurassic1.html)：(AI21 Labs)Jurassic-1：技术细节与评估。
 - [<font color=Blue>On the Role of Bidirectionality in Language Model Pre-Training</font>](https://0809zheng.github.io/2022/07/12/plmrole.html)：(arXiv2205)探讨语言模型预训练中的双向性。
+- [<font color=Blue>Towards Tracing Factual Knowledge in Language Models Back to the Training Data</font>](https://0809zheng.github.io/2022/07/13/tda.html)：(arXiv2205)将语言模型中的事实知识追溯到训练数据。
 
