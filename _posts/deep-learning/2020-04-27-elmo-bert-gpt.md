@@ -131,13 +131,13 @@ $$ p(x_{1:T}) = \prod_{t=1}^{T} p(x_{t}|x_{0:t-1}) $$
 
 ## (3) 预训练语言模型如何修改知识？
 
-预训练语言模型中存储的事实型知识可能会过时（如美国总统换届），因此修正**LLM**模型里存储的错误或者过时的知识是有必要的。下面介绍三种修改知识的方法。
+预训练语言模型中存储的事实型知识可能会过时（如美国总统换届），因此修正预训练语言模型里存储的错误或者过时的知识是有必要的。下面介绍三种修改知识的方法。
 
 ### ① 更换训练数据
 
 假设想要删除某一类知识，可以定位并删除对应的数据源，然后重新预训练整个模型。由于模型预训练的成本太高。所以这种方法比较适合对于某个特定类别数据的一次性大规模删除场合（如去除偏见和毒性等内容的处理），不适合少量多次的常规知识修正场景。
 
-实现该功能要求对于指定的某条知识，可以定位到是哪些训练数据导致**LLM**学会了这条知识，即实现数据归因（**Data Attribution**）功能。[<font color=Blue>Towards Tracing Factual Knowledge in Language Models Back to the Training Data</font>](https://0809zheng.github.io/2022/07/13/tda.html)一文设计了三种用于事实追踪（识别哪些训练样本教会了语言模型生成特定的事实性断言）的数据归因方法：
+实现该功能要求对于指定的某条知识，可以定位到是哪些训练数据导致预训练语言模型学会了这条知识，即实现数据归因（**Data Attribution**）功能。[<font color=Blue>Towards Tracing Factual Knowledge in Language Models Back to the Training Data</font>](https://0809zheng.github.io/2022/07/13/tda.html)一文设计了三种用于事实追踪（识别哪些训练样本教会了语言模型生成特定的事实性断言）的数据归因方法：
 - 梯度归因方法**TracIn**：在训练过程中，每当对训练样本 $z$ 进行梯度更新时，记录测试样本 $z_{\text{query}}$ 的损失变化；通过内积来估计影响力：
 
 $$
@@ -156,9 +156,9 @@ $$
 I(z, z_{\text{query}}) = \sum_{t \in z_{\text{query}}} \log \left( \frac{N + 1}{N_t} \right) \times \left( \frac{(k_1 + 1) \cdot f(z, t)}{k_1 \cdot \left( (1 - b) + b \cdot \frac{L(z)}{L_{\text{avg}}} \right) + f(z, t) + 1} \right)
 $$
 
-### ② 微调LLM
+### ② 微调模型
 
-可以根据要修正的新知识来构建微调数据集，然后微调预训练的**LLM**模型。这个方法会带来灾难性遗忘问题，即模型可能会遗忘掉一些不应该遗忘的知识。
+可以根据要修正的新知识来构建微调数据集，然后微调预训练语言模型。这个方法会带来灾难性遗忘问题，即模型可能会遗忘掉一些不应该遗忘的知识。
 
 [<font color=Blue>Modifying Memories in Transformer Models</font>](https://0809zheng.github.io/2022/07/14/modifymem.html)一文提出了一种约束优化方法，可以在不降低**Transformer**模型对未修改事实性能的前提下，显式修改模型中特定的事实性知识。给定一个预训练的**Transformer**模型，其参数为$θ_0$，存储了一系列事实$F$。目标是将$F$中的一小部分事实$S$替换为新的事实$M$，得到新的模型参数$θ^{new}$，使其存储$F^′ = (F \backslash S) ∪ M$。优化目标为：
 
@@ -174,13 +174,14 @@ $$
 2. 在每个迭代中，计算梯度并更新参数。
 3. 将更新后的参数投影到约束集合内，确保参数变化不超过$δ$。
 
-### ③ 修改LLM的模型参数
+### ③ 修改模型参数
 
-**讨论（2）**已经指出与训练语言模型的知识存储在全连接层（**FFN**）中，因此可以通过直接修改**LLM**里某些知识对应的模型参数来修正知识。这种方法涉及到两项关键技术：
-1. 如何在**LLM**参数空间中定位某条知识的具体存储位置；
+**讨论（2）**已经指出与训练语言模型的知识存储在全连接层（**FFN**）中，因此可以通过直接修改预训练语言模型里某些知识对应的模型参数来修正知识。这种方法涉及到两项关键技术：
+1. 如何在预训练模型的参数空间中定位某条知识的具体存储位置；
 2. 如何修正模型参数，来将旧知识替换为新知识。
 
-### ⚪ [<font color=Blue>Knowledge Neurons in Pretrained Transformers</font>](https://0809zheng.github.io/2021/05/06/knowledgeneuron.html)
+### ⚪ Knowledge Neuron
+- paper：[<font color=Blue>Knowledge Neurons in Pretrained Transformers</font>](https://0809zheng.github.io/2021/05/06/knowledgeneuron.html)
 
 本文提出了“知识神经元”的概念，并采用一种基于集成梯度的知识归因方法来识别表达特定知识的神经元。给定一个输入提示 $x$ 和一个关系事实 $\langle h, r, t \rangle$（由已知词、关系词和目标词向量构成的三元组），模型的输出 $P_x(\hat{w}^{(l)}_i)$ 定义为预训练模型预测正确答案 $y^*$ 的概率：
 
@@ -198,7 +199,8 @@ $$ \text{Attr}(w^{(l)}_i) = w^{(l)}_i \int_{0}^{1} \frac{\partial P_x(\alpha w^{
 - 更新事实：将预训练模型中学到的关系事实从⟨h, r, t⟩更新为⟨h, r, t′⟩（其中$t$为词嵌入，更新方式为$FFN = FFN-\lambda_1t+\lambda_2t^\prime$）。
 - 擦除关系：将识别和设置特定关系的知识神经元的值为零。
 
-### ⚪ [<font color=Blue>Locating and Editing Factual Associations in GPT</font>](https://0809zheng.github.io/2022/07/15/rome.html)
+### ⚪ Rank-One Model Editing（ROME）
+- paper：[<font color=Blue>Locating and Editing Factual Associations in GPT</font>](https://0809zheng.github.io/2022/07/15/rome.html)
 
 本文通过因果干预分析定位模型中存储事实的具体位置：
 1. **干净运行**：将包含主题的事实性提示输入模型，收集所有隐藏状态激活值。
@@ -219,7 +221,8 @@ $$
 
 ![](https://pic1.imgdb.cn/item/67f9154488c538a9b5cb3fde.png)
 
-### ⚪ [<font color=Blue>Mass-Editing Memory in a Transformer</font>](https://0809zheng.github.io/2022/12/03/memit.html)
+### ⚪ MEMIT
+- paper：[<font color=Blue>Mass-Editing Memory in a Transformer</font>](https://0809zheng.github.io/2022/12/03/memit.html)
 
 本文提出了**MEMIT**方法，能够批量更新预训练语言模型中的多个记忆。**MEMIT**通过以下步骤实现多层更新：
 1. **计算目标向量 $z_i$**：对于每个记忆 $i$，计算一个向量 $z_i$，使得在顶层 $L$ 的隐藏状态中完全传达新的记忆，优化 $z_i$ 以最大化模型对新对象 $o_i$ 的预测概率。
