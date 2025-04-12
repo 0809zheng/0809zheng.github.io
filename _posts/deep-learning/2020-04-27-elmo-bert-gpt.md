@@ -219,6 +219,16 @@ $$
 
 ![](https://pic1.imgdb.cn/item/67f9154488c538a9b5cb3fde.png)
 
+### ⚪ [<font color=Blue>Mass-Editing Memory in a Transformer</font>](https://0809zheng.github.io/2022/12/03/memit.html)
+
+本文提出了**MEMIT**方法，能够批量更新预训练语言模型中的多个记忆。**MEMIT**通过以下步骤实现多层更新：
+1. **计算目标向量 $z_i$**：对于每个记忆 $i$，计算一个向量 $z_i$，使得在顶层 $L$ 的隐藏状态中完全传达新的记忆，优化 $z_i$ 以最大化模型对新对象 $o_i$ 的预测概率。
+2. **在多层中传播 $z_i$**：从顶层 $L$ 开始，逐层向下传播 $z_i$，第$l$层新的事实增加$R_l=M_l-M_0=\frac{z_i-h_i^L}{L-l+1}$。
+3. 使用公式 $\Delta_l = R_l K_l^T (C_l + K_l K_l^T)^{-1}$ 更新每层的**MLP**权重。
+
+![](https://pic1.imgdb.cn/item/67fa15c488c538a9b5cc0be6.png)
+
+
 # ⚪ 参考文献
 - [Pre-trained Models for Natural Language Processing: A Survey](https://arxiv.org/abs/2003.08271)：(arXiv2003)一篇预训练模型的综述。
 - [<font color=Blue>Deep contextualized word representations</font>](https://0809zheng.github.io/2021/01/01/elmo.html)：(arXiv1802)ELMo：使用语言模型进行词嵌入。
@@ -248,4 +258,5 @@ $$
 - [<font color=Blue>Locating and Editing Factual Associations in GPT</font>](https://0809zheng.github.io/2022/07/15/rome.html)：(arXiv2202)定位和编辑GPT中的事实关联。
 - [<font color=Blue>On the Role of Bidirectionality in Language Model Pre-Training</font>](https://0809zheng.github.io/2022/07/12/plmrole.html)：(arXiv2205)探讨语言模型预训练中的双向性。
 - [<font color=Blue>Towards Tracing Factual Knowledge in Language Models Back to the Training Data</font>](https://0809zheng.github.io/2022/07/13/tda.html)：(arXiv2205)将语言模型中的事实知识追溯到训练数据。
+- [<font color=Blue>Mass-Editing Memory in a Transformer</font>](https://0809zheng.github.io/2022/12/03/memit.html)：(arXiv2210)批量编辑Transformer中的记忆。
 
