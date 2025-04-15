@@ -31,7 +31,7 @@ tags: 论文阅读
 
 
 $$
-(N^*, D^*) = \argmin_{N, D} L(N, D) \quad \\
+(N^*, D^*) = \mathop{\arg\min}_{N, D} L(N, D) \quad \\
 \text{s.t.} \quad FLOPs(N, D) = C
 $$
 
