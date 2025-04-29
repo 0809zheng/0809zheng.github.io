@@ -571,9 +571,6 @@ class AdaptiveInstanceNorm2d(nn.Module):
         super(AdaptiveInstanceNorm2d, self).__init__()
         self.eps = eps
         self.momentum = momentum
-        # weight and bias are dynamically assigned
-        self.weight = None # [1, c]
-        self.bias = None # [1, c]
         # fixed init
         self.register_buffer("running_mean", torch.zeros(num_features))
         self.register_buffer("running_var", torch.ones(num_features))
@@ -586,7 +583,7 @@ class AdaptiveInstanceNorm2d(nn.Module):
         x_reshaped = x.contiguous().view(1, b * c, h, w)
         out = F.batch_norm(
             x_reshaped, running_mean, running_var,
-            self.weight, self.bias, True,
+            None, None, True,
             self.momentum, self.eps
         )
         return out
@@ -599,7 +596,7 @@ class Model(nn.Module):
         self.model = nn.Sequential()
         # 定义生成AdaIN参数的网络
         num_adain_params = self.get_num_adain_params()
-        self.conv = nn.Conv2d(input_channel, num_adain_params, 1, 0, 0)
+        self.conv = nn.Conv2d(input_channel, num_adain_params, 1)
 
     def get_num_adain_params(self):
         """Return the number of AdaIN parameters needed by the model"""
