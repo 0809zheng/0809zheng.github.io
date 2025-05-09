@@ -101,6 +101,7 @@ $$ \nabla_{w_2}L= \nabla_yL \cdot \sigma' \cdot x_2  $$
 - 自动搜索激活函数：通过自动搜索解空间得到的激活函数。包括**Swish**，**HardSwish**，**Elish**，**HardElish**，**Mish**
 - 基于梯度的激活函数：通过梯度下降为每个神经元学习独立函数。包括**APL**，**PAU**，**ACON**，**PWLU**，**OPAU**，**SAU**，**SMU**
 - 基于上下文的激活函数：多输入单输出函数，输入上下文信息。包括**maxout**，**Dynamic ReLU**，**Dynamic Shift-Max**，**FReLU**
+- 门控激活函数：引入门控机制来控制信息流动。包括**GLU**，**ReGLU**，**GEGLU**，**SwiGLU**
 
 <style>
 table th:first-of-type {
@@ -149,8 +150,10 @@ table th:nth-of-type(3) {
 | [<font color=Blue>SAU</font>](https://0809zheng.github.io/2021/11/05/sau.html): 使用Dirac函数近似 | $$\frac{(1-\alpha)\sigma}{\sqrt{2\pi}}  e^{-\frac{x^2}{2\sigma^2}}+  \frac{ x}{2} +  \frac{(1-\alpha) x}{2}\text{erf}(\frac{x}{\sqrt{2}\sigma})$$ | ![](https://pic.imgdb.cn/item/61938c232ab3f51d919b76d7.jpg)  |
 | [<font color=Blue>SMU</font>](https://0809zheng.github.io/2021/11/17/smu.html): 最大值函数的光滑近似 | $$\frac{(1+\alpha)x+(1-\alpha)x \text{erf}(\mu (1-\alpha)x)}{2}$$ | ![](https://pic.imgdb.cn/item/6195c47d2ab3f51d91f255d6.jpg)  |
 | [<font color=Blue>Squareplus</font>](https://0809zheng.github.io/2021/11/19/squareplus.html): Softplus的代数近似 | $$\text{squareplus}(x,b) =\frac{1}{2}(x+\sqrt{x^2+b})$$ | ![](https://pic.imgdb.cn/item/61ec097b2ab3f51d9130a921.png)  |
-
-
+| [GLU]([https://0809zheng.github.io/2021/11/19/squareplus.html](https://arxiv.org/abs/1612.08083)): 门控线性单元 | $$\text{GLU}(x,W,V,b,c) =\text{Sigmoid}(xW+b) \cdot (xV+c)$$ | - |
+| [<font color=Blue>ReGLU</font>](https://0809zheng.github.io/2021/01/09/t511.html) | 使用**ReLU**进行门控 | $$\text{ReGLU}(x,W,V,b,c) =\text{ReLU}(xW+b) \cdot (xV+c)$$ | - |
+| [<font color=Blue>GEGLU</font>](https://0809zheng.github.io/2021/01/09/t511.html) | 使用**GELU**进行门控 | $$\text{GEGLU}(x,W,V,b,c) =\text{GELU}(xW+b) \cdot (xV+c)$$ | - |
+| [<font color=Blue>SwiGLU</font>](https://0809zheng.github.io/2021/01/09/t511.html) | 使用**Swish**进行门控 | $$\text{SwiGLU}(x,W,V,b,c) =\text{Swish}(xW+b) \cdot (xV+c)$$ | - |
 
 # ⚪ 参考文献
 - [Activation Functions: Comparison of trends in Practice and Research for Deep Learning](https://arxiv.org/abs/1811.03378)：(arXiv1811)一篇激活函数综述。
@@ -167,6 +170,7 @@ table th:nth-of-type(3) {
 - [<font color=Blue>The Quest for the Golden Activation Function</font>](https://0809zheng.github.io/2021/09/03/elish.html)：(arXiv1808)ELiSH：使用遗传算法寻找最优激活函数。
 - [<font color=Blue>Padé Activation Units: End-to-end Learning of Flexible Activation Functions in Deep Networks</font>](https://0809zheng.github.io/2021/10/24/pade.html)：(arXiv1907)PAU：基于Padé近似的可学习激活函数。
 - [<font color=Blue>Mish: A Self Regularized Non-Monotonic Activation Function</font>](https://0809zheng.github.io/2021/08/21/mish.html)：(arXiv1908)Mish：一种自正则化的非单调激活函数。
+- [<font color=Blue>GLU Variants Improve Transformer</font>](https://0809zheng.github.io/2021/01/09/t511.html)：(arXiv2002)GLU变体改进Transformer。
 - [<font color=Blue>Dynamic ReLU</font>](https://0809zheng.github.io/2021/10/27/dyrelu.html)：(arXiv2003)DY-ReLU：动态整流线性单元。
 - [<font color=Blue>Funnel Activation for Visual Recognition</font>](https://0809zheng.github.io/2020/09/05/frelu.html)：(arXiv2007)FReLU：为视觉任务设计的激活函数。
 - [<font color=Blue>Activate or Not: Learning Customized Activation</font>](https://0809zheng.github.io/2021/11/18/acon.html)：(arXiv2009)ACON：学习自定义的激活函数。
