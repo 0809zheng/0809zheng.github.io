@@ -746,7 +746,7 @@ $$
 
 $$
 \begin{aligned}
-\nabla_{\mathbf{x}} \mathbf{y} &= \frac{\sqrt{d}}{||\mathbf{x}||}\left( \bold I - \frac{\mathbf{y} \mathbf{y}^\top}{d} \right)
+\nabla_{\mathbf{x}} \mathbf{y} &= \frac{\sqrt{d}}{||\mathbf{x}||}\left(I - \frac{\mathbf{y} \mathbf{y}^\top}{d} \right)
 \end{aligned}
 $$
 
