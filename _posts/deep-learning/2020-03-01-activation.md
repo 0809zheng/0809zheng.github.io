@@ -96,12 +96,12 @@ $$ \nabla_{w_2}L= \nabla_yL \cdot \sigma' \cdot x_2  $$
 - Reference：[Pytorch中的激活函数层](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity)
 
 下面介绍的激活函数根据设计思路也可分类如下：
-- **S**型激活函数：形如**S**型曲线的激活函数。包括**Step**，**Sigmoid**，**HardSigmoid**，**Tanh**，**HardTanh**
-- **ReLU**族激活函数：形如**ReLU**的激活函数。包括**ReLU**，**Softplus**，**ReLU6**，**LeakyReLU**，**PReLU**，**RReLU**，**ELU**，**GELU**，**CELU**，**SELU**
-- 自动搜索激活函数：通过自动搜索解空间得到的激活函数。包括**Swish**，**HardSwish**，**Elish**，**HardElish**，**Mish**
-- 基于梯度的激活函数：通过梯度下降为每个神经元学习独立函数。包括**APL**，**PAU**，**ACON**，**PWLU**，**OPAU**，**SAU**，**SMU**
-- 基于上下文的激活函数：多输入单输出函数，输入上下文信息。包括**maxout**，**Dynamic ReLU**，**Dynamic Shift-Max**，**FReLU**
-- 门控激活函数：引入门控机制来控制信息流动。包括**GLU**，**ReGLU**，**GEGLU**，**SwiGLU**
+- **S**型激活函数：形如**S**型曲线的激活函数。包括**Step**, **Sigmoid**, **HardSigmoid**, **Tanh**, **HardTanh**, **LSRU**
+- **ReLU**族激活函数：形如**ReLU**的激活函数。包括**ReLU**, **Softplus**, **Squareplus**, **ReLU6**, **LeakyReLU**, **PReLU**, **RReLU**, **ELU**, **GELU**, **CELU**, **SELU**, **LSRLU**
+- 自动搜索激活函数：通过自动搜索解空间得到的激活函数。包括**Swish**, **HardSwish**, **Elish**, **HardElish**, **Mish**
+- 基于梯度的激活函数：通过梯度下降为每个神经元学习独立函数。包括**APL**, **PAU**, **ACON**, **PWLU**, **OPAU**, **SAU**, **SMU**
+- 基于上下文的激活函数：多输入单输出函数，输入上下文信息。包括**maxout**, **Dynamic ReLU**, **Dynamic Shift-Max**, **FReLU**
+- 门控激活函数：引入门控机制来控制信息流动。包括**GLU**, **ReGLU**, **GEGLU**, **SwiGLU**
 
 <style>
 table th:first-of-type {
@@ -123,6 +123,7 @@ table th:nth-of-type(3) {
 | [<font color=Blue>Hardsigmoid</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh):降低Sigmoid计算量 | $$\begin{cases} 1, & x≥1 \\ (x+1)/2, & -1<x<1 \\ 0, &x≤-1 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e56.png)   |
 | Tanh | $$2\text{Sigmoid}(2x)-1\\=\frac{e^{x}-e^{-x}}{e^{x}+e^{-x}}$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852e3.png)  |
 | [<font color=Blue>Hardtanh</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh):降低Tanh计算量 | $$\begin{cases} 1, & x>1 \\ x, & -1≤x≤1 \\ -1, &x<-1 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e5e.png)   |
+| [<font color=Blue>ISRU</font>](https://0809zheng.github.io/2021/11/01/lsrlu.html):使用逆平方根近似Tanh | $$\frac{x}{\sqrt{1 + \alpha x^2}}$$ | ![](https://pic1.imgdb.cn/item/682305ee58cb8da5c8f01b58.png)  |
 | [Softplus](https://www.researchgate.net/publication/4933639_Incorporating_Second-Order_Functional_Knowledge_for_Better_Option_Pricing):连续形式的ReLU | $$\int_{}^{}\text{Sigmoid}(x)dx \\=\ln(1+e^x)$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852c7.png)  |
 | [ReLU](http://www.cs.toronto.edu/~fritz/absps/reluICML.pdf) | $$\max(x,0) \\=\begin{cases} x, & x≥0 \\ 0, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e8f2ab3f51d913837b0.png)  |
 | [<font color=Blue>ReLU6</font>](https://0809zheng.github.io/2021/09/13/mobilenetv1.html):部署移动端 | $$\min(\max(x,0),6) \\=\begin{cases} 6, & x\geq 6 \\ x, & 0\leq x<6 \\ 0, &x<0 \end{cases}$$ | ![](https://pic.imgdb.cn/item/619630e92ab3f51d91394de8.png)  |
@@ -135,6 +136,7 @@ table th:nth-of-type(3) {
 | [<font color=Blue>GELU</font>](https://0809zheng.github.io/2021/08/24/gelu.html):引入正则化 | $$x\Phi(x)=x\int_{-∞}^{x} \frac{e^{-\frac{t^2}{2}}}{\sqrt{2\pi}}dt \\  = x\cdot \frac{1}{2}(1+\text{erf}(\frac{x}{\sqrt{2}}))$$ |![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e52.png)  |
 | [<font color=Blue>CELU</font>](https://0809zheng.github.io/2021/08/22/celu.html):连续可微的ELU | $$\begin{cases}x,  & x≥0 \\α(e^{\frac{x}{\alpha}}-1), & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/619631b52ab3f51d9139acb4.png)  |
 | [<font color=Blue>SELU</font>](https://0809zheng.github.io/2021/09/02/selu.html):自标准化的ELU | $$\begin{cases}\lambda x,  & x≥0 \\\lambda α(e^x-1), & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/6196301d2ab3f51d9138f58d.png)  |
+| [<font color=Blue>ISRLU</font>](https://0809zheng.github.io/2021/11/01/lsrlu.html):使用逆平方根近似ELU | $$\begin{cases}x,  & x≥0 \\\frac{x}{\sqrt{1 + \alpha x^2}}, & x<0\end{cases}$$ | ![](https://pic1.imgdb.cn/item/6823058d58cb8da5c8f01b42.png)  |
 | [<font color=Blue>Swish</font>](https://0809zheng.github.io/2021/09/04/swish.html):自动搜索 | $$x\cdot \text{Sigmoid}(\beta x) \\ = \frac{x}{1+e^{-\beta x}}$$ | ![](https://pic.imgdb.cn/item/61962ecd2ab3f51d913852d6.png) |
 | [<font color=Blue>HardSwish</font>](https://0809zheng.github.io/2021/09/15/mobilenetv3.html):降低Swish计算量 | $$x \cdot \frac{\text{ReLU6}(x+3)}{6} \\ = \begin{cases} x , & x \geq 3 \\ \frac{x(x+3)}{6} , & -3 \leq x <3 \\ 0, & x < -3 \end{cases}$$ |![](https://pic.imgdb.cn/item/6196309c2ab3f51d91392d93.png) |
 | [<font color=Blue>ELiSH</font>](https://0809zheng.github.io/2021/09/03/elish.html):遗传算法 | $$\text{Sigmoid}(x) \cdot \text{ELU}(x) \\= \begin{cases}\frac{x}{1+e^{-x}},  & x≥0 \\\frac{e^x-1}{1+e^{-x}}, & x<0\end{cases}$$ | ![](https://pic.imgdb.cn/item/61962e462ab3f51d91380e4d.png)  |
@@ -166,6 +168,7 @@ table th:nth-of-type(3) {
 - [<font color=Blue>Bridging Nonlinearities and Stochastic Regularizers with Gaussian Error Linear Units</font>](https://0809zheng.github.io/2021/08/24/gelu.html)：(arXiv1606)GELU：随机正则化的高斯误差线性单元。
 - [<font color=Blue>Continuously Differentiable Exponential Linear Units</font>](https://0809zheng.github.io/2021/08/22/celu.html)：(arXiv1704)CELU：连续可微的指数线性单元。
 - [<font color=Blue>Self-Normalizing Neural Networks</font>](https://0809zheng.github.io/2021/09/02/selu.html)：(arXiv1706)SELU：自标准化的指数线性单元。
+- [<font color=Blue>Improving Deep Learning by Inverse Square Root Linear Units (ISRLUs)</font>](https://0809zheng.github.io/2021/11/01/lsrlu.html)：(arXiv1710)使用逆平方根线性单元(ISRLU)改进深度学习。
 - [<font color=Blue>Searching for Activation Functions</font>](https://0809zheng.github.io/2021/09/04/swish.html)：(arXiv1710)Swish：自动搜索得到的一种自门控的激活函数。
 - [<font color=Blue>The Quest for the Golden Activation Function</font>](https://0809zheng.github.io/2021/09/03/elish.html)：(arXiv1808)ELiSH：使用遗传算法寻找最优激活函数。
 - [<font color=Blue>Padé Activation Units: End-to-end Learning of Flexible Activation Functions in Deep Networks</font>](https://0809zheng.github.io/2021/10/24/pade.html)：(arXiv1907)PAU：基于Padé近似的可学习激活函数。
