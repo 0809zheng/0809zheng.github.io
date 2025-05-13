@@ -21,7 +21,7 @@ tags: 深度学习
 2. 深度学习中的特征归一化：局部响应归一化**LRN**、批归一化**BN**、层归一化**LN**、实例归一化**IN**、组归一化**GN**、切换归一化**SN**
 3. 改进特征归一化：（改进**BN**）**Batch Renormalization**, **AdaBN**, **L1-Norm BN**, **GBN**, **SPADE**；（改进**LN**）**RMS Norm**, **Pre-LN**, **Mix-LN**, **LayerNorm Scaling**；（改进**IN**）**FRN**, **AdaIN**
 4. 深度学习中的参数归一化：权重归一化**WN**、余弦归一化**CN**、谱归一化**SN**
-5. 不使用归一化的方法：**Fixup**, **SkipInit**, **ReZero**, **DyT**
+5. 不使用归一化的方法：**Fixup**, **SkipInit**, **ReZero**, **DyT**, **DyISRU**
 
 
 
@@ -738,3 +738,33 @@ $$
 $$
 
 ![](https://pic1.imgdb.cn/item/67e532c10ba3d5a1d7e52758.png)
+
+### ⚪ Dynamic Inverse Square Root Unit (DyISRU)
+- paper：[<font color=Blue>The Mathematical Relationship Between Layer Normalization and Dynamic Activation Functions</font>](https://0809zheng.github.io/2025/03/27/dyisru.html)
+
+作者从梯度近似的角度设计了**RMSNorm**归一化的替代函数。**RMSNorm**的梯度可以表示为：
+
+$$
+\begin{aligned}
+\nabla_{\bold x} \bold y &= \frac{\sqrt{d}}{||\bold x||}\left( \bold I - \frac{\bold y \bold y^\top}{d} \right)
+\end{aligned}
+$$
+
+寻找一个函数$\bold y=f(\bold x)$近似**RMSNorm**的梯度，则$f$能够替代归一化层的使用，从而实现在网络中去掉归一化层的目标。假设$\bold y=f(\bold x)$是逐元素操作，即$y_i=f(x_i)$，则$f$的梯度需满足：
+
+$$
+\frac{d y_i}{d x_i} = \sqrt{d} / ||\bold x|| \left( 1 - \frac{y_i^2}{d} \right)
+$$
+
+若假设$\rho=\sqrt{d} / ||\bold x||$为常数，求解上述微分方程可得到**DyT**的形式：
+
+$$
+y_i = \sqrt{d} \tanh \left( \frac{x_i}{\rho \sqrt{d}} \right)
+$$
+
+直接求解原微分方程可得到：
+
+$$
+y_i = \frac{\sqrt{d} x_i}{\sqrt{x_i^2+C}} 
+$$
+
