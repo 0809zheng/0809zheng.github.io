@@ -746,17 +746,17 @@ $$
 
 $$
 \begin{aligned}
-\nabla_{\bold x} \bold y &= \frac{\sqrt{d}}{||\bold x||}\left( \bold I - \frac{\bold y \bold y^\top}{d} \right)
+\nabla_{\bold{x}} \bold{y} &= \frac{\sqrt{d}}{||\bold{x}||}\left( \bold I - \frac{\bold{y} \bold{y}^\top}{d} \right)
 \end{aligned}
 $$
 
-寻找一个函数$\bold y=f(\bold x)$近似**RMSNorm**的梯度，则$f$能够替代归一化层的使用，从而实现在网络中去掉归一化层的目标。假设$\bold y=f(\bold x)$是逐元素操作，即$y_i=f(x_i)$，则$f$的梯度需满足：
+寻找一个函数$\bold{y}=f(\bold{x})$近似**RMSNorm**的梯度，则$f$能够替代归一化层的使用，从而实现在网络中去掉归一化层的目标。假设$\bold{y}=f(\bold{x})$是逐元素操作，即$y_i=f(x_i)$，则$f$的梯度需满足：
 
 $$
-\frac{d y_i}{d x_i} = \sqrt{d} / ||\bold x|| \left( 1 - \frac{y_i^2}{d} \right)
+\frac{d y_i}{d x_i} = \sqrt{d} / ||\bold{x}|| \left( 1 - \frac{y_i^2}{d} \right)
 $$
 
-若假设$\rho=\sqrt{d} / ||\bold x||$为常数，求解上述微分方程可得到**DyT**的形式：
+若假设$\rho=\sqrt{d} / \|\|\bold{x}\|\|$为常数，求解上述微分方程可得到**DyT**的形式：
 
 $$
 y_i = \sqrt{d} \tanh \left( \frac{x_i}{\rho \sqrt{d}} \right)
