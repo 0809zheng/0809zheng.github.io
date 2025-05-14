@@ -1,13 +1,13 @@
 ---
 layout: post
-title: '（重庆篇）勒是雾都'
+title: '（重庆篇）重庆：勒是雾都'
 date: 2020-07-17
 author: 郑之杰
 cover: 'https://pic1.imgdb.cn/item/67f7ac5488c538a9b5c8bfc6.png'
 tags: 游记
 ---
 
-> (Chongqing Chapter) A Foggy City.
+> (Chongqing Chapter) Chongqing: A Foggy City.
 
 ![](https://pic1.imgdb.cn/item/67f7ac5488c538a9b5c8bfc6.png)
 
