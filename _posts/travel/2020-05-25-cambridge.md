@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '（英国篇）剑桥郡：不带走一片云彩'
+title: '（英国篇）剑桥郡：不惹云裳康河畔，书香氤氲剑桥城'
 date: 2020-05-25
 author: 郑之杰
 cover: 'https://pic1.imgdb.cn/item/67c597cad0e0a243d40adc9e.png'
