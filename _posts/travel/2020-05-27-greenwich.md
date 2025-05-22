@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '（英国篇）格林尼治：计时与经度之始'
+title: '（英国篇）格林尼治：子午为界定寰宇，帆钟初响始计时'
 date: 2020-05-27
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/676e94bad0e0a243d4ebbed6.png'
