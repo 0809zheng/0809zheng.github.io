@@ -21,9 +21,7 @@ tags: 机器学习
 
 前馈神经网络包含**输入层(input layer)**、**隐藏层(hidden layer)**和**输出层(output layer)**。计算网络层数时通常不考虑输入层。
 
-**[通用近似定理(Universal Approximation Theorem)](https://www.researchgate.net/publication/245468707_Approximations_by_superpositions_of_a_sigmoidal_function)**:
-
-具有非线性激活函数的单隐藏层前馈神经网络，只要其隐藏层神经元的数量足够，它可以以任意的精度来近似任何一个定义在实数空间$\Bbb{R}^D$中的有界闭集函数。
+**[通用近似定理(Universal Approximation Theorem)](https://www.researchgate.net/publication/245468707_Approximations_by_superpositions_of_a_sigmoidal_function)**:具有非线性激活函数的单隐藏层前馈神经网络，只要其隐藏层神经元的数量足够，它可以以任意的精度来近似任何一个定义在实数空间$\Bbb{R}^D$中的有界闭集函数。
 
 通用近似定理只是说明了神经网络的计算能力可以去近似一个给定的连续函数，但并没有给出如何找到这样一个网络，以及是否是最优的。因为神经网络的强大能力，反而容易在训练集上过拟合。
 
@@ -38,13 +36,16 @@ tags: 机器学习
 
 则神经网络第$l$层的**前向传播(forward propagation)**过程：
 
-$$ z^{(l)} = W^{(l)}a^{(l-1)} + b^{(l)} $$
-
-$$ a^{(l)} = f(z^{(l)}) $$
+$$
+\begin{aligned}
+z^{(l)} &= W^{(l)}a^{(l-1)} + b^{(l)}\\
+a^{(l)} &= f(z^{(l)})
+\end{aligned}
+$$
 
 其中$f$表示第$l$层的激活函数。
 
-特别地，线性回归、Logistic回归或Softmax回归也可以看作只有一层的神经网络。
+特别地，线性回归、**Logistic**回归或**Softmax**回归也可以看作只有一层的神经网络。
 
 
 # 3. 反向传播
@@ -63,13 +64,15 @@ $$ \hat{y} = f^{(L)}(z^{(L)}) $$
 
 则反向传播算法可表示为：
 
-$$ δ^{(L)} = \frac{\partial L(y,\hat{y})}{\partial z^{(L)}} = \frac{\partial L(y,\hat{y})}{\partial \hat{y}} \frac{\partial \hat{y}}{\partial z^{(L)}} $$
-
-$$ δ^{(l)} = \frac{\partial L(y,\hat{y})}{\partial z^{(l)}} = \frac{\partial L(y,\hat{y})}{\partial z^{(l+1)}} \frac{\partial z^{(l+1)}}{\partial z^{(l)}} = δ^{(l+1)} \frac{\partial z^{(l+1)}}{\partial a^{(l)}} \frac{\partial a^{(l)}}{\partial z^{(l)}} = {W^{(l+1)}}^T δ^{(l+1)} \ast f'(z^{(l)}) $$
-
-$$ \frac{\partial L(y,\hat{y})}{\partial W^{(l)}} = \frac{\partial L(y,\hat{y})}{\partial z^{(l)}} \frac{\partial z^{(l)}}{\partial W^{(l)}} = δ^{(l)}{a^{(l-1)}}^T $$
-
-$$ \frac{\partial L(y,\hat{y})}{\partial b^{(l)}} = \frac{\partial L(y,\hat{y})}{\partial z^{(l)}} \frac{\partial z^{(l)}}{\partial b^{(l)}} = δ^{(l)} $$
+$$
+\begin{aligned}
+δ^{(L)} &= \frac{\partial L(y,\hat{y})}{\partial z^{(L)}} = \frac{\partial L(y,\hat{y})}{\partial \hat{y}} \frac{\partial \hat{y}}{\partial z^{(L)}}\\
+δ^{(l)} &= \frac{\partial L(y,\hat{y})}{\partial z^{(l)}} = \frac{\partial L(y,\hat{y})}{\partial z^{(l+1)}} \frac{\partial z^{(l+1)}}{\partial z^{(l)}} \\
+&= δ^{(l+1)} \frac{\partial z^{(l+1)}}{\partial a^{(l)}} \frac{\partial a^{(l)}}{\partial z^{(l)}} = {W^{(l+1)}}^T δ^{(l+1)} \ast f'(z^{(l)})\\
+\frac{\partial L(y,\hat{y})}{\partial W^{(l)}} &= \frac{\partial L(y,\hat{y})}{\partial z^{(l)}} \frac{\partial z^{(l)}}{\partial W^{(l)}} = δ^{(l)}{a^{(l-1)}}^T\\
+\frac{\partial L(y,\hat{y})}{\partial b^{(l)}} &= \frac{\partial L(y,\hat{y})}{\partial z^{(l)}} \frac{\partial z^{(l)}}{\partial b^{(l)}} = δ^{(l)}
+\end{aligned}
+$$
 
 对于矩阵微积分，常用**维度检验(dimensionality check)**的方法判断公式的正确性。
 
@@ -122,27 +125,6 @@ $$ f'(x) = \frac{f(x+Δx)-f(x-Δx)}{2Δx} $$
 在前馈神经网络的参数学习中，$$\Bbb{R}^N → \Bbb{R}$$，输出为标量，因此采用反向模式为最有效的计算方式，只需要一遍计算。
 
 计算图按构建方式可以分为**静态计算图**和**动态计算图**。
+1. 静态计算图是在编译时构建计算图，计算图构建好之后在程序运行时不能改变；如**Theano**、**Tensorflow**。主要优点是构建时可以优化，且并行能力强；主要缺点是灵活性差。
+2. 动态计算图是在程序运行时动态构建，如**PyTorch**、**Tensorflow 2.0**。主要优点是灵活性高；主要缺点是不容易优化，且难以并行计算。
 
-**1.静态计算图**
-
-静态计算图是在编译时构建计算图，计算图构建好之后在程序运行时不能改变；
-
-优点：
-- 构建时可以优化；
-- 并行能力强。
-
-缺点：
-- 灵活性差。
-
-如：Theano、Tensorflow。
-
-**2.动态计算图**是在程序运行时动态构建。
-
-优点：
-- 灵活性高。
-
-缺点：
-- 不容易优化；
-- 难以并行计算。
-
-如：PyTorch、Tensorflow 2.0。
