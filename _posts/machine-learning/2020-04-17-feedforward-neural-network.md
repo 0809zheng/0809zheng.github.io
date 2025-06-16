@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '前馈神经网络'
+title: '前馈神经网络(Feedforward Neural Networks, FNN)'
 date: 2020-04-17
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5e95b7cac2a9a83be5deb0bd.jpg'
