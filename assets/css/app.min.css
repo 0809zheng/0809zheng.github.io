@@ -3,36 +3,22 @@
 
 /*  Back Top Button  */
 #back-top {
-  /*
-  position:fixed;
-  right: 0%;
-  bottom: 0%;
-  margin-bottom:10px;
-  margin-right:10px;
-   position: fixed;
-  bottom: 30px;
-  margin-left: 1040px;
- */
   position: fixed;
   bottom: 30px;
-  right: 0%;
-  margin-right: 40px;
-  background-color: #aaa;
-  -webkit-border-radius: 7px;
-  -moz-border-radius: 7px;
-  border-radius: 7px;
-  -webkit-transition: 0.7s;
-  -moz-transition: 0.7s;
+  right: 5%; /* 微调位置以确保按钮不与其他元素重叠 */
+  margin-right: 40px; /* 可以适度调节 */
+  background-color: transparent; // 确保按钮包含透明背景，突出透明PNG图
+  border-radius: 7px; // 圆角可能不必，用于背景颜色视觉效果
   transition: 0.7s;
-  /*behavior: url(/css/PIE.htc);*/
 }
 #back-top:hover {
-  background-color: #777;
+  // 在悬停时可以加入轻微变暗或变亮效果，展现交互性，根据需要设定样式。
 }
 #back-top a {
-  background: #ddd url(/assets/imgs/bg_up_arrow.png) no-repeat center center;
-  color: #fff;
-  text-decoration: none;
-  padding: 12px 14px;
+  background: url(/assets/imgs/bg_up_arrow.png) no-repeat center center;
+  color: transparent; /* 确保文字透明或完全不显示 */
+  text-decoration: none; /* 保持没有下划线 */
+  width: 50px; /* 根据实际图片大小调整宽度 */
+  height: 50px; /* 根据实际图片大小调整高度 */
   display: inline-block;
 }
