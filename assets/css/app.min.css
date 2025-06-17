@@ -5,8 +5,8 @@
 #back-top {
   position: fixed;
   bottom: 30px;
-  right: 5%; /* 微调位置以确保按钮不与其他元素重叠 */
-  margin-right: 40px; /* 可以适度调节 */
+  right: 0%; /* 微调位置以确保按钮不与其他元素重叠 */
+  margin-right: 0px; /* 可以适度调节 */
   background-color: transparent; // 确保按钮包含透明背景，突出透明PNG图
   border-radius: 7px; // 圆角可能不必，用于背景颜色视觉效果
   transition: 0.7s;
