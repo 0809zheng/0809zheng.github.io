@@ -10,6 +10,7 @@
   background-color: transparent; // 确保按钮包含透明背景，突出透明PNG图
   border-radius: 7px; // 圆角可能不必，用于背景颜色视觉效果
   transition: 0.7s;
+  z-index: 1000; /* 确保按钮在页面内容的上层 */
 }
 #back-top:hover {
   // 在悬停时可以加入轻微变暗或变亮效果，展现交互性，根据需要设定样式。
@@ -20,5 +21,6 @@
   text-decoration: none; /* 保持没有下划线 */
   width: 50px; /* 根据实际图片大小调整宽度 */
   height: 50px; /* 根据实际图片大小调整高度 */
+  background-size: 50px 50px; /* 确保背景图片在50x50的区域内缩放 */
   display: inline-block;
 }
