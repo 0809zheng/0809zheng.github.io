@@ -1,7 +1,7 @@
 ---
 layout: post
 title: '基于密度的聚类(Density-Based Clustering)'
-date: 2020-06-03
+date: 2020-05-05
 author: 郑之杰
 cover: 'https://pic1.imgdb.cn/item/684ff58b58cb8da5c850891b.png'
 tags: 机器学习
