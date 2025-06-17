@@ -1,6 +1,5 @@
 /**
  * Jekyll Theme Style
- * - author: liaokeyu (liaokeyu.com)
  */
 /*** Parameters ***/
 /*** Mixins ***/
@@ -1005,6 +1004,8 @@ a {
     height: 360px; }
   .post-wrapper .post-tags {
     margin: 100px 0 8px; }
+
+  
   .post-wrapper h1 {
     font-family: "Helvetica Neue", Helvetica, Arial, "Pingfang SC", "Microsoft Yahei", Sans-serif; }
   .post-wrapper .post-meta {
@@ -1042,3 +1043,40 @@ a {
   .home-banner h3 {
     margin-top: 4px;
     font-size: 16px; } }
+
+
+/*  Back Top Button  */
+#back-top {
+  /*
+  position:fixed;
+  right: 0%;
+  bottom: 0%;
+  margin-bottom:10px;
+  margin-right:10px;
+   position: fixed;
+  bottom: 30px;
+  margin-left: 1040px;
+ */
+  position: fixed;
+  bottom: 30px;
+  right: 0%;
+  margin-right: 40px;
+  background-color: #aaa;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  -webkit-transition: 0.7s;
+  -moz-transition: 0.7s;
+  transition: 0.7s;
+  /*behavior: url(/css/PIE.htc);*/
+}
+#back-top:hover {
+  background-color: #777;
+}
+#back-top a {
+  background: #ddd url(/assets/imgs/bg_up_arrow.png) no-repeat center center;
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 14px;
+  display: inline-block;
+}
