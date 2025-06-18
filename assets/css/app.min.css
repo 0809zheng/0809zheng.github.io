@@ -24,14 +24,3 @@
   background-size: 50px 50px; /* 确保背景图片在50x50的区域内缩放 */
   display: inline-block;
 }
-@media (max-width: 768px) {
-  #back-top a {
-    background: url(/assets/imgs/bg_up_arrow.png) no-repeat center center;
-    color: transparent; /* 确保文字透明或完全不显示 */
-    text-decoration: none; /* 保持没有下划线 */
-    width: 50px; /* 根据实际图片大小调整宽度 */
-    height: 50px; /* 根据实际图片大小调整高度 */
-    background-size: 50px 50px; /* 确保背景图片在50x50的区域内缩放 */
-    display: inline-block;
-  }
-}
