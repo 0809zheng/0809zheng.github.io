@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Lifelong Learning：终身学习'
+title: '终身学习(Lifelong Learning)'
 date: 2020-05-21
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5eec25c514195aa59496e904.jpg'
@@ -9,27 +9,13 @@ tags: 机器学习
 
 > Lifelong Learning.
 
-**终身学习（lifelong learning）**也叫：
-- Continuous Learning
-- Never Ending Learning
-- Incremental Learning
-
-是指把之前任务训练的模型应用到新任务中，在这些任务上都能获得不错的表现。
+**终身学习（lifelong learning）**也叫**持续学习（Continuous Learning, Never Ending Learning）**或**增量学习（Incremental Learning）**；是指把之前任务训练的模型应用到新任务中，在这些任务上都能获得不错的表现。
 
 终身学习与迁移学习的区别在于：
 - **迁移学习**是指在一个任务上训练好的模型应用到新任务上，微调后不能保证模型在之前的任务上还有较好的表现；
-- **终身学习**是指把模型应用到新任务中，对之前的任务和新任务都能有较好的表现。
+- **终身学习**是指把模型应用到新任务后，对之前的任务和新任务都能有较好的表现。
 
-**本文目录：**
-1. Evaluation
-2. Multi-task training
-3. Elastic Weight Consolidation
-4. Gradient Episodic Memory
-5. Progressive Neural Networks
-6. Net2Net
-7. Curriculum Learning
-
-# 1. Evaluation
+# 1. 终身学习算法的性能评估
 在评估终身学习算法的性能时，通常的做法是：
 - 对于$T$个任务，模型随机初始化后依次测试在$T$个任务上的表现；
 - 在任务$1$上进行训练，之后依次测试在$T$个任务上的表现；
@@ -60,10 +46,10 @@ $$ FWT = \frac{1}{T-1}\sum_{i=2}^{T} {R_{i-1,i}-R_{0,i}} $$
 
 ![](https://pic.downk.cc/item/5eec2ac014195aa5949b77b2.jpg)
 
-# 2. Multi-task training
-**多任务学习（Multi-task training）**可以用来解决终身学习问题。
+# 2. 一些终身学习算法
 
-每当要解决一个新任务时，模型在所有之前的任务数据和新任务数据上进行学习。
+## ⚪ Multi-task training
+[**多任务学习（Multi-task training）**](https://0809zheng.github.io/2021/08/28/MTL.html)可以用来解决终身学习问题。每当要解决一个新任务时，模型在所有之前的任务数据和新任务数据上进行学习；多任务学习的结果常作为终身学习的**上界（upper bound）**。
 
 ![](https://pic.downk.cc/item/5eec2b6f14195aa5949c2194.jpg)
 
@@ -75,10 +61,8 @@ $$ FWT = \frac{1}{T-1}\sum_{i=2}^{T} {R_{i-1,i}-R_{0,i}} $$
 - [Generating Data](https://arxiv.org/abs/1705.08690)：训练一个数据生成器（如GAN），保存生成器而不是原数据
 - Adding New Classes：[Learning without forgetting](https://arxiv.org/abs/1606.09282)、[iCaRL: Incremental Classifier and Representation Learning](https://arxiv.org/abs/1611.07725)
 
-多任务学习的结果常作为终身学习的**上界（upper bound）**。
-
-# 3. Elastic Weight Consolidation
-- [paper](http://www.citeulike.org/group/15400/article/14311063)
+## ⚪ Elastic Weight Consolidation
+- paper：[Overcoming catastrophic forgetting in neural networks](https://arxiv.org/abs/1612.00796)
 
 **Elastic Weight Consolidation (EWC)**是指在一个任务上训练得到参数$θ^b$后，对于一个新的任务，在损失函数上加上正则化项：
 
@@ -100,8 +84,8 @@ $$ L'(θ) = L(θ) + λ\sum_{i}^{} {b_i(θ_i-θ_i^b)^2} $$
 - [Synaptic Intelligence](https://arxiv.org/abs/1703.04200)
 - [Memory Aware Synapses](https://arxiv.org/abs/1711.09601)：不需要标签数据
 
-# 4. Gradient Episodic Memory
-- [paper](https://arxiv.org/abs/1706.08840)
+## ⚪ Gradient Episodic Memory
+- paper：[Gradient Episodic Memory for Continual Learning](https://arxiv.org/abs/1706.08840)
 
 **Gradient Episodic Memory (GEM)**是指每次训练一个新的任务时，用之前的任务在模型当前参数下的梯度$g^1$、$g^2$...来修正参数$θ$的梯度更新方向$g$:
 
@@ -112,15 +96,15 @@ $$ L'(θ) = L(θ) + λ\sum_{i}^{} {b_i(θ_i-θ_i^b)^2} $$
 
 该方法也需要存储之前的数据。
 
-# 5. Progressive Neural Networks
-- [paper](https://arxiv.org/abs/1606.04671)
+## ⚪ Progressive Neural Networks
+- paper：[Progressive Neural Networks](https://arxiv.org/abs/1606.04671)
 
 **Progressive Neural Networks**的思想是，每处理一个新的任务，就训练一个新的神经网络，且固定之前的神经网络模型使其可以处理之前的任务；新的神经网络使用之前的网络特征进行训练。
 
 ![](https://pic.downk.cc/item/5eec5d5414195aa594cd878a.jpg)
 
-# 6. Net2Net
-- [paper](https://arxiv.org/abs/1511.05641)
+## ⚪ Net2Net
+- paper：[Net2Net: Accelerating Learning via Knowledge Transfer](https://arxiv.org/abs/1511.05641)
 
 **Net2Net**是训练一个神经网络；每当处理一个新的任务，当前网络表现不够好时，就为网络增加神经元，使其当前参数等效于之前的网络，再在这个更大的模型上训练。
 
@@ -128,7 +112,26 @@ $$ L'(θ) = L(θ) + λ\sum_{i}^{} {b_i(θ_i-θ_i^b)^2} $$
 
 ![](https://pic.downk.cc/item/5eec5eb314195aa594cfb073.jpg)
 
-# 7. Curriculum Learning
-**Curriculum Learning**旨在为终身学习选择一个合适的学习顺序。
+## ⚪ Curriculum Learning
+**Curriculum Learning**旨在为终身学习选择一个合适的学习顺序。[taskonomy](http://taskonomy.stanford.edu/#abstract)为计算机视觉的各项任务分析了合适的学习顺序。
 
-[taskonomy](http://taskonomy.stanford.edu/#abstract)为计算机视觉的各项任务分析了合适的学习顺序。
+## ⚪ SupSup
+- paper：[<font color=Blue>Supermasks in Superposition</font>](https://0809zheng.github.io/2021/06/30/supsup.html)
+
+训练过程**supermask**：随机初始化一个网络，网络的参数值$W$在训练中并不改变。引入一个**mask**矩阵$M$，随机对网络的每个连接赋予$0/1$值，从而构造一个子网络$W \otimes M$。模型在训练时针对某一特定任务上的数据集训练一个对应的**mask**。因此对于所有任务共享一个主网络，在解决每一个任务时根据其相应的**mask**使用一个子网络。
+
+![](https://pic.imgdb.cn/item/60dc104f5132923bf8a3b49d.jpg)
+
+推断过程**superposition**：若已知测试图像$x$所属的数据集$i$，便可以直接选用对应任务的子网络$W \otimes M^i$进行测试:
+
+$$ p=f(x,W \otimes M^i) $$
+
+当测试图像所述任务未知时，为每一个子网络$i$引入一个系数$\alpha_i \in \[0，1\]$，表示该网络对于该图像的适合程度。若共有$k$个任务，则初始化为$\alpha_i =\frac{1}{k}$。则此时模型的预测结果为：
+
+$$ p(\alpha)=f(x,W \otimes (\sum_{i=1}^{k} \alpha_i M^i)) $$
+
+期望预测结果的熵$\mathcal{H}$最小，通过梯度下降算法实现：
+
+$$ \alpha ← \alpha - \eta \nabla_{\alpha} \mathcal{H}(p(\alpha)) $$
+
+![](https://pic.imgdb.cn/item/60dc106c5132923bf8a4b5f6.jpg)
