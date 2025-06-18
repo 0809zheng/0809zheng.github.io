@@ -4,7 +4,7 @@ title: '终身学习(Lifelong Learning)'
 date: 2020-05-21
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5eec25c514195aa59496e904.jpg'
-tags: 机器学习
+tags: 深度学习
 ---
 
 > Lifelong Learning.
