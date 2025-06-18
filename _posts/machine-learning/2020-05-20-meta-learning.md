@@ -1,30 +1,17 @@
 ---
 layout: post
-title: 'Meta Learning：元学习'
+title: '元学习(Meta Learning)'
 date: 2020-05-20
 author: 郑之杰
 cover: 'https://pic.downk.cc/item/5ec5e108c2a9a83be51fcb61.jpg'
-tags: 机器学习
+tags: 深度学习
 ---
 
 > Meta Learning.
 
-**元学习（Meta Learning）**又叫**学会学习（Learning to learn）**，旨在让机器学会如何去学习。
+**元学习（Meta Learning）**又叫**学会学习（Learning to learn）**，旨在让机器学会如何去学习。传统的机器学习问题是给定数据集$D_{train}$，人为选择一个函数$f$，训练该函数解决问题；元学习是给定数据集$D_{train}$后，训练一个函数$F$，使得该函数$F$能够选择一个合适的函数$f$解决问题。
 
-本文目录：
-1. 问题的提出
-2. Benchmarks
-3. MAML
-4. Reptile
-
-# 1. 问题的提出
-传统的机器学习问题是给定数据集$D_{train}$，人为选择一个函数$f$，训练该函数解决问题；
-
-元学习是给定数据集$D_{train}$后，训练一个函数$F$，使得该函数$F$能够选择一个合适的函数$f$解决问题。
-
-在元学习中，需要设置**训练任务集（training tasks）**和**测试任务集（testing tasks）**，必要时还要设置**验证任务集（valida tasks）**。
-
-对于每一个任务集中的任务，应包括**support set**（即训练集）和**query set**（即测试集）。
+在元学习中，需要设置**训练任务集（training tasks）**和**测试任务集（testing tasks）**，必要时还要设置**验证任务集（valida tasks）**。对于每一个任务集中的任务，应包括**support set**（即训练集）和**query set**（即测试集）。
 
 定义训练任务集一共有$N$个任务，每个任务使用$F$选择的函数$f$训练后，在测试集上的损失函数为$l^n$；则元学习的损失函数为：
 
@@ -41,24 +28,19 @@ $$ F^* = argmin_{F} L(F) $$
 
 ![](https://pic.downk.cc/item/5ec5280dc2a9a83be515f661.jpg)
 
-本文介绍两种自动选择参数初始化的值的方法，**MAML**和**Reptile**。
+# 1. Benchmarks
+元学习常用的**Benchmarks**是**Omniglot**。
 
-# 2. Benchmarks
-元学习常用的Benchmarks包括：
-- Omniglot
-
-### Omniglot
+### ⚪ Omniglot
 - 主页：[github](https://github.com/brendenlake/omniglot)
 
 ![](https://pic.downk.cc/item/5ec52b2bc2a9a83be51de766.jpg)
 
-**Omniglot**数据集包含**1623**种符号，每种符号包含**20**个样本。
+**Omniglot**数据集包含**1623**种符号，每种符号包含**20**个样本。该数据集可以做**few-shot 分类**，具体地，实现**N-ways K-shot 分类**：每个任务的设置：从数据集中随机采样**N**个符号的类，每个类包含**K**个样本。
 
-该数据集可以做**few-shot 分类**，具体地，实现**N-ways K-shot 分类**：
+# 2. 元学习算法
 
-每个任务的设置：从数据集中随机采样**N**个符号的类，每个类包含**K**个样本。
-
-# 3. MAML
+## ⚪ MAML
 - paper：[Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks](https://arxiv.org/abs/1703.03400)
 
 **MAML(Model-Agnostic Meta-Learning)**是一种自动选择初始化网络参数的元学习方法，希望能够找到合适的初始化参数，使得不同任务通过该初始化参数进行学习都能收敛到不错的结果。由于选择的是网络参数的初始化值，要求不同任务使用的网络结构是相同的。
@@ -136,7 +118,7 @@ $$ ▽_Φl(\hat{θ}) = \begin{bmatrix} \frac{\partial l(\hat{θ})}{\partial Φ_1
 
 ![](https://pic.downk.cc/item/5ec53f27c2a9a83be54373a1.jpg)
 
-# 4. Raptile
+## ⚪ Raptile
 - paper：[On First-Order Meta-Learning Algorithms](https://arxiv.org/abs/1803.02999v3)
 
 **Reptile**在每个任务中进行多次梯度更新，并将参数的初始指向终止方向作为初始化参数的更新方向：
@@ -146,3 +128,14 @@ $$ ▽_Φl(\hat{θ}) = \begin{bmatrix} \frac{\partial l(\hat{θ})}{\partial Φ_1
 **Reptile**可近似的看作**MAML**和模型预训练的结合：
 
 ![](https://pic.downk.cc/item/5ec54037c2a9a83be544d23c.jpg)
+
+## ⚪ iMAML
+- paper：[<font color=Blue>Meta-Learning with Implicit Gradients</font>](https://0809zheng.github.io/2020/07/08/imaml.html)
+
+**iMAML**算法在每个任务上训练时进行了多次梯度更新，并引入了正则化方法。**iMAML**的优化问题可以写作：
+
+$$ θ_{ML}^* = \mathop{\arg \min}_{θ \in Θ} F(θ) $$
+
+$$ F(θ) = \frac{1}{M} \sum_{i=1}^{M} {L_i(Alg_i^*(θ))} $$
+
+$$ Alg_i^*(θ) = \mathop{\arg \min}_{φ' \in Φ} \hat{L}_i(φ') + \frac{λ}{2} \mid\mid φ'-θ \mid\mid^2 $$
