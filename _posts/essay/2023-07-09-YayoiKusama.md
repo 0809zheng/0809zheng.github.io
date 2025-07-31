@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '记香港M+特别展览“草间弥生：一九四五年至今”'
+title: '会展记：香港M+特别展览“草间弥生：一九四五年至今”'
 date: 2023-07-09
 author: 郑之杰
 cover: 'https://pic1.imgdb.cn/item/67d812b188c538a9b5bff5e9.png'
