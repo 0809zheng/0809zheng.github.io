@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '立方体电阻的等效问题'
+title: '科普记：立方体电阻的等效问题'
 date: 2020-08-15
 author: 郑之杰
 cover: 'https://pic.imgdb.cn/item/66868a2fd9c307b7e9ed465b.png'
