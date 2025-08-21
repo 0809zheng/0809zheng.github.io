@@ -3,7 +3,7 @@ layout: post
 title: '博物记：忍冬与金银忍冬'
 date: 2025-04-19
 author: 郑之杰
-cover: 'https://pic1.imgdb.cn/item/6819f6bc58cb8da5c8e09869.png'
+cover: 'https://github.com/0809zheng/imagebed_essay_0/raw/main/6819f6bc58cb8da5c8e09869.png'
 tags: 随笔
 ---
 
@@ -31,11 +31,11 @@ tags: 随笔
 
 忍冬与金银忍冬所开花形态相似，俗名金银花与金银木也易引发歧义，民间混淆两种植物。区分两种植物只需要记住忍冬是缠绕性藤本植物，而金银忍冬是落叶灌木。
 
-![](https://pic1.imgdb.cn/item/6819f6bc58cb8da5c8e09869.png)
+![](https://github.com/0809zheng/imagebed_essay_0/raw/main/6819f6bc58cb8da5c8e09869.png)
 
 此外金银花（忍冬）与金银木（金银忍冬）的果区别较大，是两者进行区别分类的另一个重要特征。金银花的果熟时呈蓝黑色，而金银木的果熟时呈暗红色。
 
-![](https://pic1.imgdb.cn/item/6819f77458cb8da5c8e09cb9.png)
+![](https://github.com/0809zheng/imagebed_essay_0/raw/main/6819f77458cb8da5c8e09cb9.png)
 
 ### ⚪ 参考文献
 - [金银忍冬、忍冬、金银花、金银木，你真的能分清吗？](https://m.guokr.com/article/449170/)
