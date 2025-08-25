@@ -3,7 +3,7 @@ layout: post
 title: '二值图像的距离变换(Distance Transform)'
 date: 2023-03-22
 author: 郑之杰
-cover: 'https://pic.imgdb.cn/item/641c0a6aa682492fcc7d1da6.jpg'
+cover: 'https://github.com/0809zheng/imagebed_math_0/raw/main/641c0a6aa682492fcc7d1da6.jpg'
 tags: 数学
 ---
 
@@ -11,7 +11,7 @@ tags: 数学
 
 **距离变换(Distance Transform)**是一种针对二值图像（背景: $0$, 前景: $1$）的变换算法，把图像中的每个像素值替换为该像素到前景像素的最近距离。通过距离变换能够基本找出二值图像中前景形状的骨架。
 
-![](https://pic.imgdb.cn/item/641c0a6aa682492fcc7d1da6.jpg)
+![](https://github.com/0809zheng/imagebed_math_0/raw/main/641c0a6aa682492fcc7d1da6.jpg)
 
 对于距离的度量可以选择：
 

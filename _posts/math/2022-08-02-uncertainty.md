@@ -3,7 +3,7 @@ layout: post
 title: '深度学习中的不确定性(Uncertainty)'
 date: 2022-08-02
 author: 郑之杰
-cover: 'https://pic.imgdb.cn/item/631563d816f2c2beb10dbce6.jpg'
+cover: 'https://github.com/0809zheng/imagebed_math_0/raw/main/631563d816f2c2beb10dbce6.jpg'
 tags: 数学
 ---
 
@@ -24,7 +24,7 @@ tags: 数学
 
 下图给出了在**CamVid**数据集上进行语义分割任务时模型输出的偶然不确定性和认知不确定性之间的差异。偶然不确定性捕获了观测中固有的噪声，比如在物体的边界或远离相机的物体上的偶然不确定性会增加。认知不确定性是由对数据认知的缺乏导致的，比如在语义和视觉上更具挑战性的像素的认知不确定性较大。
 
-![](https://pic.imgdb.cn/item/6315a90c16f2c2beb1545080.jpg)
+![](https://github.com/0809zheng/imagebed_math_0/raw/main/6315a90c16f2c2beb1545080.jpg)
 
 ## (1) 建模认知不确定性
 

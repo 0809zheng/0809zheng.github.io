@@ -3,7 +3,7 @@ layout: post
 title: '利普希茨连续条件(Lipschitz Continuity Condition)'
 date: 2022-10-11
 author: 郑之杰
-cover: 'https://pic1.imgdb.cn/item/63468bf216f2c2beb1846342.jpg'
+cover: 'https://github.com/0809zheng/imagebed_math_0/raw/main/63468bf216f2c2beb1846342.jpg'
 tags: 数学
 ---
 

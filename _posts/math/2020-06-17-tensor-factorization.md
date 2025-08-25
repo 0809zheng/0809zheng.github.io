@@ -3,7 +3,7 @@ layout: post
 title: '张量分解(Tensor Decomposition)'
 date: 2020-06-17
 author: 郑之杰
-cover: 'https://pic.downk.cc/item/5ee9a89da240b370e3bcba63.jpg'
+cover: 'https://github.com/0809zheng/imagebed_math_0/raw/main/5ee9a89da240b370e3bcba63.jpg'
 tags: 数学
 ---
 
@@ -17,7 +17,7 @@ tags: 数学
 # 1. Tucker分解
 **Tucker分解（Tucker decomposition）**是一种高阶的主成分分析形式。它将一个张量分解成一个较小的核张量与一系列矩阵（二维张量）的乘积。
 
-![](https://pic.downk.cc/item/5ee8b6f82cb53f50fedacb48.jpg)
+![](https://github.com/0809zheng/imagebed_math_0/raw/main/5ee8b6f82cb53f50fedacb48.jpg)
 
 通常，给定一个三阶张量$x \in \Bbb{R}^{M×N×T}$，使用低秩（$R_1,R_2,R_3$）的**Tucker**分解可以表示为：
 
@@ -89,7 +89,7 @@ $$ \text{vec}\left (\mathcal{G}\right)\Leftarrow \\ \left(\sum_{(m,n,t)\in\Omega
 # 2. CP分解
 **CP分解（CANDECOMP/PARAFAC decomposition）**也是一种常见的张量分解方法。它将一个张量分解成一系列因子向量外积（**outer product**）的和。
 
-![](https://pic.downk.cc/item/5ee8b8132cb53f50fedbefc3.jpg)
+![](https://github.com/0809zheng/imagebed_math_0/raw/main/5ee8b8132cb53f50fedbefc3.jpg)
 
 通常，给定一个三阶张量$x \in \Bbb{R}^{M×N×T}$，CP分解可以表示为：
 
@@ -144,4 +144,4 @@ $$ \boldsymbol{c}_{t}\Leftarrow\left(\sum_{m,n:(m,n,t)\in\Omega}\left(\boldsymbo
 
 如下图所示，对于一个含有缺失数据的数据张量$Y$，对其进行张量分解，分解成一系列低秩张量的乘积。将这些低秩张量的乘积作为原数据张量的重构，修复其缺失值：
 
-![](https://pic.downk.cc/item/5ee9a020a240b370e3aff888.jpg)
+![](https://github.com/0809zheng/imagebed_math_0/raw/main/5ee9a020a240b370e3aff888.jpg)
