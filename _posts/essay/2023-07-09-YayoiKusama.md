@@ -3,7 +3,7 @@ layout: post
 title: '会展记：香港M+特别展览“草间弥生：一九四五年至今”'
 date: 2023-07-09
 author: 郑之杰
-cover: 'https://github.com/0809zheng/imagebed_essay_0/raw/main/67d812b188c538a9b5bff5e9.png'
+cover: 'https://pic1.imgdb.cn/item/67d812b188c538a9b5bff5e9.png'
 tags: 随笔
 ---
 
@@ -12,11 +12,11 @@ tags: 随笔
 
 笔者在香港西九文化区游览期间，适逢**M+**举办特别展览“草间弥生：一九四五年至今”。通过这场展览，笔者不仅结识了这位伟大的艺术家，也深深沉浸在这位“波点女王”的艺术魅力之中。
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/67d818c388c538a9b5bff73a.png)
+![](https://pic1.imgdb.cn/item/67d818c388c538a9b5bff73a.png)
 
 # 一 从精神困境到艺术救赎
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/67d8159388c538a9b5bff66e.png)
+![](https://pic1.imgdb.cn/item/67d8159388c538a9b5bff66e.png)
 
 草间弥生（**Yayoi Kusama**）生于**1929**年的日本长野县，她的童年被战争的阴影与家庭暴力笼罩。自幼饱受幻觉困扰的她，将绘画视为对抗恐惧的出口，用画笔记录下脑海中反复浮现的圆点与网状图案。
 
@@ -26,7 +26,7 @@ tags: 随笔
 
 # 二 波点、无限与生命的隐喻
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/67d8161e88c538a9b5bff697.png)
+![](https://pic1.imgdb.cn/item/67d8161e88c538a9b5bff697.png)
 
 草间弥生的艺术风格独树一帜，融合了超现实主义、极简主义与原生艺术的精髓，却始终围绕“自我消融”与“无限”展开。
 
@@ -35,7 +35,7 @@ tags: 随笔
 
 # 三 连接过去与未来的时空对话
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/67d8172e88c538a9b5bff6e2.png)
+![](https://pic1.imgdb.cn/item/67d8172e88c538a9b5bff6e2.png)
 
 草间弥生坚持不懈地追求前卫艺术实践，使她成为二十一世纪的全球文化偶像。她在逾七十年的创作生涯中发展出独树一帜的核心美学和人生哲学。其作品展示浩瀚无垠之境，反思大自然的生命形态与循环，掳获世人的目光。 
 
@@ -43,15 +43,15 @@ tags: 随笔
 
 本次特别展览带来三组她的全新作品。 在地下大堂，可以欣赏到两件名为**《南瓜》（2022）**的大型雕塑。大型装置**《神经的死亡》（2022）**色彩绚丽，立体地诠释草间的经典主题「无限的网」。**《圆点执念──渴望天堂的爱》（2022）**是极具规模的沉浸式环境，在标志性的镜面空间注入圆点和悬浮气球元素，塑造出仿如万花筒世界的感官体验。
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/67d8191288c538a9b5bff746.jpg)
+![](https://pic1.imgdb.cn/item/67d8191288c538a9b5bff746.jpg)
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/67d8199188c538a9b5bff75d.png)
+![](https://pic1.imgdb.cn/item/67d8199188c538a9b5bff75d.png)
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/67d819c988c538a9b5bff766.jpg)
+![](https://pic1.imgdb.cn/item/67d819c988c538a9b5bff766.jpg)
 
 # 四 在镜像中照见自我
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/67d81a2a88c538a9b5bff770.png)
+![](https://pic1.imgdb.cn/item/67d81a2a88c538a9b5bff770.png)
 
 漫步于**M+**展厅，草间弥生的作品不仅是视觉的狂欢，更是一场心灵的叩问。她的波点与镜面装置将笔者卷入闪烁的星河，迫使笔者在无限重复中直面存在的虚无与永恒。正如她所言：“消融自我，才能抵达宇宙的真相。”
 

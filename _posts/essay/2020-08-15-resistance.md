@@ -3,7 +3,7 @@ layout: post
 title: '科普记：立方体电阻的等效问题'
 date: 2020-08-15
 author: 郑之杰
-cover: 'https://github.com/0809zheng/imagebed_essay_0/raw/main/66868a2fd9c307b7e9ed465b.png'
+cover: 'https://pic.imgdb.cn/item/66868a2fd9c307b7e9ed465b.png'
 tags: 随笔
 ---
 
@@ -15,13 +15,13 @@ tags: 随笔
 
 如下图所示的3维立方体，每条边都是$1Ω$的电阻，问立方体对角线两个端点a、b之间的等效电阻是多少？
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/66868a2fd9c307b7e9ed465b.png)
+![](https://pic.imgdb.cn/item/66868a2fd9c307b7e9ed465b.png)
 
 第一次考虑这种问题会非常棘手，但是图中的电阻标有不同的颜色，这是一个非常有趣的提示。事实上这个立方体电路具有高度的对称性，这也是解决问题的出发点：假设电流I从a流入，从b流出，由对称性流进黄色电阻的三个电流应该相等，都为I/3。因此cde三点应该是等电势点。所谓等电势点可以将其连接起来而不会扰乱原来的系统。
 
 从这种思路出发，我们可以得到所有的等势点集合：$$\{cde\}, \{fgh\}$$；用线将等势点连接顺便改画电路图如下：
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/66868a6fd9c307b7e9edc994.png)
+![](https://pic.imgdb.cn/item/66868a6fd9c307b7e9edc994.png)
 
 即连接等势点之后，电路可以分成几组相同电路的并联，且组与组之间是串联。根据简单的电阻串并联知识，可以很容易的得到这个网络的等效电阻是：
 
@@ -44,11 +44,11 @@ $$
 
 3维的立方体正如问题开始时所描述的，对于一条对角线，其每一个端点分出3个电阻，同样的，如果我们将两个2维立方体并联，将它们的每个顶点用一条边连接，便可以得到3维立方体。
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/66868afcd9c307b7e9eeddc3.png)
+![](https://pic.imgdb.cn/item/66868afcd9c307b7e9eeddc3.png)
 
 那么4维的立方体会是什么样子呢？理论上它应该具有12+12+8=32条边，每4个边汇聚成1个顶点，如果我们画出两个3维的立方体，并将其顶点连接，便可以构思出所谓的4维立方体了：
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/66868b11d9c307b7e9ef0798.png)
+![](https://pic.imgdb.cn/item/66868b11d9c307b7e9ef0798.png)
 
 那么这种立方体的等效电阻如何计算呢？
 
@@ -60,11 +60,11 @@ $$
 
 下面让我们寻找这个问题的规律性。在用等势点的思想解决立方体等效电阻时，我们首先将电路等效成若干个模块的串联，每个模块中则是若干个电阻的并联。如果我们考虑等效电阻计算时各分数相加的分母，前四维立方体电阻的等效参数如下：
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/66868b97d9c307b7e9f020f1.png)
+![](https://pic.imgdb.cn/item/66868b97d9c307b7e9f020f1.png)
 
 细心的读者可能看出其中的规律，如果每一排除以排数n的话，刚好得到的数列呈如下形式：
 
-![](https://github.com/0809zheng/imagebed_essay_0/raw/main/66868baad9c307b7e9f05401.png)
+![](https://pic.imgdb.cn/item/66868baad9c307b7e9f05401.png)
 
 这便是著名的杨辉三角形，也叫帕斯卡三角形（**Pascal’s triangle**）。该三角形中第$n$排的数是$(a+b)^n$二项式展开的系数。按此规律，对于一个$n$维立方体，设每边的体电阻为$1Ω$，则该立方体对角线等效电阻为：
 
