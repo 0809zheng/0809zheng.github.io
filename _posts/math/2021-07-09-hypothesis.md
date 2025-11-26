@@ -3,7 +3,7 @@ layout: post
 title: '机器学习中的假设检验(Hypothesis Test)'
 date: 2021-07-09
 author: 郑之杰
-cover: 'https://github.com/0809zheng/imagebed_math_0/raw/main/60e807c55132923bf84e8654.jpg'
+cover: 'https://pic.imgdb.cn/item/60e807c55132923bf84e8654.jpg'
 tags: 数学
 ---
 
@@ -127,7 +127,7 @@ $$ CD = q_{\alpha}\sqrt{\frac{k(k+1)}{6N}} $$
 
 其中$q_{\alpha}$是**Tukey**分布的临界值。根据每个模型的平均序值和临界值域，可以绘制**Friedman检验图**：
 
-![](https://github.com/0809zheng/imagebed_math_0/raw/main/60e9525b5132923bf8d14a3f.jpg)
+![](https://pic.imgdb.cn/item/60e9525b5132923bf8d14a3f.jpg)
 
 若两个模型的横线段有交叠，则说明这两个模型没有显著差别；否则即说明有显著差别。
 

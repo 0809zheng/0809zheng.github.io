@@ -20,11 +20,11 @@ tags: 数学
 
 若假设概率分布$p(\textbf{x})$和$q(\textbf{x})$代表两堆石子，则问题等价于如何移动一堆石子，通过最小的累积移动距离把它堆成另外一堆石子。因此**Wasserstein**距离也被称作**推土机距离(Earth Mover's Distance)**。
 
-![](https://github.com/0809zheng/imagebed_math_0/raw/main/6281fd3e0947543129711307.jpg)
+![](https://pic.imgdb.cn/item/6281fd3e0947543129711307.jpg)
 
 记从位置$x$运输到位置$y$的成本为$d(x,y)$，联合分布$\gamma(x,y)$描述了一种可行的运输方案，表示应该从位置$x$处运输多少货物到位置$y$处，才能使$p(\textbf{x})$和$q(\textbf{x})$具有相同的概率分布。在离散形势下，联合分布$\gamma(x,y)$表示为一个矩阵：
 
-![](https://github.com/0809zheng/imagebed_math_0/raw/main/6331819916f2c2beb1ca5a64.jpg)
+![](https://pic1.imgdb.cn/item/6331819916f2c2beb1ca5a64.jpg)
 
 其中矩阵的每一行代表概率分布$p(\textbf{x})$的某个位置$x_p$要分配到概率分布$q(\textbf{x})$不同位置处的值；每一列代表概率分布$q(\textbf{x})$的某个位置$x_q$接收到概率分布$p(\textbf{x})$的不同位置分配的值。在该联合分布下，概率分布变换的总成本为：
 

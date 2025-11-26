@@ -163,4 +163,4 @@ $$[θ_1^*, +∞)$$、$$(-∞,θ_2^*]$$称为**置信界**。
 
 上侧$α$分位点$u_α$，满足$P(x>u_α)=α$。
 
-![](https://github.com/0809zheng/imagebed_math_0/raw/main/5e959eb2c2a9a83be5cd140e.jpg)
+![](https://pic.downk.cc/item/5e959eb2c2a9a83be5cd140e.jpg)

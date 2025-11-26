@@ -3,7 +3,7 @@ layout: post
 title: '函数的光滑化(Smoothing)'
 date: 2021-11-16
 author: 郑之杰
-cover: 'https://github.com/0809zheng/imagebed_math_0/raw/main/6194c14e2ab3f51d9157ea72.jpg'
+cover: 'https://pic.imgdb.cn/item/6194c14e2ab3f51d9157ea72.jpg'
 tags: 数学
 ---
 
@@ -230,6 +230,6 @@ $$ \lfloor x \rfloor ≈  \mathop{\lim}_{M,N\to ∞}  -(M+1)+\sum_{n=-M}^{N}\Phi
 
 下图展示了一个$t=10,M=5,N=10$时对取整函数的近似情况：
 
-![](https://github.com/0809zheng/imagebed_math_0/raw/main/6186339f2ab3f51d91c9d9e8.jpg)
+![](https://pic.imgdb.cn/item/6186339f2ab3f51d91c9d9e8.jpg)
 
 更多使用**Dirac**函数构造光滑近似的例子可参考[SAU激活函数](https://0809zheng.github.io/2021/11/05/sau.html)。

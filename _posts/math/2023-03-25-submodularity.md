@@ -3,7 +3,7 @@ layout: post
 title: '集函数的子模性(Submodularity)与Lovász延拓(Lovász Extension)'
 date: 2023-03-25
 author: 郑之杰
-cover: 'https://github.com/0809zheng/imagebed_math_0/raw/main/6421507da682492fcc7ed807.jpg'
+cover: 'https://pic.imgdb.cn/item/6421507da682492fcc7ed807.jpg'
 tags: 数学
 ---
 
