@@ -132,7 +132,7 @@ $$
 
 **scDREAMER**成功地完成了这一图谱级别的整合任务，其运行速度快于**scVI**等其他基于深度学习的方法。**UMAP**图显示，**scDREAMER**清晰地分开了中性粒细胞、红细胞等主要细胞类型，其综合整合得分在所有无监督方法中排名第一，甚至优于一些有监督方法。
 
-https://pic1.imgdb.cn/item/695cda1a2475f92cc32593df.png
+![](https://pic1.imgdb.cn/item/695cda1a2475f92cc32593df.png)
 
 ## 3.2 有监督整合 (scDREAMER-Sup)
 
