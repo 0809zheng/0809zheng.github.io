@@ -82,7 +82,7 @@ layout: default
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 allPapers = await response.json();
-                statusMessage.textContent = 'Database loaded. Ready to search. Currently supported:\nCVPR26';
+                statusMessage.innerHTML = 'Database loaded. Ready to search. Currently supported:<br>CVPR26';
             } catch (error) {
                 statusMessage.textContent = 'Failed to load paper database. Please refresh the page.';
                 console.error('Error fetching paper data:', error);
