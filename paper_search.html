@@ -1,0 +1,163 @@
+---
+title: Paper Search
+layout: default
+---
+{% include header.html %}
+
+<!-- 复用你网站的 Banner 样式 -->
+<div class="g-banner tags-banner {{ site.postPatterns | prepend: 'post-pattern-' }} {{ site.theme-color | prepend: 'bgcolor-' }}" data-theme="{{ site.theme-color }}">
+    <h2>PAPER SEARCH</h2>
+</div>
+
+<main class="tags-content" style="margin-top: 20px;">
+    <div style="padding: 0 40px;">
+        <!-- 搜索输入框和按钮 -->
+        <div class="search-box" style="margin-bottom: 30px; display: flex; gap: 10px;">
+            <input type="text" id="searchInput" placeholder="Enter keyword to search papers..." style="flex-grow: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px;">
+            <button id="searchButton" style="padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #5bbd72; color: white; border: none; border-radius: 5px;">Search</button>
+        </div>
+
+        <!-- 用于显示状态信息（如加载中、未找到结果） -->
+        <div id="statusMessage" style="margin-top: 20px; font-style: italic; color: #888;"></div>
+
+        <!-- 搜索结果容器 -->
+        <div id="resultsContainer"></div>
+    </div>
+</main>
+
+<!-- 添加一些自定义样式 -->
+<style>
+    .search-result-item {
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    .paper-title {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    .paper-title a {
+        color: #333;
+        text-decoration: none;
+    }
+    .paper-title a:hover {
+        text-decoration: underline;
+        color: #5bbd72;
+    }
+    .paper-meta {
+        font-size: 0.9em;
+        color: #777;
+        margin: 5px 0;
+    }
+    .paper-abstract {
+        font-size: 0.95em;
+        color: #555;
+        line-height: 1.5;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // =========================================================================
+        // == 请将下面的 URL 替换为你自己的 paper.json 文件的 Raw URL ==
+        // =========================================================================
+        const paperDataUrl = 'https://raw.githubusercontent.com/0809zheng/top-tier-conference-papers/refs/heads/main/papers.json'; // 这是一个假设的URL，请务必替换
+
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const statusMessage = document.getElementById('statusMessage');
+
+        let allPapers = []; // 用于缓存论文数据
+
+        // 预加载论文数据
+        async function fetchPapers() {
+            if (allPapers.length > 0) {
+                return; // 如果已加载，则不重复获取
+            }
+            statusMessage.textContent = 'Loading paper database. The first load will take a few minutes.';
+            try {
+                const response = await fetch(paperDataUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                allPapers = await response.json();
+                statusMessage.innerHTML = 'Database loaded. Ready to search. Currently supported:<br>CVPR26';
+            } catch (error) {
+                statusMessage.textContent = 'Failed to load paper database. Please refresh the page.';
+                console.error('Error fetching paper data:', error);
+            }
+        }
+        
+        // 执行搜索的功能函数
+        function performSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            if (!query) {
+                statusMessage.textContent = 'Please enter a keyword.';
+                resultsContainer.innerHTML = '';
+                return;
+            }
+
+            if (allPapers.length === 0) {
+                 statusMessage.textContent = 'Database is not loaded yet. Please wait.';
+                 return;
+            }
+
+            statusMessage.textContent = `Searching for "${searchInput.value.trim()}"...`;
+
+            const results = allPapers.filter(paper => {
+                const title = paper.title ? paper.title.toLowerCase() : '';
+                const abstract = paper.abstract ? paper.abstract.toLowerCase() : '';
+                return title.includes(query) || abstract.includes(query);
+            });
+
+            // 按年份倒序排列
+            results.sort((a, b) => b.year - a.year);
+
+            displayResults(results);
+        }
+
+        // 显示搜索结果
+        function displayResults(results) {
+            resultsContainer.innerHTML = ''; // 清空之前的结果
+
+            if (results.length === 0) {
+                statusMessage.textContent = 'No matching papers found.';
+                return;
+            }
+
+            statusMessage.textContent = `Found ${results.length} paper(s).`;
+
+            results.forEach(paper => {
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+
+                const title = paper.title || 'No Title';
+                const url = paper.url || '#';
+                const conference = paper.conference || 'N/A';
+                const year = paper.year || 'N/A';
+                const abstract = paper.abstract || 'No abstract available.';
+
+                item.innerHTML = `
+                    <div class="paper-title"><a href="${url}" target="_blank">${title}</a></div>
+                    <div class="paper-meta"><strong>Conference:</strong> ${conference} | <strong>Year:</strong> ${year}</div>
+                    <div class="paper-abstract">${abstract}</div>
+                `;
+                resultsContainer.appendChild(item);
+            });
+        }
+
+        // 绑定事件
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // 页面加载后立即开始获取数据
+        fetchPapers();
+    });
+</script>
+
+{% include footer.html %}
