@@ -69,7 +69,7 @@ $$
 
 **scWGBS-GPT** 中的 **Mamba** 主干由 **8** 个堆叠的 **Mamba块**组成，总参数量约为 **1M**。每个块的操作如下：
 1.  卷积输入投影：输入序列 $\mathbf{X}$ 首先通过深度可分离卷积层处理以提取局部**CpG**模式：$\mathbf{X}' = \mathrm{Conv1D}(\mathbf{X})$。
-2.  状态空间模型演化：每个词元通过连续时间状态空间层传递，更新内部序列表示：$\mathbf{H}_t = \mathbf{A}\mathbf{H}_{t-1} + \mathbf{B}\mathbf{X}_t'$。
+2.  状态空间模型演化：每个词元通过连续时间状态空间层传递，更新内部序列表示：$$\mathbf{H}_t = \mathbf{A}\mathbf{H}_{t-1} + \mathbf{B}\mathbf{X}_t'$$。
 3.  选择性门控机制：**Sigmoid** 门控函数动态调节新信息的影响：$\mathbf{G}_t = \sigma (\mathbf{W}_g\mathbf{X}_t)$。
 4.  线性投影与归一化：输出被投影到新的特征空间并归一化：$\mathbf{Y}_t = \mathrm{LayerNorm}(\mathbf{W}_g\mathbf{H}_t)$。
 

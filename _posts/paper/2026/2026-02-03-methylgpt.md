@@ -62,7 +62,7 @@ tags: 论文阅读
 对于样本 $i$ 的最终嵌入 $E_{\text{final}}$ 定义为：
 
 $$
-E_{\text{final}}^{(i)} = E_{\text{CpG\_ID}} + E_{\text{Methylation\_Value}}^{(i)}
+E_{\text{final}}^{(i)} = E_{\text{CpG ID}} + E_{\text{Methylation Value}}^{(i)}
 $$
 
 其中，$E_{\text{CpG\_ID}}$ 是所有样本共享的 **CpG** 位点身份嵌入，$E_{\text{Methylation\_Value}}^{(i)}$ 是样本 $i$ 特有的甲基化值嵌入。嵌入维度设置为64。此外，在每个序列的开头，作者添加了一个特殊的 `[CLS]` **token**，用于学习样本级别的全局表示。
@@ -106,9 +106,9 @@ $$
 
 利用 `[CLS]` **token** 的输出嵌入来重构完整的甲基化谱。模型将 `[CLS]` **token** 的输出嵌入反馈回输入，同时掩盖所有其他 **CpG** **token**。目标同样是最小化 **MSE**。
 
-$
+$$
 \mathcal{L}_{\text{Reconstruction}} = \frac{1}{|\mathcal{A}|} \sum_{j \in \mathcal{A}} (\hat{y}_j^{(i)} - y_j^{(i)})^2
-$
+$$
 
 其中 $\mathcal{A}$ 是所有位点的集合。
 
