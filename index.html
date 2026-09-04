@@ -128,11 +128,10 @@ header-img: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/header.jpg'
                         box-shadow: 0 0 0 1px rgba(255, 255, 255, .1);
                     }
                 </style>
-                <div class="pinned-title">概述索引</div>
+                <div class="pinned-title">推荐阅读</div>
                 <ul>
                     {% for post in pinned_posts %}
                     <li>
-                        <span class="pinned-badge">置顶</span>
                         <a class="pinned-link" href="{{ post.url | relative_url }}" title="{{ post.title }}">{{ post.title }}</a>
                     </li>
                     {% endfor %}
