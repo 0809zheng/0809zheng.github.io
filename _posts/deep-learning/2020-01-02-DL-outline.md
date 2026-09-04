@@ -5,6 +5,7 @@ date: 2020-01-02
 author: 郑之杰
 cover: ''
 tags: 深度学习
+pinned: true
 ---
 
 > Outlines about Deep Learning.
