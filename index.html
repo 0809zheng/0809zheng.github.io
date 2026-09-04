@@ -78,6 +78,68 @@ header-img: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/header.jpg'
                 {% endif %}
             </section>
 
+            {% assign pinned_posts = site.posts | where: 'pinned', true %}
+            {% if pinned_posts.size > 0 %}
+            <section class="pinned-card">
+                <style>
+                    .pinned-card .pinned-title {
+                        font-size: 14px;
+                        color: #a6abb2;
+                        margin-bottom: 12px;
+                    }
+                    .pinned-card ul {
+                        margin: 0;
+                        padding: 0;
+                        list-style: none;
+                    }
+                    .pinned-card li {
+                        margin-bottom: 10px;
+                        line-height: 22px;
+                    }
+                    .pinned-card li:last-child {
+                        margin-bottom: 0;
+                    }
+                    .pinned-card .pinned-badge {
+                        display: inline-block;
+                        height: 22px;
+                        padding: 0 8px;
+                        margin-right: 6px;
+                        font-size: 14px;
+                        color: #a6abb2;
+                        line-height: 22px;
+                        box-shadow: 0 0 .6px #d5dae1;
+                        border-radius: 2px;
+                        background-color: #fafafa;
+                    }
+                    .pinned-card .pinned-link {
+                        color: #454545;
+                        transition: .2s;
+                    }
+                    .pinned-card .pinned-link:hover {
+                        color: #00a8ff;
+                    }
+                    .night-mode .pinned-card .pinned-title,
+                    .night-mode .pinned-card .pinned-link {
+                        color: #868a94;
+                    }
+                    .night-mode .pinned-card .pinned-badge {
+                        color: #868a94;
+                        background-color: #2d313a;
+                        box-shadow: 0 0 0 1px rgba(255, 255, 255, .1);
+                    }
+                </style>
+                <div class="pinned-title">概述索引</div>
+                <ul>
+                    {% for post in pinned_posts %}
+                    <li>
+                        <span class="pinned-badge">置顶</span>
+                        <a class="pinned-link" href="{{ post.url | relative_url }}" title="{{ post.title }}">{{ post.title }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
             {% if site.recommend-tags and site.tags.size>0 %}
             <section class="tags-card">
                 {% for tag in site.tags %}
