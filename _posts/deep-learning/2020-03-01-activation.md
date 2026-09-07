@@ -186,7 +186,7 @@ $$
 | $$\text{HardSigmoid}(x)=\begin{cases} 1, & x\geq 1 \\ (x+1)/2, & -1<x<1 \\ 0, & x\leq -1 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-005-hardsigmoid-hardtanh.png) |
 | $$\text{HardTanh}(x)=\begin{cases} 1, & x>1 \\ x, & -1\leq x\leq 1 \\ -1, & x<-1 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-006-hardsigmoid-hardtanh.png) |
 
-对**Sigmoid**和**Tanh**在原点处作一阶[<font color=Blue>Taylor展开</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh)并把结果截断到值域内，即可得到分段线性的**HardSigmoid**与**HardTanh**。它们只需加法、乘法和截断，完全避免了指数运算，是移动端和量化部署的常见替代品；代价是在$x=\pm 1$处不可导，且在$|x|>1$时梯度严格为$0$（饱和区比原函数更“硬”）。
+对**Sigmoid**和**Tanh**在原点处作一阶[<font color=Blue>Taylor展开</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh)并把结果截断到值域内，即可得到分段线性的**HardSigmoid**与**HardTanh**。它们只需加法、乘法和截断，完全避免了指数运算，是移动端和量化部署的常见替代品；代价是在$x=\pm 1$处不可导，且在$\|x\|>1$时梯度严格为$0$（饱和区比原函数更“硬”）。
 
 ### ⚪ ISRU：逆平方根单元
 
@@ -206,7 +206,7 @@ $$
 
 **Softsign**是一个更早的代数型**S**型函数。它与**ISRU**属于同一思路：用有理式代替指数式。
 
-**Softsign**与**Tanh**最本质的差别在**饱和速度**：**Tanh**的尾部以$e^{-2x}$**指数**衰减，而**Softsign**以$1/x$**多项式**衰减，因此其导数在远处按$1/x^2$而非指数级衰减：尾部“更肥”，梯度消失来得更晚。两者在原点处的导数都等于$1$，但**Softsign**因含$|x|$而在原点处二阶不可导（一阶导数连续，二阶导数有跳变）。它在现代网络中很少使用，主要作为**Tanh**的廉价替代出现在早期工作和一些序列模型中。
+**Softsign**与**Tanh**最本质的差别在**饱和速度**：**Tanh**的尾部以$e^{-2x}$**指数**衰减，而**Softsign**以$1/x$**多项式**衰减，因此其导数在远处按$1/x^2$而非指数级衰减：尾部“更肥”，梯度消失来得更晚。两者在原点处的导数都等于$1$，但**Softsign**因含$\|x\|$而在原点处二阶不可导（一阶导数连续，二阶导数有跳变）。它在现代网络中很少使用，主要作为**Tanh**的廉价替代出现在早期工作和一些序列模型中。
 
 ## 3.2 ReLU族激活函数
 
@@ -356,13 +356,13 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{CReLU}(x)= \left[\text{ReLU}(x), \text{ReLU}(-x)\right]$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-053-crelu.jpg) |
+| $$\text{CReLU}(x)= \left[\text{ReLU}(x), \text{ReLU}(-x)\right]$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-053-crelu.png) |
 
 前面几种方法都试图给负半轴一个“小一点”的输出，**CReLU**则换了一个角度：既然负半轴的信息有用，为什么不干脆把它**完整保留**？
 
 作者的出发点是一个实验观察：卷积网络（尤其是**低层**）的滤波器往往**成对出现且方向近似相反**——同一组卷积核中存在大量负相关的“相位对”$w$与$-w$。这意味着网络实际上在用两个滤波器学习同一个模式的正负两个相位，而**ReLU**又把其中一半的响应抹成$0$，造成了双重浪费。
 
-**CReLU**把$\text{ReLU}(x)$与$\text{ReLU}(-x)$在通道维**拼接**输出。这一变换是**信息保持**的：由两路输出可以完整恢复$x$（也可以恢复$|x|$），没有任何信息损失，同时输出仍然是稀疏的（每个位置恰有一路为$0$）。代价是输出通道数翻倍，因此实践中通常把滤波器数量减半以保持计算量不变；这样反而用一半的参数达到了更好的效果。
+**CReLU**把$\text{ReLU}(x)$与$\text{ReLU}(-x)$在通道维**拼接**输出。这一变换是**信息保持**的：由两路输出可以完整恢复$x$（也可以恢复$\|x\|$），没有任何信息损失，同时输出仍然是稀疏的（每个位置恰有一路为$0$）。代价是输出通道数翻倍，因此实践中通常把滤波器数量减半以保持计算量不变；这样反而用一半的参数达到了更好的效果。
 
 #### ⚪ SReLU：双侧可学习阈值
 
@@ -370,7 +370,7 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{SReLU}(x)=\begin{cases} a^r\left(x-t^r\right)+t^r, & x\geq t^r \\ x, & t^l < x < t^r \\ a^l\left(x-t^l\right)+t^l, & x\leq t^l \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-054-srelu.jpg) |
+| $$\text{SReLU}(x)=\begin{cases} a^r\left(x-t^r\right)+t^r, & x\geq t^r \\ x, & t^l < x < t^r \\ a^l\left(x-t^l\right)+t^l, & x\leq t^l \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-054-srelu.png) |
 
 **SReLU(S-shaped ReLU)**由**三段**线性函数拼接而成，四个参数$t^r,a^r,t^l,a^l$全部可学习（$t^l,t^r$为左右转折点，$a^l,a^r$为两端斜率）。
 
@@ -382,7 +382,7 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\begin{aligned} \text{forward}:&\quad \text{ReLU}(x) \\ \text{backward}:&\quad \text{B-SiLU}'(x) \\ \text{B-SiLU}(x)&= (x+\alpha)\sigma(x) - \frac{\alpha}{2}, \quad \alpha = 1.67 \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-055-sugar.jpg) |
+| $$\begin{aligned} \text{forward}:&\quad \text{ReLU}(x) \\ \text{backward}:&\quad \text{B-SiLU}'(x) \\ \text{B-SiLU}(x)&= (x+\alpha)\sigma(x) - \frac{\alpha}{2}, \quad \alpha = 1.67 \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-055-sugar.png) |
 
 前面所有方法为了修好负半轴的梯度，都**改变了前向输出**，因而牺牲了**ReLU**的稀疏性与低廉的推理成本。**SUGAR(surrogate gradient)**指出这两件事其实可以**解耦**：激活函数同时承担了“前向的函数形状”和“反向的梯度形状”两个角色，而它们不必由同一个函数提供。
 
@@ -716,7 +716,7 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\begin{aligned} \text{ELiSH}(x) &=\text{ELU}(x)\cdot \sigma(x) = \begin{cases} \dfrac{x}{1+e^{-x}}, & x\geq 0 \\ \dfrac{e^x-1}{1+e^{-x}}, & x<0 \end{cases} \\ \text{HardELiSH}(x) &=\text{ELU}(x)\cdot \text{HardSigmoid}(x) = \begin{cases} x, & x\geq 1 \\ x(x+1)/2, & 0 \leq x<1 \\ \left(e^x-1\right)(x+1)/2, & -1\leq x<0 \\ 0, & x\leq -1 \end{cases} \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-030-elish-hardelish.jpg) |
+| $$\begin{aligned} \text{ELiSH}(x) &=\text{ELU}(x)\cdot \sigma(x) \\&= \begin{cases} \dfrac{x}{1+e^{-x}}, & x\geq 0 \\ \dfrac{e^x-1}{1+e^{-x}}, & x<0 \end{cases} \\ \text{HardELiSH}(x) &=\text{ELU}(x)\cdot \text{HardSigmoid}(x) \\&= \begin{cases} x, & x\geq 1 \\ x(x+1)/2, & 0 \leq x<1 \\ \left(e^x-1\right)(x+1)/2, & -1\leq x<0 \\ 0, & x\leq -1 \end{cases} \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-030-elish-hardelish.jpg) |
 
 **ELiSH(exponential linear sigmoid squashing)**沿用了**Swish**的“自门控”结构，但把被门控的对象从$x$换成$\text{ELU}(x)$：当$x>0$时它与**Swish**完全相同；当$x<0$时它继承了**ELU**减少偏置偏移、对噪声鲁棒的特点。**HardELiSH**则进一步把**Sigmoid**替换为**HardSigmoid**以降低计算量。
 
@@ -735,15 +735,15 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{E-Swish}(x) &= \beta x\sigma(x), \quad \beta \in [1,2]$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-061-eswish.png) |
-| $$\text{LiSHT}(x) &= x\tanh(x)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-062-lisht.png) |
-| $$\text{TanhExp}(x) &= x\tanh\left(e^x\right)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-063-tanhexp.png) |
+| $$\text{E-Swish}(x) = \beta x\sigma(x), \quad \beta \in [1,2]$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-061-eswish.png) |
+| $$\text{LiSHT}(x) = x\tanh(x)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-062-lisht.png) |
+| $$\text{TanhExp}(x) = x\tanh\left(e^x\right)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-063-tanhexp.png) |
 
 搜索给出了$x\cdot g(x)$这一**自门控**模板之后，手工设计的空间就变成了“换一个$g$”。上表中的三个是最常见的变体。
 
 **E-Swish**只是给**Swish**乘上一个常数$\beta$（推荐$\beta=1.75$），看起来微不足道，但它改变的是函数的**最大导数**：$\beta>1$使正半轴的梯度整体放大，等价于把该层的有效学习率调高。作者据此建议按网络深度选取不同的$\beta$：浅层用较大的$\beta$，深层用较小的$\beta$。
 
-**LiSHT**是这一组中最特殊的：$x\tanh(x)$是一个**偶函数**且**恒非负**（可以写成$|x|\tanh|x|$），形状是一条**V**型曲线。它完全丢弃了输入的符号而只保留幅值，这与前面所有激活函数都不同。它以一种独特的方式满足准则4：输出虽然全为正，但函数关于$y$轴对称，正负输入被同等对待，因此不存在方向性的偏置偏移。代价是符号信息的丢失必须由后续层从其他通道恢复。
+**LiSHT**是这一组中最特殊的：$x\tanh(x)$是一个**偶函数**且**恒非负**（可以写成$\|x\|\tanh \|x\|$），形状是一条**V**型曲线。它完全丢弃了输入的符号而只保留幅值，这与前面所有激活函数都不同。它以一种独特的方式满足准则4：输出虽然全为正，但函数关于$y$轴对称，正负输入被同等对待，因此不存在方向性的偏置偏移。代价是符号信息的丢失必须由后续层从其他通道恢复。
 
 **TanhExp**面向**轻量级网络**设计。它在原点附近的过渡比**Swish**和**Mish**都更陡（因为$e^x$在$0$附近变化快，使$\tanh$迅速接近饱和），从而在小模型上收敛更快；同时它只需一次$\exp$和一次$\tanh$。
 
@@ -1070,7 +1070,7 @@ $$
 
 $$ \max(x_1,x_2) = \frac{x_1+x_2+|x_1-x_2|}{2} $$
 
-因此**只需光滑化绝对值函数$|x|$**。$|x|$常用的两种光滑近似是$x\,\text{erf}(\mu x)$和$\sqrt{x^2+\mu^2}$：前者从下方逼近$|x|$（$\mu$越大越逼近），后者从上方逼近（$\mu$越小越逼近）。代入得到最大值函数的两种近似：
+因此**只需光滑化绝对值函数$\|x\|$**。$\|x\|$常用的两种光滑近似是$x\,\text{erf}(\mu x)$和$\sqrt{x^2+\mu^2}$：前者从下方逼近$\|x\|$（$\mu$越大越逼近），后者从上方逼近（$\mu$越小越逼近）。代入得到最大值函数的两种近似：
 
 $$
 \begin{aligned}
