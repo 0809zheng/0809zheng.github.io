@@ -26,7 +26,9 @@ tags: 深度学习
 
 **符号约定**：全文用$\sigma(\cdot)$专门表示**Sigmoid**函数$\sigma(x)=1/(1+e^{-x})$；用$s$表示光滑化核的宽度；用$\mathbb{E}[\cdot]$与$\text{Var}[\cdot]$表示期望与方差。
 
-较为全面的综述可参考[Activation Functions: Comparison of trends in Practice and Research for Deep Learning](https://arxiv.org/abs/1811.03378)，以及一份收录了$400$余个激活函数的详尽调研[Three Decades of Activations: A Comprehensive Survey of 400 Activation Functions for Neural Networks](https://arxiv.org/abs/2402.09092)。
+📕 综述可参考：
+- [Three Decades of Activations: A Comprehensive Survey of 400 Activation Functions for Neural Networks](https://arxiv.org/abs/2402.09092)
+- [Activation Functions: Comparison of trends in Practice and Research for Deep Learning](https://arxiv.org/abs/1811.03378)
 
 # 1. 激活函数的意义
 
@@ -46,7 +48,7 @@ tags: 深度学习
 - 产生电脉冲建模为$f(\cdot)=\text{Step}(\cdot)$；
 - 轴突的输出信号建模为$f\left(\sum_i w_ix_i+b\right)$。
 
-因此激活函数最初的作用是模拟“信号累积达到阈值并产生电脉冲”这一过程。
+因此激活函数最初的作用是模拟“**信号累积达到阈值并产生电脉冲**”这一过程。
 
 值得一提的是，这种对神经元的建模是非常粗糙(**coarse**)的：真实神经元有很多不同的种类；突触是一个复杂的非线性动态系统；树突进行的是复杂的非线性运算；轴突的输出时刻(而非仅仅输出强度)也携带信息。因此近些年来神经网络中神经元的**生物可解释性(biological plausibility)**被逐渐弱化，激活函数的设计更多地由优化性质、表示能力和计算效率驱动。
 
@@ -66,7 +68,7 @@ $$
 
 ## (3) 从通用近似的角度理解激活函数
 
-**通用近似定理(universal approximation theorem)**指出：只要激活函数是非常数、有界、单调递增的连续函数（后续工作把条件放宽到非多项式函数），具有一个隐藏层的前馈网络就可以在紧集上以任意精度逼近任意连续函数。
+[**通用近似定理(universal approximation theorem)**](https://en.wikipedia.org/wiki/Universal_approximation_theorem)指出：只要激活函数是非常数、有界、单调递增的连续函数（后续工作把条件放宽到非多项式函数），具有一个隐藏层的前馈网络就可以在紧集上以任意精度逼近任意连续函数。
 
 这个定理说明了两件事：其一，激活函数的“非线性”本身就是网络表示能力的来源；其二，几乎任何非线性函数都可以作为激活函数，因此激活函数的设计空间极大。这也解释了为什么激活函数的研究会分化出如此多的路线：真正的约束不来自表示能力，而来自**可优化性**与**计算效率**。
 
@@ -164,7 +166,7 @@ $$
 **Sigmoid**（**logistic**函数）把实数域压缩到$(0,1)$，因此可以解释为概率，至今仍是二分类输出层和门控单元的标准选择。它的导数具有优美的自表达形式，这也是它在早期被广泛使用的原因之一。
 
 **Sigmoid**的主要缺点：
-- **两端饱和**：$|x|$较大时导数趋于$0$；
+- **两端饱和**：$\|x\|$较大时导数趋于$0$；
 - **导数上界过小**：$\sigma'(x)\leq \sigma'(0)=1/4$，即使在非饱和区，每经过一层梯度也至少衰减$4$倍，这是深层网络中梯度消失的直接原因；
 - **非zero-centered**：输出恒为正，产生偏置偏移（准则4）；
 - **计算量大**：包含指数运算。
@@ -200,9 +202,9 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\begin{aligned} \text{Softsign}(x)&= \frac{x}{1 + \lvert x\rvert} \\ \text{Softsign}'(x)&=\frac{1}{(1+\lvert x\rvert)^2} \end{aligned}$$ | — |
+| $$\begin{aligned} \text{Softsign}(x)&= \frac{x}{1 + \lvert x\rvert} \\ \text{Softsign}'(x)&=\frac{1}{(1+\lvert x\rvert)^2} \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-052-softsign.png) |
 
-**Softsign**是一个更早的代数型**S**型函数（**PyTorch**中实现为`torch.nn.Softsign`）。它与**ISRU**属于同一思路：用有理式代替指数式。
+**Softsign**是一个更早的代数型**S**型函数。它与**ISRU**属于同一思路：用有理式代替指数式。
 
 **Softsign**与**Tanh**最本质的差别在**饱和速度**：**Tanh**的尾部以$e^{-2x}$**指数**衰减，而**Softsign**以$1/x$**多项式**衰减，因此其导数在远处按$1/x^2$而非指数级衰减：尾部“更肥”，梯度消失来得更晚。两者在原点处的导数都等于$1$，但**Softsign**因含$|x|$而在原点处二阶不可导（一阶导数连续，二阶导数有跳变）。它在现代网络中很少使用，主要作为**Tanh**的廉价替代出现在早期工作和一些序列模型中。
 
@@ -286,7 +288,9 @@ print(result.x) # [1.52382104]
 
 注意到**Squareplus**和**Softplus**都是**ReLU**的上界；如果进一步希望**Squareplus**是**Softplus**的上界，则应有：
 
-$$ \frac{1}{2}\left(x+\sqrt{x^2+b}\right) \geq \ln\left(1+e^x\right) \Longrightarrow b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
+$$ \frac{1}{2}\left(x+\sqrt{x^2+b}\right) \geq \ln\left(1+e^x\right) \\
+\downarrow \\
+b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 右式在$x=0$处取极大值，因此应有$b\geq 4 \ln^2 2$。
 
@@ -352,7 +356,7 @@ $$ \frac{1}{2}\left(x+\sqrt{x^2+b}\right) \geq \ln\left(1+e^x\right) \Longrighta
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{CReLU}(x)= \left[\text{ReLU}(x), \text{ReLU}(-x)\right]$$ | — |
+| $$\text{CReLU}(x)= \left[\text{ReLU}(x), \text{ReLU}(-x)\right]$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-053-crelu.jpg) |
 
 前面几种方法都试图给负半轴一个“小一点”的输出，**CReLU**则换了一个角度：既然负半轴的信息有用，为什么不干脆把它**完整保留**？
 
@@ -366,7 +370,7 @@ $$ \frac{1}{2}\left(x+\sqrt{x^2+b}\right) \geq \ln\left(1+e^x\right) \Longrighta
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{SReLU}(x)=\begin{cases} a^r\left(x-t^r\right)+t^r, & x\geq t^r \\ x, & t^l < x < t^r \\ a^l\left(x-t^l\right)+t^l, & x\leq t^l \end{cases}$$ | — |
+| $$\text{SReLU}(x)=\begin{cases} a^r\left(x-t^r\right)+t^r, & x\geq t^r \\ x, & t^l < x < t^r \\ a^l\left(x-t^l\right)+t^l, & x\leq t^l \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-054-srelu.jpg) |
 
 **SReLU(S-shaped ReLU)**由**三段**线性函数拼接而成，四个参数$t^r,a^r,t^l,a^l$全部可学习（$t^l,t^r$为左右转折点，$a^l,a^r$为两端斜率）。
 
@@ -378,7 +382,7 @@ $$ \frac{1}{2}\left(x+\sqrt{x^2+b}\right) \geq \ln\left(1+e^x\right) \Longrighta
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\begin{aligned} \text{forward}:&\quad \text{ReLU}(x) \\ \text{backward}:&\quad \text{B-SiLU}'(x) \\ \text{B-SiLU}(x)&= (x+\alpha)\sigma(x) - \frac{\alpha}{2}, \quad \alpha = 1.67 \end{aligned}$$ | — |
+| $$\begin{aligned} \text{forward}:&\quad \text{ReLU}(x) \\ \text{backward}:&\quad \text{B-SiLU}'(x) \\ \text{B-SiLU}(x)&= (x+\alpha)\sigma(x) - \frac{\alpha}{2}, \quad \alpha = 1.67 \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-055-sugar.jpg) |
 
 前面所有方法为了修好负半轴的梯度，都**改变了前向输出**，因而牺牲了**ReLU**的稀疏性与低廉的推理成本。**SUGAR(surrogate gradient)**指出这两件事其实可以**解耦**：激活函数同时承担了“前向的函数形状”和“反向的梯度形状”两个角色，而它们不必由同一个函数提供。
 
@@ -494,7 +498,7 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{PELU}(x) =\begin{cases} \dfrac{a}{b}x, & x\geq 0 \\ a\left(e^{x/b}-1\right), & x<0 \end{cases}, \quad a,b>0$$ | — |
+| $$\text{PELU}(x) =\begin{cases} \dfrac{a}{b}x, & x\geq 0 \\ a\left(e^{x/b}-1\right), & x<0 \end{cases}, \quad a,b>0$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-056-pelu.png) |
 
 **PReLU**对**ReLU**做的事情（把固定超参数变成可学习参数）同样可以对**ELU**做。但**PELU(parametric ELU)**比**PReLU**更彻底：它不只参数化负半轴，而是同时控制三件事：**正半轴的斜率**$a/b$、**负半轴的饱和值**$-a$、以及**负半轴的衰减速率**$1/b$。
 
@@ -541,7 +545,7 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{ReLU}^2(x)= \left(\text{ReLU}(x)\right)^2 = \max(x,0)^2$$ | — |
+| $$\text{ReLU}^2(x)= \left(\text{ReLU}(x)\right)^2 = \max(x,0)^2$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-057-squaredrelu.png) |
 
 **Primer**用**进化式结构搜索**在**TensorFlow**原语组成的空间中搜索更高效的**Transformer**，搜出的若干改动中，**把前馈层的ReLU换成它的平方**是单项收益最大、也最容易迁移的一个。
 
@@ -555,7 +559,7 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{StarReLU}(x)= s\cdot\left(\text{ReLU}(x)\right)^2 + b$$ | — |
+| $$\text{StarReLU}(x)= s\cdot\left(\text{ReLU}(x)\right)^2 + b$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-058-starrelu.png) |
 
 **ReLU**$^2$有一个直接的问题：它的输出既非零均值也非单位方差（平方使分布严重右偏）。**StarReLU**用一个缩放$s$和一个偏移$b$把它**标准化**回来。
 
@@ -583,7 +587,7 @@ $s$与$b$也可以设为**可学习**参数（按层或按通道），此时上�
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{xIELU}(x) =\begin{cases} \alpha_p x^2 + 0.5x, & x> 0 \\ \alpha_n\left(e^x-1\right)-\alpha_n x + 0.5x, & x\leq 0 \end{cases}$$ | — |
+| $$\text{xIELU}(x) =\begin{cases} \alpha_p x^2 + 0.5x, & x> 0 \\ \alpha_n\left(e^x-1\right)-\alpha_n x + 0.5x, & x\leq 0 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-059-xielu.png) |
 
 **xIELU**的推导方式本身就很有启发性：与其直接设计激活函数$f$，不如**设计它的导数**$f'$，因为我们真正关心的性质（梯度是否消失、是否饱和、是否有界）全都是关于导数的；然后对$f'$**积分**得到$f$。这样所需的梯度行为是构造性地保证的，而不是事后验证的。作者取$f'$为**ELU**的可训练仿射变换，积分后即得到上式。
 
@@ -599,7 +603,7 @@ $s$与$b$也可以设为**可学习**参数（按层或按通道），此时上�
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\begin{aligned} \text{PolyReLU}(x) &= \sum_{i=0}^{r} a_i \left(\text{ReLU}(x)\right)^i \\ \text{PolyNorm}(x) &= \sum_{i=0}^{r} a_i \frac{x^i}{\left\Vert x^i \right\Vert_2} \end{aligned}$$ | — |
+| $$\begin{aligned} \text{PolyReLU}(x) &= \sum_{i=0}^{r} a_i \left(\text{ReLU}(x)\right)^i \\ \text{PolyNorm}(x) &= \sum_{i=0}^{r} a_i \frac{x^i}{\left\Vert x^i \right\Vert_2} \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-060-polycom.png) |
 
 既然二次项有效，为什么不用**任意阶多项式**？**PolyCom**给出上述两个变体，其中系数$a_i$可学习，实践中取$r=3$。
 
@@ -731,7 +735,9 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\begin{aligned} \text{E-Swish}(x) &= \beta x\sigma(x), \quad \beta \in [1,2] \\ \text{LiSHT}(x) &= x\tanh(x) \\ \text{TanhExp}(x) &= x\tanh\left(e^x\right) \end{aligned}$$ | — |
+| $$\text{E-Swish}(x) &= \beta x\sigma(x), \quad \beta \in [1,2]$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-061-eswish.png) |
+| $$\text{LiSHT}(x) &= x\tanh(x)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-062-lisht.png) |
+| $$\text{TanhExp}(x) &= x\tanh\left(e^x\right)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-063-tanhexp.png) |
 
 搜索给出了$x\cdot g(x)$这一**自门控**模板之后，手工设计的空间就变成了“换一个$g$”。上表中的三个是最常见的变体。
 
@@ -747,7 +753,7 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{GELUSine}(x) = \text{GELU}(x) + 0.1\sin(x)$$ | — |
+| $$\text{GELUSine}(x) = \text{GELU}(x) + 0.1\sin(x)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-064-gelusine.png) |
 
 激活函数搜索的第三代工具是**大语言模型驱动的进化式搜索智能体**：不再由人设计搜索空间或基因编码，而是让模型直接提出、评估并改写候选程序（该工作使用的是**AlphaEvolve**）。**GELUSine**是这类方法给出的结果之一。
 
@@ -768,7 +774,7 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\Phi_i(x) = \sin\left(\omega_0\left(W_i x + b_i\right)\right)$$ | — |
+| $$\Phi_i(x) = \sin\left(\omega_0\left(W_i x + b_i\right)\right)$$ | - |
 
 **SIREN(sinusoidal representation network)**就是把**MLP**每一层的激活函数换成正弦。这个改动看似简单，却带来一个其他激活函数都没有的性质：
 
@@ -789,7 +795,7 @@ $$ w \sim U\left(-\sqrt{\frac{6}{n}}, \sqrt{\frac{6}{n}}\right) $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\begin{aligned} \text{Snake}_a(x) &= x + \frac{1}{a}\sin^2(ax) \\ \text{Snake}_a'(x) &= 1+\sin(2ax) \end{aligned}$$ | — |
+| $$\begin{aligned} \text{Snake}_a(x) &= x + \frac{1}{a}\sin^2(ax) \\ \text{Snake}_a'(x) &= 1+\sin(2ax) \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-065-snake.png) |
 
 纯正弦激活放弃了单调性，这让优化变得困难（存在大量局部极小）。**Snake**给出一个折中：**一个单调的恒等项加上一个有界的周期项**。
 
@@ -803,7 +809,7 @@ $$ w \sim U\left(-\sqrt{\frac{6}{n}}, \sqrt{\frac{6}{n}}\right) $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{GCU}(x) = x\cos(x)$$ | — |
+| $$\text{GCU}(x) = x\cos(x)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-066-gcu.png) |
 
 **GCU(growing cosine unit)**是自门控模板$x\cdot g(x)$的周期版本：把门控函数换成$\cos$。它是非单调的，并且有**无穷多个零点**。
 
@@ -1183,20 +1189,6 @@ $$
 
 实验中$\alpha$初值取$0.15$并通过梯度更新，$s$固定为$5\times 10^{-5}$。
 
-#### ⭐ 讨论：光滑化视角下的激活函数家族
-
-三条光滑化路径殊途同归地把**Softplus、Swish、GELU、SMU、SAU、ACON**串成了一个家族。它们的差异只在于“光滑化谁”和“用什么核去光滑化”：
-
-| 被光滑化的函数 | 光滑化方式 | 得到的激活函数 |
-| ---- | ---- | ---- |
-| ReLU | 与$\sigma'(tx)$卷积（$t=1$） | Softplus |
-| ReLU | 阶跃函数替换为Sigmoid | Swish / ACON-A |
-| ReLU | 阶跃函数与Gauss核卷积（$s=1$） | GELU |
-| ReLU | $\|x\|\approx x\,\text{erf}(\mu x)$，$\mu=1/\sqrt{2}$ | GELU |
-| PReLU | $\alpha$-softmax近似 | ACON-B |
-| LeakyReLU | 与Gauss核卷积 | SAU |
-| LeakyReLU | $\|x\|\approx x\,\text{erf}(\mu x)$ | SMU |
-| maxout | $\alpha$-softmax近似 | ACON-C |
 
 ### (5) 统一参数族
 
@@ -1208,7 +1200,7 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\begin{aligned} \text{AGLU}(z) &= z\cdot \eta(z;\kappa,\lambda) \\ \eta(z;\kappa,\lambda) &= \left(\lambda e^{-\kappa z}+1\right)^{-1/\lambda} \end{aligned}$$ | — |
+| $$\begin{aligned} \text{AGLU}(z) &= z\cdot \eta(z;\kappa,\lambda) \\ \eta(z;\kappa,\lambda) &= \left(\lambda e^{-\kappa z}+1\right)^{-1/\lambda} \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-067-aglu.png) |
 
 作者首先把**Sigmoid**推广为上表中的**自适应参数化Sigmoid** $\eta(z;\kappa,\lambda)$，再把它套进自门控模板，即得到**AGLU(adaptive gated linear unit)**。
 
@@ -1364,19 +1356,19 @@ $$
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\begin{aligned} \text{ATLU}(x) &= x\cdot \frac{\arctan(x) + \pi/2}{\pi} \\ \text{x-gated}(x) &= x\left[g(x)(1+2\alpha) - \alpha\right] \end{aligned}$$ | — |
+| $$\begin{aligned} \text{ATLU}(x) &= x\cdot \frac{\arctan(x) + \pi/2}{\pi} \\ \text{x-gated}(x) &= x\left[g(x)(1+2\alpha) - \alpha\right] \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-068-atlu.png) |
 
 作者首先用$\arctan$构造了一个新的门控函数**ATLU**（上表第一行）。更有价值的是文中提出的**通用扩展技巧**（上表第二行）：对任意值域为$(0,1)$的门控函数$g(x)$，用一个可学习的$\alpha$（初始化为$0$）作线性重映射，把门控的值域从$(0,1)$拉伸为$(-\alpha, 1+\alpha)$。于是门控获得了两项新能力：可以取**负值**（不只是抑制输入，还能翻转输入的符号），也可以**大于1**（放大输入）。
 
 $\alpha$初始化为$0$意味着训练从**未修改的原始激活函数**出发，因此这是一个严格安全的推广：最差情况下$\alpha$保持在$0$附近，退化为原函数。把该技巧分别作用于$\arctan$、**GELU**、**SiLU**的门控，即得到**xATLU**、**xGELU**、**xSiLU**。
 
-### ⚪ PowLU：一个非常新的幂型门控
+### ⚪ PowLU：一个幂型门控
 
 - paper：[PowLU: An Activation Function for Stable Pre-Training of LLMs](https://arxiv.org/abs/2605.25704)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{PowLU}(x) =\begin{cases} x\cdot x^{\frac{m}{\sqrt{x}+1}}\cdot \sigma(x), & x> 0 \\ x^2\cdot \sigma(x), & x\leq 0 \end{cases}, \quad 0<m<10$$ | — |
+| $$\text{PowLU}(x) =\begin{cases} x\cdot x^{\frac{m}{\sqrt{x}+1}}\cdot \sigma(x), & x> 0 \\ x^2\cdot \sigma(x), & x\leq 0 \end{cases}, \quad 0<m<10$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-069-powlu.png) |
 
 **PowLU**把3.2(5)节的幂型思路与自门控结合起来。正半轴的指数$\frac{m}{\sqrt{x}+1}$随$x$增大从$m$**衰减到$0$**，因此函数在原点附近是**超线性**增长的，在远处则趋于近似线性；相当于在幂型激活与普通自门控之间做插值。
 
