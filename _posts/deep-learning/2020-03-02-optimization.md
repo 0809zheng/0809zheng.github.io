@@ -25,6 +25,8 @@ tags: 深度学习
 3. 学习率与批量的调度策略
 4. 与优化器正交的训练技巧
 
+在选择优化器时可以参考一份大规模的基准测试[Descending through a Crowded Valley - Benchmarking Deep Learning Optimizers](https://arxiv.org/abs/2007.01547)，它对$14$种常用优化器在$8$个任务上进行了约$35000$次实验；主流优化器的**PyTorch**实现可参考[官方文档](https://pytorch.org/docs/stable/optim.html#algorithms)。
+
 **符号约定**：全文统一使用下列记号，同一个符号在全文只表示一个含义。
 - $\theta$表示待优化参数，$\theta_t$表示第$t$步更新后的参数，$\theta_0$为初始值，$\theta^{\*}$为最优参数；
 - $l(x;\theta)$表示单样本损失，$L(\theta)$表示在数据集上的总损失（经验风险）；
@@ -39,8 +41,6 @@ tags: 深度学习
 - $\mathcal{B}$表示一个数据批量，$B=\|\mathcal{B}\|$表示**批量大小**，$N$表示训练集样本总数；
 - 上标$(i)$表示网络的第$i$层或第$i$个参数块，$L$表示层数；
 - $\odot$表示逐元素乘法，$g_t^2$表示逐元素平方，$\|\|\cdot\|\|$默认为**L2**范数。
-
-在选择优化器时可以参考一份大规模的基准测试[Descending through a Crowded Valley - Benchmarking Deep Learning Optimizers](https://arxiv.org/abs/2007.01547)，它对$14$种常用优化器在$8$个任务上进行了约$35000$次实验；主流优化器的**PyTorch**实现可参考[官方文档](https://pytorch.org/docs/stable/optim.html#algorithms)。
 
 # 1. 深度学习中的优化问题
 
@@ -61,7 +61,7 @@ $$ \theta^{*}=\mathop{\arg\min}_{\theta} L(\theta) $$
 在实践中，优化深度网络存在以下困难：
 
 1. **网络结构多样性**：深度网络是高度非线性的模型，结构的多样性阻碍了构造通用的优化方法；参数量通常极大，难以使用二阶方法。
-2. **非凸优化**：深度网络的损失函数是高维空间中的非凸函数，其损失曲面存在大量**局部极小(local minima)**和**鞍点(saddle point)**，这些点也满足梯度为$0$。目前常用的优化方法大多基于梯度，因此在寻找全局最小值的过程中有可能落入局部极小值点或鞍点（鞍点是指梯度为$0$但**Hessian**矩阵不是半正定的点）。![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-001-saddle-point.jpg)
+2. **非凸优化**：深度网络的损失函数是高维空间中的非凸函数，其损失曲面存在大量**局部极小(local minima)**和**鞍点(saddle point)**，这些点也满足梯度为$0$。目前常用的优化方法大多基于梯度，因此在寻找全局最小值的过程中有可能落入局部极小值点或鞍点（如下图所示，鞍点是指梯度为$0$但**Hessian**矩阵不是半正定的点）。![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-001-saddle-point.jpg)
 3. **病态曲率(ill-conditioned curvature)**：参数不同维度上的梯度大小差异巨大，导致参数更新时在梯度大的方向来回震荡、在梯度小的方向前进缓慢。损失函数的**条件数(condition number**，即**Hessian**矩阵最大奇异值与最小奇异值之比**)**越大，这一现象越严重。这是全部自适应学习率方法的出发点。![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-002-ill-conditioned-curvature.jpg)
 4. **梯度的噪声**：小批量梯度只是全量梯度的一个无偏估计，批量越小噪声越大。噪声既是训练不稳定的来源，也是逃离尖锐极小值、获得泛化性的来源。
 5. **超参数敏感**：学习率、批量大小、动量系数、权重衰减之间存在强耦合，缺乏理论指导时只能依赖经验。
@@ -133,7 +133,7 @@ $$ p(\Delta \theta | \theta) =\frac{e^{-[L(\theta+\Delta \theta)-L(\theta)] / \a
 
 $$ \Delta \theta^{*} = \Bbb{E}_{\Delta \theta \sim p(\Delta \theta | \theta)}[\Delta \theta] = \int p(\Delta \theta | \theta) \Delta \theta \, d (\Delta \theta) $$
 
-假设$L(\theta)$是一阶可导的，由**Taylor**展开得$L(\theta+\Delta \theta) - L(\theta) \approx \Delta \theta^\top g$。若约束参数更新的步长不超过$\epsilon$，即$||\Delta \theta|| \leq \epsilon$，则有：
+假设$L(\theta)$是一阶可导的，由**Taylor**展开得$L(\theta+\Delta \theta) - L(\theta) \approx \Delta \theta^\top g$。若约束参数更新的步长不超过$\epsilon$，即$\|\Delta \theta\| \leq \epsilon$，则有：
 
 $$
 \begin{aligned}
@@ -154,7 +154,7 @@ $$ \Delta \theta^{*} = -\nabla_g \ln Z(||g||) = -\frac{Z'(||g||)}{Z(||g||)} \nab
 
 ## (4) 梯度下降的隐式偏好
 
-梯度下降并不是一个"中性"的求解器：离散化的梯度下降本身携带了正则化效应，并且它得到的解具有很强的结构性。理解这一点有助于解释为什么较大的学习率往往泛化更好。
+梯度下降并不是一个“中性”的求解器：离散化的梯度下降本身携带了正则化效应，并且它得到的解具有很强的结构性。理解这一点有助于解释为什么较大的学习率往往泛化更好。
 
 ### ⚪ 隐式梯度正则化
 
@@ -240,7 +240,7 @@ $$ \mathop{\lim}_{\gamma \to 0} y = \sum_{i=1}^{m} a_i K_{f,c}^{p}(x,x_i)+b $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-007-deep-ensemble-minima.jpg)
 
-作者比较了两类"多模型"的构造方式：一是完全独立的**随机初始化**训练出的多个模型，二是在单个极小值附近做扰动得到的子模型（随机子空间采样、**Monte Carlo dropout**子空间、对角高斯子空间、低秩高斯子空间）。
+作者比较了两类“多模型”的构造方式：一是完全独立的**随机初始化**训练出的多个模型，二是在单个极小值附近做扰动得到的子模型（随机子空间采样、**Monte Carlo dropout**子空间、对角高斯子空间、低秩高斯子空间）。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-008-deep-ensemble-subspace.jpg)
 
@@ -248,13 +248,13 @@ $$ \mathop{\lim}_{\gamma \to 0} y = \sum_{i=1}^{m} a_i K_{f,c}^{p}(x,x_i)+b $$
 
 # 2. 常见的梯度优化方法
 
-损失函数$L(\theta)$是在整个训练集上定义的，严格计算梯度需要考虑所有训练数据，这称为**全量梯度下降**（$B=N$）。但训练集规模通常很大且数据高度冗余，因此实践中把训练集分成若干互补的**批次(batch)**，每次在一个批次上计算梯度并更新参数，即**小批量梯度下降(mini-batch gradient descent)**（$B<N$）。特别地，$B=1$时称为**随机梯度下降(stochastic gradient descent, SGD)**。如今"**SGD**"一般泛指小批量梯度下降：
+损失函数$L(\theta)$是在整个训练集上定义的，严格计算梯度需要考虑所有训练数据，这称为**全量梯度下降**（$B=N$）。但训练集规模通常很大且数据高度冗余，因此实践中把训练集分成若干互补的**批次(batch)**，每次在一个批次上计算梯度并更新参数，即**小批量梯度下降(mini-batch gradient descent)**（$B<N$）。特别地，$B=1$时称为**随机梯度下降(stochastic gradient descent, SGD)**。如今**SGD**一般泛指小批量梯度下降：
 
 $$ \theta_t=\theta_{t-1}-\gamma g_t $$
 
 每一批量数据的梯度都是全体数据梯度的近似，由于小批量的数据分布和总体分布有所差异，且批量越小差异越大；因此批量越小，梯度估计的方差越大，引入的噪声越大，训练可能不稳定，但也带来更强的探索能力。
 
-标准的小批量梯度下降存在若干缺陷，本节把主流优化算法按"如何弥补这些缺陷"分成八族：
+标准的小批量梯度下降存在若干缺陷，本节把主流优化算法按“如何弥补这些缺陷”分成八族：
 
 - 更新过程中容易在鞍点与病态方向上停滞 → **引入动量**（2.1）；
 - 参数不同维度的梯度尺度差异巨大 → **自适应学习率**（2.2）；
@@ -345,7 +345,7 @@ $$
 
 
 
-#### ⭐ 讨论：动量的连续极限与"重球法"
+#### ⭐ 讨论：动量的连续极限与“重球法”
 
 带动量的梯度下降对应二阶微分方程$\ddot{\theta}+\frac{1-\mu}{\gamma}\dot{\theta}+\nabla L(\theta)=0$，即**重球法(heavy ball method)**：参数像一个有质量、受摩擦力的小球在损失曲面上滚动。$\mu$控制惯性，$1-\mu$控制阻尼。
 
@@ -432,7 +432,7 @@ v_t &= \beta_2 v_{t-1} + (1-\beta_2)g_t^2 \\
 \end{aligned}
 $$
 
-**AdaDelta**不需要设置学习率、对超参数不敏感、对大梯度与噪声具有鲁棒性，且几乎不增加计算量。它在实践中的表现并不总是最好（在上文提到的基准测试中，**AdaDelta**是默认超参数最不合适的优化器之一），但"用更新量自身的尺度充当学习率"这一思路后来反复出现：**LARS**、**LAMB**、**Adafactor**的层自适应、**Amos**都是它的变体。
+**AdaDelta**不需要设置学习率、对超参数不敏感、对大梯度与噪声具有鲁棒性，且几乎不增加计算量。它在实践中的表现并不总是最好（在上文提到的基准测试中，**AdaDelta**是默认超参数最不合适的优化器之一），但“用更新量自身的尺度充当学习率”这一思路后来反复出现：**LARS**、**LAMB**、**Adafactor**的层自适应、**Amos**都是它的变体。
 
 ## 2.3 动量与自适应的结合：Adam族
 
@@ -517,7 +517,7 @@ $$
 
 即"在损失里加**L2**项"与"每步把参数乘以$(1-\lambda)$"是同一件事，这正是权重衰减这一名称的来源。
 
-然而这种等价性在自适应梯度算法中**不成立**：**Adam**用二阶矩对更新量进行缩放，因此**L2**正则化项的梯度$\lambda\theta$也会被$\sqrt{\hat v_t}$缩放——梯度大的权重，其正则化强度反而被缩小了，这与权重衰减"所有权重以相同比例收缩"的意图完全相反。**AdamW**把权重衰减从梯度更新过程中解耦出来，直接作用在参数上：
+然而这种等价性在自适应梯度算法中**不成立**：**Adam**用二阶矩对更新量进行缩放，因此**L2**正则化项的梯度$\lambda\theta$也会被$\sqrt{\hat v_t}$缩放——梯度大的权重，其正则化强度反而被缩小了，这与权重衰减“所有权重以相同比例收缩”的意图完全相反。**AdamW**把权重衰减从梯度更新过程中解耦出来，直接作用在参数上：
 
 $$
 \begin{aligned}
@@ -530,13 +530,13 @@ $$
 
 解耦带来的实际好处是学习率$\gamma$与权重衰减率$\lambda$的超参数空间**可分离**，可以独立调节（若采用**L2**形式，两者的最优值强相关，网格搜索会呈斜条带状）。**AdamW**已经成为**Transformer**与大语言模型训练的事实标准优化器。关于权重衰减作为正则化手段的完整讨论可参考[<font color=Blue>深度学习中的正则化方法</font>](https://0809zheng.github.io/2020/03/03/regularization.html)。
 
-值得一提的是，解耦后的$\lambda$含义变成了"每步的相对收缩比例"，因此最优权重衰减值取决于**总更新次数**：训练更久时应当使用更小的$\lambda$。
+值得一提的是，解耦后的$\lambda$含义变成了“每步的相对收缩比例”，因此最优权重衰减值取决于**总更新次数**：训练更久时应当使用更小的$\lambda$。
 
 ### ⚪ Nadam：把Nesterov动量引入Adam
 
 - paper：[Incorporating Nesterov Momentum into Adam](https://cs229.stanford.edu/proj2015/054_report.pdf)
 
-忽略自适应学习率部分，**Adam**的动量更新可以展开为"沿前一个动量方向走一步 + 沿当前梯度方向走一步"：
+忽略自适应学习率部分，**Adam**的动量更新可以展开为“沿前一个动量方向走一步 + 沿当前梯度方向走一步”：
 
 $$ \theta_t = \theta_{t-1} - \gamma \left(\frac{\beta_1 m_{t-1}}{1-\beta_1^t}+\frac{(1-\beta_1) g_t}{1-\beta_1^t}\right) $$
 
@@ -552,7 +552,7 @@ m_t &= \beta_1 m_{t-1} + (1-\beta_1)g_t, \quad v_t = \beta_2 v_{t-1} + (1-\beta_
 \end{aligned}
 $$
 
-需要注意：动态衰减率$\mu_t$使得偏差修正的分母变成累乘$\prod_i\mu_i$而不是$\beta_1^t$，这是**Nadam**实现中最容易出错的地方；**PyTorch**的`NAdam`实现即采用上述形式（其超参数`momentum_decay`对应$\psi$）。若只需要"**Adam** + **Nesterov**"而不需要动态衰减率，可以简单地使用$\hat m_t' = \beta_1\hat m_t + (1-\beta_1)g_t/(1-\beta_1^t)$。
+需要注意：动态衰减率$\mu_t$使得偏差修正的分母变成累乘$\prod_i\mu_i$而不是$\beta_1^t$，这是**Nadam**实现中最容易出错的地方；**PyTorch**的`NAdam`实现即采用上述形式（其超参数`momentum_decay`对应$\psi$）。若只需要**Adam** + **Nesterov**而不需要动态衰减率，可以简单地使用$\hat m_t' = \beta_1\hat m_t + (1-\beta_1)g_t/(1-\beta_1^t)$。
 
 ### ⚪ AMSGrad：修补Adam的收敛性
 
@@ -597,7 +597,7 @@ $$ l_t = \sqrt{\frac{1-\beta_2^t}{(1-\beta_2)\sum_{i=1}^{t}\beta_2^{t-i}g_{i}^2}
 
 以$t=1$为例，$l_1 = 1/\|g_1\|$；若$g_1 \sim \mathcal{N}(0,\sigma^2)$，则$\text{Var}[l_1]$是**发散**的。这解释了两个经验现象：**Adam-2k**（只在前$2000$步更新$v_t$而不更新参数）和**Adam-eps**（把$\epsilon$放大到$10^{-4}$）都能替代**warmup**，因为它们都降低了早期方差。
 
-为了定量修正，作者用简单平均近似指数滑动平均，则$l_t^2$近似服从**scaled inverse chi-square**分布$\chi^{-2}(\rho_t,1/\sigma^2)$，通过匹配两个分布得到"等效自由度"：
+为了定量修正，作者用简单平均近似指数滑动平均，则$l_t^2$近似服从**scaled inverse chi-square**分布$\chi^{-2}(\rho_t,1/\sigma^2)$，通过匹配两个分布得到“等效自由度”：
 
 $$ \rho_t = \frac{2}{1-\beta_2} - 1 -  \frac{2t\beta_2^t}{1-\beta_2^t}, \quad \rho_\infty = \frac{2}{1-\beta_2} - 1 $$
 
@@ -621,7 +621,7 @@ $$
 
 - paper：[Adaptive Gradient Methods with Dynamic Bound of Learning Rate](https://arxiv.org/abs/1902.09843)
 
-**Adam**收敛快但泛化常不如**SGD**，一个流行的经验做法是"先用**Adam**再切换到**SGD**"。**AdaBound**把这个切换变成连续的：对逐元素的有效学习率施加一个**随时间收紧**的上下界，
+**Adam**收敛快但泛化常不如**SGD**，一个流行的经验做法是“先用**Adam**再切换到**SGD**”。**AdaBound**把这个切换变成连续的：对逐元素的有效学习率施加一个**随时间收紧**的上下界，
 
 $$
 \begin{aligned}
@@ -630,9 +630,9 @@ $$
 \end{aligned}
 $$
 
-其中界随$t$增大分别单调递增/递减并收敛到同一个常数$\gamma^{*}$（如$\gamma_l(t)=\gamma^{*}\left(1-\frac{1}{(1-\beta_2)t+1}\right)$、$\gamma_u(t)=\gamma^{*}\left(1+\frac{1}{(1-\beta_2)t}\right)$）。因此算法在早期是**Adam**（界很宽，不起作用），后期所有维度的学习率都被夹到$\gamma^{*}$，退化为带动量的**SGD**。这一"上下界"视角也直接回应了**AMSGrad**关心的问题：不收敛的根源是极端的有效学习率，而裁剪比取历史最大值更温和。
+其中界随$t$增大分别单调递增/递减并收敛到同一个常数$\gamma^{\*}$（如$\gamma_l(t)=\gamma^{\*}\left(1-\frac{1}{(1-\beta_2)t+1}\right)$、$\gamma_u(t)=\gamma^{\*}\left(1+\frac{1}{(1-\beta_2)t}\right)$）。因此算法在早期是**Adam**（界很宽，不起作用），后期所有维度的学习率都被夹到$\gamma^{\*}$，退化为带动量的**SGD**。这一“上下界”视角也直接回应了**AMSGrad**关心的问题：不收敛的根源是极端的有效学习率，而裁剪比取历史最大值更温和。
 
-### ⚪ AdaBelief：按"梯度是否符合预期"调整步长
+### ⚪ AdaBelief：按“梯度是否符合预期”调整步长
 
 - paper：[AdaBelief Optimizer: Adapting Stepsizes by the Belief in Observed Gradients](https://arxiv.org/abs/2010.07468)
 
@@ -646,13 +646,13 @@ v_t &= \beta_2 v_{t-1} + (1-\beta_2)\left(g_t-m_t\right)^2 \\
 \end{aligned}
 $$
 
-含义是把$m_t$看作对梯度的预测：当实际梯度与预测一致（"可信"）时$v_t$小、步长大；当梯度剧烈波动时$v_t$大、步长小。这修正了**Adam**的一个反直觉行为：在梯度大但方向一致的区域（例如一条陡峭而平直的峡谷底部），**Adam**会因为分母大而缩小步长，而**AdaBelief**会放大步长。它在保持**Adam**收敛速度的同时改善了泛化，且不增加任何显存开销。
+含义是把$m_t$看作对梯度的预测：当实际梯度与预测一致（可信）时$v_t$小、步长大；当梯度剧烈波动时$v_t$大、步长小。这修正了**Adam**的一个反直觉行为：在梯度大但方向一致的区域（例如一条陡峭而平直的峡谷底部），**Adam**会因为分母大而缩小步长，而**AdaBelief**会放大步长。它在保持**Adam**收敛速度的同时改善了泛化，且不增加任何显存开销。
 
 ### ⚪ AdaX：引入二阶矩的指数长期记忆
 
 - paper：[AdaX: Adaptive Gradient Descent with Exponential Long Term Memory](https://arxiv.org/abs/2004.09740)
 
-把**Adam**的二阶矩偏差修正合并进递推式，可以得到一个等价的"时变衰减率"形式：
+把**Adam**的二阶矩偏差修正合并进递推式，可以得到一个等价的“时变衰减率”形式：
 
 $$
 \begin{aligned}
@@ -660,7 +660,7 @@ $$
 \end{aligned}
 $$
 
-记$\hat{\beta}_{2,t}=\beta_2\frac{1-\beta_2^{t-1}}{1-\beta_2^t}$，则$\hat{v}_t = \hat{\beta}_{2,t}\hat{v}_{t-1} +(1-\hat{\beta}_{2,t})g_t^2$。当$t=1$时$\hat{\beta}_{2,1}=0$，即用实时梯度校正学习率；当$t \to \infty$时$\hat{\beta}_{2,t}\to\beta_2<1$，即始终保留对当前梯度的敏感性。作者认为这是不合适的：训练后期梯度本身很小，继续用它校正学习率会改变更新方向、导致不稳定。理想的行为是训练后期$\hat{\beta}_{2,t}\to 1$，算法退化为**SGD**。
+记$$\hat{\beta}_{2,t}=\beta_2\frac{1-\beta_2^{t-1}}{1-\beta_2^t}$$，则$$\hat{v}_t = \hat{\beta}_{2,t}\hat{v}_{t-1} +(1-\hat{\beta}_{2,t})g_t^2$$。当$t=1$时$$\hat{\beta}_{2,1}=0$$，即用实时梯度校正学习率；当$t \to \infty$时$$\hat{\beta}_{2,t}\to\beta_2<1$$，即始终保留对当前梯度的敏感性。作者认为这是不合适的：训练后期梯度本身很小，继续用它校正学习率会改变更新方向、导致不稳定。理想的行为是训练后期$$\hat{\beta}_{2,t}\to 1$$，算法退化为**SGD**。
 
 **AdaX**因此把二阶矩的累积改为**指数长期记忆**形式（并去掉了一阶动量的偏差修正）：
 
@@ -673,13 +673,13 @@ v_t &= (1+\beta_2)v_{t-1}+\beta_2 g_t^2 \\
 \end{aligned}
 $$
 
-此时等效衰减率为$\hat{\beta}_{2,t}=1- \frac{\beta_2}{(1+\beta_2)^t-1}$，满足$\hat{\beta}_{2,1}=0$且$\hat{\beta}_{2,\infty}=1$，即历史二阶矩的比重越来越大。通常取$\beta_2=10^{-4}$。
+此时等效衰减率为$$\hat{\beta}_{2,t}=1- \frac{\beta_2}{(1+\beta_2)^t-1}$$，满足$$\hat{\beta}_{2,1}=0$$且$$\hat{\beta}_{2,\infty}=1$$，即历史二阶矩的比重越来越大。通常取$\beta_2=10^{-4}$。
 
 ### ⚪ Amos：自适应设置学习率与权重衰减
 
 - paper：[Amos: An Adam-style Optimizer with Adaptive Weight Decay towards Model-Oriented Scale](https://arxiv.org/abs/2210.11693)
 
-**Amos**从"参数应该收缩到什么尺度"出发，同时给出学习率$\alpha_t$和权重衰减率$\rho_t$的解析调度。带权重衰减的更新写作：
+**Amos**从“参数应该收缩到什么尺度”出发，同时给出学习率$\alpha_t$和权重衰减率$\rho_t$的解析调度。带权重衰减的更新写作：
 
 $$ \theta_{t} = \theta_{t-1} - \left(\alpha_t h_t+\rho_t\theta_{t-1}\right) $$
 
@@ -700,7 +700,7 @@ $$
 \end{aligned}
 $$
 
-再令$2\rho_tq = \lambda^2||\epsilon_t||^2$使两者同步衰减，并取$p_t = p_0 \exp(-S_t)$（$S_t$为指数求和项），解相应的微分方程可得$\exp(-2S_t) = \frac{1}{2 \alpha_0 p_0 t+1}$，最终：
+再令$2\rho_tq = \lambda^2\|\epsilon_t\|^2$使两者同步衰减，并取$p_t = p_0 \exp(-S_t)$（$S_t$为指数求和项），解相应的微分方程可得$\exp(-2S_t) = \frac{1}{2 \alpha_0 p_0 t+1}$，最终：
 
 $$
 \begin{aligned}
@@ -725,7 +725,7 @@ m_t &= \beta_2m_{t-1}+(1-\beta_2)g_t
 \end{aligned}
 $$
 
-相比**AdamW**，**Lion**有三个特点：一是只缓存一组状态$m_t$（不需要二阶矩），显存更省；二是去掉了除法与开方，计算更快；三是**动量的更新放在参数更新之后**，并且参数更新用的插值系数$\beta_1$与动量累积用的$\beta_2$是两个不同的值（相当于在更新时使用了一个"更新鲜"的动量，与**NAG**的前瞻思想同源），这在大量实验中显示出优越性。
+相比**AdamW**，**Lion**有三个特点：一是只缓存一组状态$m_t$（不需要二阶矩），显存更省；二是去掉了除法与开方，计算更快；三是**动量的更新放在参数更新之后**，并且参数更新用的插值系数$\beta_1$与动量累积用的$\beta_2$是两个不同的值（相当于在更新时使用了一个更新鲜的动量，与**NAG**的前瞻思想同源），这在大量实验中显示出优越性。
 
 使用**Lion**时必须注意超参数的换算：由于$\text{sign}$使更新量每个分量的绝对值都是$1$，更新幅度显著大于其他优化器，因此学习率$\gamma$要缩小（通常比**AdamW**小$3\sim 10$倍）；而为了让权重衰减的实际幅度$\gamma\lambda$保持不变，$\lambda$应相应放大（通常放大同样的倍数）。视觉任务推荐$\beta_1=0.9,\beta_2=0.99$，语言任务推荐$\beta_1=0.95,\beta_2=0.98$。此外，符号化引入的噪声在批量较小时（小于$64$）可能过量而导致效果恶化甚至发散。
 
@@ -733,7 +733,7 @@ $$
 
 - paper：[Adan: Adaptive Nesterov Momentum Algorithm for Faster Optimizing Deep Models](https://arxiv.org/abs/2208.06677)
 
-**Adan**用一个"重写过的**Nesterov**"来避免**NAG**中额外的前瞻梯度计算：额外维护梯度**差分**的动量$d_t$，并用$g_t+\beta_2 d_t$（对前瞻梯度的一阶外推）来同时驱动一阶与二阶动量：
+**Adan**用一个“重写过的**Nesterov**”来避免**NAG**中额外的前瞻梯度计算：额外维护梯度**差分**的动量$d_t$，并用$g_t+\beta_2 d_t$（对前瞻梯度的一阶外推）来同时驱动一阶与二阶动量：
 
 $$
 \begin{aligned}
@@ -748,10 +748,10 @@ $$
 
 #### ⭐ 讨论：Adam的收敛性到底有没有问题
 
-**AMSGrad**的反例曾一度被理解为"**Adam**不收敛"，但后续工作给出了更细致的图景：
+**AMSGrad**的反例曾一度被理解为“**Adam**不收敛”，但后续工作给出了更细致的图景：
 
 - [A Simple Convergence Proof of Adam and Adagrad](https://arxiv.org/abs/2003.02395)：在有界梯度与光滑性假设下，只要$\beta_2$随问题恰当选取，**Adam**（含偏差修正）在非凸光滑目标上具有$O(\log T/\sqrt{T})$的梯度范数收敛速率。
-- [Adam Can Converge Without Any Modification On Update Rules](https://arxiv.org/abs/2208.09632)：**AMSGrad**的反例本质上是**先给定$\beta_2$再构造问题**。反过来，对任意固定问题，只要$\beta_2$**足够大**，**Adam**就能收敛；存在一个明确的"$\beta_2$分界线"。这解释了为什么实践中$\beta_2=0.999$几乎从不出问题，而在梯度分布重尾的大模型训练里偶尔需要把$\beta_2$调到$0.95$以下时反而容易出现损失尖峰；两者是同一个现象的两端。
+- [Adam Can Converge Without Any Modification On Update Rules](https://arxiv.org/abs/2208.09632)：**AMSGrad**的反例本质上是**先给定$\beta_2$再构造问题**。反过来，对任意固定问题，只要$\beta_2$**足够大**，**Adam**就能收敛；存在一个明确的$\beta_2$分界线。这解释了为什么实践中$\beta_2=0.999$几乎从不出问题，而在梯度分布重尾的大模型训练里偶尔需要把$\beta_2$调到$0.95$以下时反而容易出现损失尖峰；两者是同一个现象的两端。
 - [Why Transformers Need Adam: A Hessian Perspective](https://arxiv.org/abs/2402.16788)：从**Hessian**谱的角度解释了为什么**Transformer**上**SGD**远不如**Adam**：不同参数块（**Attention**、**MLP**、**Embedding**、**LayerNorm**）的**Hessian**谱差异极大（"块异质性"），单一学习率无法同时适配，而**Adam**的逐坐标缩放天然处理了这一点。
 
 实践结论是：**Adam/AdamW**的收敛性在深度学习中不是一个真实的痛点，$\beta_2$与$\epsilon$才是需要关注的旋钮。
@@ -782,7 +782,7 @@ $$
 
 $$ \theta_t=\theta_{t-1}-\gamma H_{t-1}^{-1}g_t, \quad H = \nabla^2_{\theta}L(\theta) $$
 
-它在极小值附近具有二次收敛速率，且天然是"单位正确"的（见2.2节**AdaDelta**的讨论）。但$H$的存储是$O(d^2)$、求逆是$O(d^3)$，在深度学习中不可行；且非凸问题中$H$可能不正定，牛顿方向可能是**上升**方向。
+它在极小值附近具有二次收敛速率，且天然是“单位正确”的（见2.2节**AdaDelta**的讨论）。但$H$的存储是$O(d^2)$、求逆是$O(d^3)$，在深度学习中不可行；且非凸问题中$H$可能不正定，牛顿方向可能是**上升**方向。
 
 **L-BFGS**是最常用的拟牛顿法：它不存储$H^{-1}$，而是保留最近$k$组$\left(s_i,y_i\right)=\left(\theta_{i}-\theta_{i-1},\ g_{i}-g_{i-1}\right)$，通过两重循环递归隐式计算$H^{-1}g$，内存为$O(kd)$。**共轭梯度法**则完全不显式构造$H$，只需要**Hessian**向量积$Hv$（可以由两次自动微分得到）。
 
@@ -810,7 +810,7 @@ $$ \Delta W^{(i)} = {G^{(i)}}^{-1}\left(\nabla_{W^{(i)}}L\right){A^{(i-1)}}^{-1}
 
 $$ c(Q)=\Bbb{E}\left[\delta g^\top P\,\delta g + \delta\theta^\top P^{-1}\delta\theta\right] $$
 
-该准则的极小点恰好给出$P\approx H^{-1}$，参数更新为$\theta \leftarrow \theta-\mu\,P g$。关键技巧是把$Q$约束在一个**李群**上并做乘法式更新，从而始终保持正定、且更新代价可控。现代实现（**PSGD-Kron**）把$Q$做**Kronecker**分解$Q=Q_L\otimes Q_R$以适配矩阵参数；其"白化(whitening)"变体用原始梯度代替$\delta g$、用随机噪声代替$\delta\theta$，使$P$估计梯度协方差的逆，让预条件后的梯度被白化。相比**Adam**，它以更少的调参获得曲率/白化级别的预条件效果。
+该准则的极小点恰好给出$P\approx H^{-1}$，参数更新为$\theta \leftarrow \theta-\mu\,P g$。关键技巧是把$Q$约束在一个**李群**上并做乘法式更新，从而始终保持正定、且更新代价可控。现代实现（**PSGD-Kron**）把$Q$做**Kronecker**分解$Q=Q_L\otimes Q_R$以适配矩阵参数；其白化(**whitening**)变体用原始梯度代替$\delta g$、用随机噪声代替$\delta\theta$，使$P$估计梯度协方差的逆，让预条件后的梯度被白化。相比**Adam**，它以更少的调参获得曲率/白化级别的预条件效果。
 
 ### ⚪ Shampoo：对张量的每个维度分别预条件
 
@@ -826,13 +826,13 @@ W_t &= W_{t-1} - \gamma\, P_t^{-1/4}G_tQ_t^{-1/4}
 \end{aligned}
 $$
 
-可以验证：当$m=n=1$时它退化为**AdaGrad**。$-1/4$次幂是为了让两侧预条件的总"强度"匹配$\text{AdaGrad}$的$-1/2$。**Shampoo**的主要开销是矩阵的$-1/4$次幂（需要特征分解），实践中每隔上百步才更新一次；分布式实现（[Scalable Second Order Optimization for Deep Learning](https://arxiv.org/abs/2002.09018)）把这些分解分散到不同的**CPU**上。**Shampoo**在**AlgoPerf**等公开优化器竞赛中取得了领先成绩，是目前最有竞争力的非对角优化器之一。
+可以验证：当$m=n=1$时它退化为**AdaGrad**。$-1/4$次幂是为了让两侧预条件的总强度匹配$\text{AdaGrad}$的$-1/2$。**Shampoo**的主要开销是矩阵的$-1/4$次幂（需要特征分解），实践中每隔上百步才更新一次；分布式实现（[Scalable Second Order Optimization for Deep Learning](https://arxiv.org/abs/2002.09018)）把这些分解分散到不同的**CPU**上。**Shampoo**在**AlgoPerf**等公开优化器竞赛中取得了领先成绩，是目前最有竞争力的非对角优化器之一。
 
 ### ⚪ SOAP：在Shampoo的特征基里跑Adam
 
 - paper：[SOAP: Improving and Stabilizing Shampoo using Adam](https://arxiv.org/abs/2409.11321)
 
-作者证明了一个漂亮的等价性：**Shampoo**（取$-1/2$次幂时）等价于"在其预条件矩阵的特征基中运行**Adafactor**"。既然如此，不如在这组特征基中直接运行完整的**Adam**；这就是**SOAP**：
+作者证明了一个漂亮的等价性：**Shampoo**（取$-1/2$次幂时）等价于“在其预条件矩阵的特征基中运行**Adafactor**”。既然如此，不如在这组特征基中直接运行完整的**Adam**；这就是**SOAP**：
 
 $$
 \begin{aligned}
@@ -858,7 +858,7 @@ $$
 
 - paper：[Sophia: A Scalable Stochastic Second-order Optimizer for Language Model Pre-training](https://arxiv.org/abs/2305.14342)
 
-**Sophia**回到对角预条件，但把分母从"二阶矩"换成"**对角Hessian**估计"，并用裁剪保证在非凸区域的安全性：
+**Sophia**回到对角预条件，但把分母从“二阶矩”换成“**对角Hessian**估计”，并用裁剪保证在非凸区域的安全性：
 
 $$
 \begin{aligned}
@@ -876,7 +876,7 @@ $$
 
 - paper：[A General Regret Bound of Preconditioned Gradient Method for DNN Training](https://www4.comp.polyu.edu.hk/~cslzhang/paper/CVPR2023_AdaBK.pdf)
 
-**AdaBK**从**在线学习的regret上界**出发推导预条件矩阵：理想的全矩阵预条件（逐层梯度协方差）能收紧regret界，但存储与求逆不可行。作者对其施加**块对角(Block-diagonal) + Kronecker分解(K)**的结构约束（即"BK"），把逐层协方差近似为左右两个小矩阵的**Kronecker**积，从而以可接受的开销逼近全矩阵预条件。"Ada"系列（**AdaBK**分别套在**SGD**与**Adam**上）把这一预条件以低成本的方式加入到已有优化器中，在图像分类等任务上加速收敛。
+**AdaBK**从**在线学习的regret上界**出发推导预条件矩阵：理想的全矩阵预条件（逐层梯度协方差）能收紧regret界，但存储与求逆不可行。作者对其施加**块对角(Block-diagonal) + Kronecker分解(K)**的结构约束（即**BK**），把逐层协方差近似为左右两个小矩阵的**Kronecker**积，从而以可接受的开销逼近全矩阵预条件。**Ada**系列（**AdaBK**分别套在**SGD**与**Adam**上）把这一预条件以低成本的方式加入到已有优化器中，在图像分类等任务上加速收敛。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-030-adabk.png)
 
@@ -908,13 +908,13 @@ $$
 \langle m_t, O\rangle = \operatorname{tr}(m_t^\top O) = \operatorname{tr}(\Sigma\, U^\top O V) = \sum_i \sigma_i\,(U^\top O V)_{ii}
 $$
 
-由于 $U,V$ 正交，$\|U^\top O V\|_2 = \|O\|_2 \le 1$，因此每个对角元满足 $\lvert (U^\top O V)_{ii}\rvert \le 1$，从而
+由于 $U,V$ 正交，$\lvert U^\top O V\rvert_2 = \lvert O\rvert_2 \le 1$，因此每个对角元满足 $\lvert (U^\top O V)_{ii}\rvert \le 1$，从而
 
 $$
 \langle m_t, O\rangle \ge -\sum_i \sigma_i = -\|m_t\|_*
 $$
 
-其中 $\|\cdot\|_*$ 是核范数（谱范数的对偶范数）。等号在 $U^\top O V = -I$，即 $O = -UV^\top$ 时取得。因此谱范数下的最速下降方向恰好是 $-UV^\top = -\text{mSign}(m_t)$，正是**Muon**的更新方向。这也解释了为什么更新的**RMS**依赖矩阵形状、需要按 $\sqrt{\max(m,n)}$ 一类因子重新缩放：谱范数最速下降给出的单位是"谱范数为 $1$"，而非逐元素的**RMS**为 $1$。
+其中 $\|\cdot\|_*$ 是核范数（谱范数的对偶范数）。等号在 $U^\top O V = -I$，即 $O = -UV^\top$ 时取得。因此谱范数下的最速下降方向恰好是 $-UV^\top = -\text{mSign}(m_t)$，正是**Muon**的更新方向。这也解释了为什么更新的**RMS**依赖矩阵形状、需要按 $\sqrt{\max(m,n)}$ 一类因子重新缩放：谱范数最速下降给出的单位是“谱范数为 $1$”，而非逐元素的**RMS**为 $1$。
 
 关键的工程细节：精确**SVD**太慢，因此用五次**Newton-Schulz**迭代$X \leftarrow aX+b\,XX^\top X+c\left(XX^\top\right)^2X$在**bfloat16**下近似（系数经过调优，允许奇异值只收敛到$[0.7,1.3]$区间内，实践中足够）。**Muon只用于二维隐藏层权重**；标量与向量参数（偏置、归一化层的增益）、嵌入层与输出头仍然使用**AdamW**，因为这些参数的"矩阵结构"并不对应线性映射。
 
@@ -986,7 +986,7 @@ $$ a_i = \sum_{j}c_{i,j}, \quad b_j = \frac{\sum_{i}c_{i,j}}{\sum_{i,j}c_{i,j}} 
 
 即**分别按行求和与按列求和，相乘后再除以全体的和**；形式上正是从联合分布恢复两个边缘分布。因此只需维护行向量$v^{(r)}$与列向量$v^{(c)}$。
 
-**(3) 时变的滑动权重。** 把偏差修正合并进递推式得到等效衰减率$\hat{\beta}_{2,t}=\beta_2\frac{1-\beta_2^{t-1}}{1-\beta_2^t}$（推导同2.3节**AdaX**）。作者希望训练后期算法退化为**SGD**（$\hat{\beta}_{2,t}\to 1$），因此直接令
+**(3) 时变的滑动权重。** 把偏差修正合并进递推式得到等效衰减率$$\hat{\beta}_{2,t}=\beta_2\frac{1-\beta_2^{t-1}}{1-\beta_2^t}$$（推导同2.3节**AdaX**）。作者希望训练后期算法退化为**SGD**（$$\hat{\beta}_{2,t}\to 1$$），因此直接令
 
 $$ \hat{\beta}_{2,t} = 1-\frac{1}{t^c} $$
 
@@ -1099,7 +1099,7 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-014-lars-layerwise-ratio.jpg)
 
-因此**LARS**为每一层引入局部学习率，等于该比值乘以一个"信任系数"$\eta$：
+因此**LARS**为每一层引入局部学习率，等于该比值乘以一个信任系数$\eta$：
 
 $$
 \begin{aligned}
@@ -1114,7 +1114,7 @@ $$
 
 - paper：[Large Batch Optimization for Deep Learning: Training BERT in 76 minutes](https://arxiv.org/abs/1904.00962)
 
-**LARS**在训练**BERT**等自注意力模型时表现较差，说明"**momentum** + 层级自适应"的组合并不通用。**LAMB**把层级自适应与**Adam**结合，其自适应体现在两个层次：逐坐标的二阶矩归一化，以及逐层的更新量归一化：
+**LARS**在训练**BERT**等自注意力模型时表现较差，说明“**momentum** + 层级自适应”的组合并不通用。**LAMB**把层级自适应与**Adam**结合，其自适应体现在两个层次：逐坐标的二阶矩归一化，以及逐层的更新量归一化：
 
 $$
 \begin{aligned}
@@ -1190,9 +1190,9 @@ $$
 
 - paper：[Learning-Rate-Free Learning by D-Adaptation](https://arxiv.org/abs/2301.07733)
 
-对于凸**Lipschitz**问题，最优的**SGD**步长是$\gamma^{*}=\frac{D}{G\sqrt{T}}$，其中$D=\|\|\theta_0-\theta^{*}\|\|$是初始点到最优解的距离，$G$是梯度范数上界。$G$容易在线估计，而$D$未知；这正是必须手工调学习率的根本原因。**D-Adaptation**的贡献是给出了一个**只用已观测量就能算出的$D$的下界**，并在训练中不断收紧它。
+对于凸**Lipschitz**问题，最优的**SGD**步长是$\gamma^{\*}=\frac{D}{G\sqrt{T}}$，其中$D=\|\|\theta_0-\theta^{\*}\|\|$是初始点到最优解的距离，$G$是梯度范数上界。$G$容易在线估计，而$D$未知；这正是必须手工调学习率的根本原因。**D-Adaptation**的贡献是给出了一个**只用已观测量就能算出的$D$的下界**，并在训练中不断收紧它。
 
-记$\lambda_t = \gamma_t d_t$为实际步长，$s_t = \sum_{i\le t}\lambda_i g_i$为累积的加权梯度（于是$\theta_t=\theta_0-s_t$）。由凸性$\sum_i \lambda_i\langle g_i, \theta_{i-1}-\theta^{*}\rangle \geq 0$，代入$\theta_{i-1}=\theta_0-s_{i-1}$得$\langle s_t, \theta_0-\theta^{*}\rangle \geq \sum_i \lambda_i\langle g_i, s_{i-1}\rangle$。另一方面展开$\|\|s_t\|\|^2$的递推可得$\sum_i \lambda_i\langle g_i, s_{i-1}\rangle = \frac{1}{2}\left(\|\|s_t\|\|^2 - \sum_i\lambda_i^2\|\|g_i\|\|^2\right)$。结合**Cauchy-Schwarz**不等式$D\|s_t\| \geq \langle s_t, \theta_0-\theta^{*}\rangle$，得到：
+记$\lambda_t = \gamma_t d_t$为实际步长，$s_t = \sum_{i\le t}\lambda_i g_i$为累积的加权梯度（于是$\theta_t=\theta_0-s_t$）。由凸性$\sum_i \lambda_i\langle g_i, \theta_{i-1}-\theta^{\*}\rangle \geq 0$，代入$\theta_{i-1}=\theta_0-s_{i-1}$得$\langle s_t, \theta_0-\theta^{\*}\rangle \geq \sum_i \lambda_i\langle g_i, s_{i-1}\rangle$。另一方面展开$\|\|s_t\|\|^2$的递推可得$\sum_i \lambda_i\langle g_i, s_{i-1}\rangle = \frac{1}{2}\left(\|\|s_t\|\|^2 - \sum_i\lambda_i^2\|\|g_i\|\|^2\right)$。结合**Cauchy-Schwarz**不等式$D\|s_t\| \geq \langle s_t, \theta_0-\theta^{\*}\rangle$，得到：
 
 $$
 \begin{aligned}
@@ -1313,7 +1313,7 @@ $$
 
 - **余弦退火**：由[SGDR: Stochastic Gradient Descent with Warm Restarts](https://arxiv.org/abs/1608.03983)提出，$T_{\text{cur}}$是自上次重启以来的步数，$T_i$是第$i$个周期的长度。原论文强调**热重启**（周期性把学习率跳回$\gamma_{\max}$，$T_{i+1}=\eta T_i$）；但在实践中更常用的是**单周期**余弦（$T_i=T$），它是**ResNet**、**ViT**、**Chinchilla**等训练配方的默认选择。周期性重启的版本在与**SWA**结合时特别有用（4节）。
 - **逆平方根**：**Transformer**原论文的**Noam**调度，语言模型训练的经典选择。
-- **WSD(Warmup-Stable-Decay)**：由[MiniCPM](https://arxiv.org/abs/2404.06395)推广，先**warmup**、然后**长期保持恒定学习率**、最后在训练末尾$10\%\sim20\%$的步数内快速衰减到接近$0$。它的优势是恒定阶段的任意检查点都可以作为"继续训练"的起点（不需要预先确定$T$），因此对持续预训练与数据配比实验极为友好，已成为当前大模型预训练的主流调度。
+- **WSD(Warmup-Stable-Decay)**：由[MiniCPM](https://arxiv.org/abs/2404.06395)推广，先**warmup**、然后**长期保持恒定学习率**、最后在训练末尾$10\%\sim20\%$的步数内快速衰减到接近$0$。它的优势是恒定阶段的任意检查点都可以作为继续训练的起点（不需要预先确定$T$），因此对持续预训练与数据配比实验极为友好，已成为当前大模型预训练的主流调度。
 
 
 #### ⭐ 讨论：为什么需要warmup
@@ -1321,7 +1321,7 @@ $$
 **warmup**（训练开始时使用较小的学习率，再线性增大到目标值）几乎是所有大规模训练的标准配置。它为什么有效，目前有三种互补的解释：
 
 1. **自适应学习率的方差**：如2.3节**RAdam**所分析，$v_t$在早期样本量不足，导致自适应学习率$1/\sqrt{\hat v_t}$的方差发散，个别参数会获得极大的更新。
-2. **曲率与稳定性**：从1.3节的逼近视角看，稳定训练要求$\gamma < 2/\lambda_{\max}$（$\lambda_{\max}$为**Hessian**最大特征值）。随机初始化点的$\lambda_{\max}$通常很大，直接使用目标学习率会立即发散；**warmup**让网络先用小步长走到**锐度较小**的区域，之后才能承受大学习率。[Why Warmup the Learning Rate? Underlying Mechanisms and Improvements](https://arxiv.org/abs/2406.09405)系统验证了这一机制，并指出**warmup**的真正作用是"把网络送到一个能容忍目标学习率的位置"，因此**warmup**的终点学习率比其形状重要得多。
+2. **曲率与稳定性**：从1.3节的逼近视角看，稳定训练要求$\gamma < 2/\lambda_{\max}$（$\lambda_{\max}$为**Hessian**最大特征值）。随机初始化点的$\lambda_{\max}$通常很大，直接使用目标学习率会立即发散；**warmup**让网络先用小步长走到**锐度较小**的区域，之后才能承受大学习率。[Why Warmup the Learning Rate? Underlying Mechanisms and Improvements](https://arxiv.org/abs/2406.09405)系统验证了这一机制，并指出**warmup**的真正作用是“把网络送到一个能容忍目标学习率的位置”，因此**warmup**的终点学习率比其形状重要得多。
 3. **线性缩放律的失效**：如3.3节所述，线性缩放律的推导假设相邻若干步的梯度近似不变，而训练早期梯度变化极快，该假设不成立。因此大批量训练必须配合**warmup**。
 
 实践建议：**warmup**步数通常取总步数的$1\%\sim5\%$，或按经验取一个固定值（如$2000$步）；对**Adam**类优化器，$T_w$的下界与$\beta_2$有关（大致$T_w \gtrsim 2/(1-\beta_2)$）。
@@ -1346,7 +1346,7 @@ $$ ||\nabla^2 L(\theta)|| \leq L_0 + L_1||\nabla L(\theta)|| $$
 
 即曲率随梯度大小增长。在这一假设下，固定步长的梯度下降必须用最坏情况的曲率来选步长（因此极慢），而**裁剪后的梯度下降可以达到显著更快的收敛速率**；这解释了为什么裁剪不仅防止发散，还能加速训练。
 
-**自适应梯度裁剪(AGC)**由[High-Performance Large-Scale Image Recognition Without Normalization](https://arxiv.org/abs/2102.06171)提出，它逐层按"梯度范数与参数范数之比"裁剪（与2.6节**LARS**的思想同源），是**NFNet**得以在无**BatchNorm**的情况下稳定训练大批量的关键。关于梯度裁剪与归一化层的关系可参考[<font color=Blue>深度学习中的归一化方法</font>](https://0809zheng.github.io/2020/03/04/normalization.html)。
+**自适应梯度裁剪(AGC)**由[High-Performance Large-Scale Image Recognition Without Normalization](https://arxiv.org/abs/2102.06171)提出，它逐层按“梯度范数与参数范数之比“裁剪（与2.6节**LARS**的思想同源），是**NFNet**得以在无**BatchNorm**的情况下稳定训练大批量的关键。关于梯度裁剪与归一化层的关系可参考[<font color=Blue>深度学习中的归一化方法</font>](https://0809zheng.github.io/2020/03/04/normalization.html)。
 
 ## (3) 批量大小与学习率的关系
 
