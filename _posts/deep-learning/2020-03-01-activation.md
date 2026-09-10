@@ -11,7 +11,7 @@ tags: 深度学习
 
 **激活函数(activation function)**是神经网络中重要的非线性来源。它的形式看起来微不足道（通常只是一个作用在标量上的一元函数），但它决定了网络能否被优化、梯度能否传播、表示能力有多强，甚至决定了模型能否部署到低精度硬件上。
 
-本文首先讨论激活函数的意义与设计准则，然后按设计思路把主流激活函数组织成不同族系统梳理，并在最后给出一份速查表和实践选型建议。
+本文首先讨论激活函数的意义与设计准则，然后按设计思路把主流激活函数组织成不同族系统梳理，并在最后给出一份实践选型建议。
 1. 激活函数的意义
 2. 激活函数的设计准则
 3. 常见的激活函数
@@ -22,7 +22,7 @@ tags: 深度学习
    - 3.5 通用近似激活函数
    - 3.6 上下文相关的激活函数
    - 3.7 门控激活函数
-4. 速查表与选型建议
+4. 选型建议
 
 **符号约定**：全文用$\sigma(\cdot)$专门表示**Sigmoid**函数$\sigma(x)=1/(1+e^{-x})$；用$s$表示光滑化核的宽度；用$\mathbb{E}[\cdot]$与$\text{Var}[\cdot]$表示期望与方差。
 
@@ -589,13 +589,19 @@ $s$与$b$也可以设为**可学习**参数（按层或按通道），此时上�
 | :---: | :---: |
 | $$\text{xIELU}(x) =\begin{cases} \alpha_p x^2 + 0.5x, & x> 0 \\ \alpha_n\left(e^x-1\right)-\alpha_n x + 0.5x, & x\leq 0 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-059-xielu.png) |
 
-**xIELU**的推导方式本身就很有启发性：与其直接设计激活函数$f$，不如**设计它的导数**$f'$，因为我们真正关心的性质（梯度是否消失、是否饱和、是否有界）全都是关于导数的；然后对$f'$**积分**得到$f$。这样所需的梯度行为是构造性地保证的，而不是事后验证的。作者取$f'$为**ELU**的可训练仿射变换，积分后即得到上式。
+**xIELU**的推导方式本身就很有启发性：与其直接设计激活函数$f$，不如**设计它的导数**$f'$，因为我们真正关心的性质（梯度是否消失、是否饱和、是否有界）全都是关于导数的；然后对$f'$**积分**得到$f$。这样所需的梯度行为是构造性地保证的，而不是事后验证的。
 
-从形式上看，**xIELU**把两条路线拼在一起：**正半轴借用ReLU**$^2$**的增长型导数**（$2\alpha_p x + 0.5$随输入增大），**负半轴借用ELU的饱和**（$\alpha_n\left(e^x-1\right)$），$\alpha_p$与$\alpha_n$均可学习。
+作者取$f'$为**ELU**的可训练仿射变换，积分后即得到上式：
+
+$$
+\begin{aligned}
+\text{xIELU}^\prime(x) &= \begin{cases} x, & x> 0 \\ \alpha_n\left(e^x-1\right), & x\leq 0 \end{cases}
+\end{aligned}
+$$
 
 式中的$0.5x$项与$-\alpha_n x$修正项不是随意添加的，它们的作用恰好是保证原点处的**连续可导**：$x\to 0^+$与$x\to 0^-$的函数值都是$0$；导数方面，右导数为$2\alpha_p\cdot 0+0.5=0.5$，左导数为$\alpha_n e^0-\alpha_n+0.5=0.5$，两者相等。因此无论$\alpha_p,\alpha_n$学成什么值，**xIELU**始终是$C^1$的。
 
-**xIELU**已被用于**Apertus 8B/70B**开源模型（[Apertus: Democratizing Open and Compliant LLMs for Global Language Environments](https://arxiv.org/abs/2509.14233)）。
+从形式上看，**xIELU**把两条路线拼在一起：**正半轴借用ReLU**$^2$**的增长型导数**（$2\alpha_p x + 0.5$随输入增大），**负半轴借用ELU的饱和**（$\alpha_n\left(e^x-1\right)$），$\alpha_p$与$\alpha_n$均可学习。**xIELU**已被用于**Apertus 8B/70B**开源模型（[Apertus: Democratizing Open and Compliant LLMs for Global Language Environments](https://arxiv.org/abs/2509.14233)）。
 
 #### ⚪ PolyCom：多项式组合
 
@@ -879,9 +885,10 @@ $$
 
 **PWLU**具有以下性质：
 - 是通用近似器，可以近似任意连续有界标量函数（$N$越大拟合能力越强）；
-- 随其参数连续变化，因此可以通过梯度优化；![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-034-pwlu.jpg)
 - 自由度集中在一个**有界区间**内，可以充分利用可学习参数；
 - 由于区间等分，索引计算和推理都非常高效。
+- 随其参数连续变化，因此可以通过梯度优化；![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-034-pwlu.jpg)
+
 
 **PWLU**的关键实践问题是**输入边界不对齐(input-boundary misalignment)**：函数的主要自由度分布在$[B_L,B_R]$内，如果输入数据的分布与该区间交集很小，则大部分参数对网络几乎没有贡献。
 
@@ -1220,9 +1227,9 @@ $$
 
 - paper：[Dynamic ReLU](https://arxiv.org/abs/2003.10027)
 
-| 表达式 | 函数图像 |
-| :---: | :---: |
-| $$y_c = f_{\theta(x)}(x_c) = \mathop{\max}_{1\leq k \leq K} \left\{a_c^k(x)\,x_c+b_c^k(x)\right\}$$ | — |
+| 表达式 |
+| :---: |
+| $$y_c = f_{\theta(x)}(x_c) = \mathop{\max}_{1\leq k \leq K} \left\{a_c^k(x)\,x_c+b_c^k(x)\right\}$$ |
 
 **DY-ReLU**把所有输入元素$x$的**全局上下文信息**编码到一个**超函数(hyper function)** $\theta(x)$中，并用它决定激活函数$f_{\theta(x)}(x)$的形状。
 
@@ -1254,9 +1261,9 @@ $$ a_c^k(x)=\alpha^k+\lambda_a \Delta a_{c}^{k}(x), \quad b_c^k(x)=\beta^k+\lamb
 
 - paper：[MicroNet: Towards Image Recognition with Extremely Low FLOPs](https://arxiv.org/abs/2011.12289)
 
-| 表达式 | 函数图像 |
-| :---: | :---: |
-| $$y_i= \mathop{\max}_{1\leq k\leq K} \left\{\sum_{j=0}^{J-1} a_{i,j}^k(x)\,x_{C/G}(i,j)\right\}$$ | — |
+| 表达式 |
+| :---: |
+| $$y_i= \mathop{\max}_{1\leq k\leq K} \left\{\sum_{j=0}^{J-1} a_{i,j}^k(x)\,x_{C/G}(i,j)\right\}$$ |
 
 **Dynamic Shift-Max**（由**MicroNet**提出）的动机是：当网络层数减少时性能会下降，而**改善每一层的非线性可以补偿网络深度的减少**。它引入的上下文是**相邻通道组**。
 
@@ -1279,9 +1286,9 @@ $$
 
 - paper：[Funnel Activation for Visual Recognition](https://arxiv.org/abs/2007.11824)
 
-| 表达式 | 函数图像 |
-| :---: | :---: |
-| $$\text{FReLU}(x) = \max\left(x, T(x)\right)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-049-frelu.jpg) |
+| 表达式 |
+| :---: |
+| $$\text{FReLU}(x) = \max\left(x, T(x)\right)$$ |
 
 **FReLU(funnel activation)**引入的上下文是**空间邻域**，其设计逻辑是一条清晰的推广链条：
 
@@ -1306,9 +1313,9 @@ $$
 - paper：[Language Modeling with Gated Convolutional Networks](https://arxiv.org/abs/1612.08083)
 - paper：[GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202)
 
-| 表达式 | 函数图像 |
-| :---: | :---: |
-| $$\text{GLU}(x) = \sigma(xW + b) \otimes (xV + c)$$ | — |
+| 表达式 |
+| :---: |
+| $$\text{GLU}(x) = \sigma(xW + b) \otimes (xV + c)$$ |
 
 上表即**GLU(gated linear unit)**的基本形式，其中$\otimes$表示逐元素相乘。**GLU**用一路的**Sigmoid**输出作为门控信号，控制另一路信息的通过量。相比逐元素激活函数，**GLU**引入了**乘性交互**，其表达能力更强，且梯度可以通过线性支路无衰减地传播。
 
@@ -1340,9 +1347,9 @@ $$
 
 - paper：[Turbo Sparse: Achieving LLM SOTA Performance with Minimal Activated Parameters](https://arxiv.org/abs/2406.05955)
 
-| 表达式 | 函数图像 |
-| :---: | :---: |
-| $$\text{FFN}_{\text{dReLU}}(x) = \left(\text{ReLU}(xW_{\text{gate}}) \otimes \text{ReLU}(xW_{\text{up}})\right)W_{\text{down}}$$ | — |
+| 表达式 |
+| :---: |
+| $$\text{FFN}_{\text{dReLU}}(x) = \left(\text{ReLU}(xW_{\text{gate}}) \otimes \text{ReLU}(xW_{\text{up}})\right)W_{\text{down}}$$ |
 
 **SwiGLU**虽然效果最好，却对**稀疏推理**极不友好：**Swish**永远不会精确等于$0$（只是趋近于$0$），因此前馈层中几乎**每一个神经元都是“激活”的**，推理时无法跳过任何计算。
 
@@ -1375,85 +1382,7 @@ $\alpha$初始化为$0$意味着训练从**未修改的原始激活函数**出�
 有一点必须明确指出（这也是它与本文其他所有激活函数的显著差异）：负半轴的$x^2\sigma(x)$是**正的**而非负的，形成一个小的正向凸包，峰值约为$0.48$、位置在$x\approx -2.4$附近。这个行为相当反常，不过函数在原点处仍然连续且$C^1$。
 
 
-# 4. 速查表与选型建议
-
-## (1) 速查表
-
-- Reference：[Pytorch中的激活函数层](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity)
-
-<style>
-table th:first-of-type {
-    width: 30%;
-}
-table th:nth-of-type(2) {
-    width: 70%;
-}
-</style>
-
-
-| 激活函数 | 表达式 |
-| ---- | ---- |
-| Step | $$\begin{cases} 1, & x\geq 0 \\ 0, & x<0 \end{cases}$$ |
-| Sigmoid | $$\sigma(x)=\frac{1}{1+e^{-x}}$$ |
-| HardSigmoid：降低Sigmoid计算量 | $$\begin{cases} 1, & x\geq 1 \\ (x+1)/2, & -1<x<1 \\ 0, & x\leq -1 \end{cases}$$ |
-| Tanh | $$\begin{aligned} &2\sigma(2x)-1 \\ &=\frac{e^{x}-e^{-x}}{e^{x}+e^{-x}} \end{aligned}$$ |
-| HardTanh：降低Tanh计算量 | $$\begin{cases} 1, & x>1 \\ x, & -1\leq x\leq 1 \\ -1, & x<-1 \end{cases}$$ |
-| ISRU：使用逆平方根近似Tanh | $$\frac{x}{\sqrt{1 + \alpha x^2}}$$ |
-| Softsign：多项式饱和的Tanh替代 | $$\frac{x}{1+\|x\|}$$ |
-| Softplus：ReLU的光滑近似 | $$\begin{aligned} &\int_{-\infty}^{x}\sigma(t)dt \\ &=\ln\left(1+e^x\right) \end{aligned}$$ |
-| Squareplus：Softplus的代数近似 | $$\frac{1}{2}\left(x+\sqrt{x^2+b}\right)$$ |
-| ReLU | $$\begin{aligned} &\max(x,0) \\ &=\begin{cases} x, & x\geq 0 \\ 0, & x<0 \end{cases} \end{aligned}$$ |
-| ReLU6：适配低精度部署 | $$\begin{aligned} &\min\left(\max(x,0),6\right) \\ &=\begin{cases} 6, & x\geq 6 \\ x, & 0\leq x<6 \\ 0, & x<0 \end{cases} \end{aligned}$$ |
-| LeakyReLU：解决dead ReLU | $$\begin{aligned} &\max(x,0.01x) \\ &=\begin{cases} x, & x\geq 0 \\ 0.01x, & x<0 \end{cases} \end{aligned}$$ |
-| PReLU：可学习参数$\alpha$ | $$\begin{aligned} &\max(x,\alpha x) \\ &=\begin{cases} x, & x\geq 0 \\ \alpha x, & x<0 \end{cases} \end{aligned}$$ |
-| RReLU：均匀分布采样$\alpha$ | $$\begin{aligned} &\max(x,\alpha x) \\ &=\begin{cases} x, & x\geq 0 \\ \alpha x, & x<0 \end{cases} \end{aligned}$$ |
-| CReLU：拼接正负两路整流 | $$\left[\text{ReLU}(x), \text{ReLU}(-x)\right]$$ |
-| SReLU：双侧可学习阈值 | $$\begin{cases} a^r\left(x-t^r\right)+t^r, & x\geq t^r \\ x, & t^l < x < t^r \\ a^l\left(x-t^l\right)+t^l, & x\leq t^l \end{cases}$$ |
-| SUGAR：前向ReLU、反向B-SiLU梯度 | $$\text{B-SiLU}(x)=(x+\alpha)\sigma(x)-\frac{\alpha}{2}$$ |
-| ELU：解决bias shift | $$\begin{cases} x, & x\geq 0 \\ \alpha\left(e^x-1\right), & x<0 \end{cases}$$ |
-| CELU：连续可微的ELU | $$\begin{cases} x, & x\geq 0 \\ \alpha\left(e^{x/\alpha}-1\right), & x<0 \end{cases}$$ |
-| SELU：自标准化的ELU | $$\begin{cases} \lambda x, & x\geq 0 \\ \lambda\alpha\left(e^x-1\right), & x<0 \end{cases}$$ |
-| ISRLU：使用逆平方根近似ELU | $$\begin{cases} x, & x\geq 0 \\ \frac{x}{\sqrt{1 + \alpha x^2}}, & x<0 \end{cases}$$ |
-| PELU：参数化的ELU | $$\begin{cases} \frac{a}{b}x, & x\geq 0 \\ a\left(e^{x/b}-1\right), & x<0 \end{cases}$$ |
-| GELU：随机正则化视角 | $$\begin{aligned} &x\Phi(x)=x\int_{-\infty}^{x} \frac{1}{\sqrt{2\pi}}e^{-\frac{t^2}{2}}dt \\ &= \frac{x}{2}\left(1+\text{erf}\left(\frac{x}{\sqrt{2}}\right)\right) \end{aligned}$$ |
-| Squared ReLU：搜索出的平方整流 | $$\left(\text{ReLU}(x)\right)^2=\max(x,0)^2$$ |
-| StarReLU：标准化的平方整流 | $$\begin{aligned} &s\cdot\left(\text{ReLU}(x)\right)^2+b \\ &s\approx 0.8944,\ b\approx -0.4472 \end{aligned}$$ |
-| xIELU：正半轴二次、负半轴指数 | $$\begin{cases} \alpha_p x^2 + 0.5x, & x> 0 \\ \alpha_n\left(e^x-1\right)-\alpha_n x + 0.5x, & x\leq 0 \end{cases}$$ |
-| PolyCom：多项式组合（PolyReLU形式） | $$\sum_{i=0}^{r} a_i \left(\text{ReLU}(x)\right)^i$$ |
-| Swish：强化学习搜索 | $$\begin{aligned} &x\cdot \sigma(\beta x) \\ &= \frac{x}{1+e^{-\beta x}} \end{aligned}$$ |
-| HardSwish：降低Swish计算量 | $$\begin{aligned} &x \cdot \frac{\text{ReLU6}(x+3)}{6} \\ &= \begin{cases} x, & x \geq 3 \\ \frac{x(x+3)}{6}, & -3 \leq x <3 \\ 0, & x < -3 \end{cases} \end{aligned}$$ |
-| Mish：进一步搜索Swish | $$\begin{aligned} &x\cdot \tanh\left(\text{Softplus}(x)\right) \\ &=x\cdot \tanh\left(\ln\left(1+e^x\right)\right) \end{aligned}$$ |
-| ELiSH：遗传算法搜索 | $$\begin{aligned} &\sigma(x) \cdot \text{ELU}(x) \\ &= \begin{cases} \frac{x}{1+e^{-x}}, & x\geq 0 \\ \frac{e^x-1}{1+e^{-x}}, & x<0 \end{cases} \end{aligned}$$ |
-| HardELiSH：降低ELiSH计算量 | $$\begin{aligned} &\text{HardSigmoid}(x) \cdot \text{ELU}(x) \\ &= \begin{cases} x, & x\geq 1 \\ x(x+1)/2, & 0 \leq x<1 \\ \left(e^x-1\right)(x+1)/2, & -1\leq x<0 \\ 0, & x\leq -1 \end{cases} \end{aligned}$$ |
-| E-Swish：缩放Swish | $$\beta x\sigma(x), \quad \beta \in [1,2]$$ |
-| LiSHT：偶函数型自门控 | $$x\tanh(x)$$ |
-| TanhExp：面向轻量级网络 | $$x\tanh\left(e^x\right)$$ |
-| GELUSine：LLM搜索出的激活函数 | $$\text{GELU}(x)+0.1\sin(x)$$ |
-| SIREN：正弦激活 | $$\sin\left(\omega_0\left(Wx+b\right)\right)$$ |
-| Snake：单调项加周期项 | $$x+\frac{1}{a}\sin^2(ax)$$ |
-| GCU：余弦门控 | $$x\cos(x)$$ |
-| Maxout：分段线性单元 |$$\mathop{\max}_{j\in [1,k]}\left(x^\top W_{i,j}+b_{i,j}\right)$$ |
-| APL：通过ReLU构造分段线性 | $$\begin{aligned} &\max(0,x) \\ &+\sum_{s=1}^{S}a^s\max\left(0,-x+b^s\right) \end{aligned}$$ |
-| PWLU：直接参数化分段线性 | $$\begin{cases} \left(x-B_L\right)K_L+Y^0, & x<B_L \\ \left(x-B_R\right)K_R+Y^N, & x\geq B_R \\ \left(x-B_i\right)K_i+Y^i, & \text{其他} \end{cases}$$ |
-| PAU：Padé近似 | $$\frac{a_0+a_1x+\cdots+a_mx^m}{1+\|b_1\|\|x\|+\cdots+\|b_n\|\|x\|^n}$$ |
-| OPAU：正交Padé近似 | $$\frac{c_0+c_1f_1(x)+\cdots+c_kf_k(x)}{1+\|d_1\|\|f_1(x)\|+\cdots+\|d_l\|\|f_l(x)\|}$$ |
-| KAN：B样条参数化（作用在边上） | $$w_b\cdot \text{silu}(x)+w_s\sum_i c_i B_i(x)$$ |
-| ACON：最大值函数的softmax近似 | $$\left(p_1-p_2\right)x\sigma\left(\beta (p_1-p_2)x\right)+p_2x$$ |
-| SMU：最大值函数的绝对值近似 | $$\frac{(1+\alpha)x+(1-\alpha)x\,\text{erf}\left(\mu (1-\alpha)x\right)}{2}$$ |
-| SAU：使用Dirac函数近似 | $$\frac{(1-\alpha)s}{\sqrt{2\pi}} e^{-\frac{x^2}{2s^2}}+ \frac{x}{2} + \frac{(1-\alpha) x}{2}\text{erf}\left(\frac{x}{\sqrt{2}s}\right)$$ |
-| AGLU：统一Sigmoid/ReLU/SiLU的参数族 | $$x\left(\lambda e^{-\kappa x}+1\right)^{-1/\lambda}$$ |
-| Dynamic ReLU：全局上下文 | $$\mathop{\max}_{1\leq k \leq K} \left\{a_c^k(x)\,x_c+b_c^k(x)\right\}$$ |
-| Dynamic Shift-Max：循环移位多输入 | $$\mathop{\max}_{1\leq k\leq K} \left\{\sum_{j=0}^{J-1} a_{i,j}^k(x)\,x_{C/G}(i,j)\right\}$$ |
-| FReLU：卷积窗口输入 | $$\max\left(x,T(x)\right)$$ |
-| GLU：门控线性单元 | $$\sigma(xW+b) \otimes (xV+c)$$ |
-| ReGLU：使用ReLU进行门控 | $$\text{ReLU}(xW+b) \otimes (xV+c)$$ |
-| GEGLU：使用GELU进行门控 | $$\text{GELU}(xW+b) \otimes (xV+c)$$ |
-| SwiGLU：使用Swish进行门控 | $$\text{Swish}(xW+b) \otimes (xV+c)$$ |
-| dReLU：两路都用ReLU（稀疏推理） | $$\text{ReLU}(xW_{\text{gate}}) \otimes \text{ReLU}(xW_{\text{up}})$$ |
-| xATLU / xGELU / xSiLU：扩展门控范围 | $$x\left[g(x)(1+2\alpha)-\alpha\right]$$ |
-| PowLU：幂型门控 | $$\begin{cases} x\cdot x^{\frac{m}{\sqrt{x}+1}}\sigma(x), & x> 0 \\ x^2\sigma(x), & x\leq 0 \end{cases}$$ |
-
-## (2) 选型建议
+# 4. 选型建议
 
 尽管激活函数的研究已经产生了数百种方案，实践中的选择其实相当收敛。以下建议按场景给出：
 - **卷积网络（默认）**：从**ReLU**开始。它计算最快、最稳定，且与**BatchNorm**配合良好（**BatchNorm**已经解决了偏置偏移问题，这削弱了**ELU**族的优势）。若追求更高精度且能接受额外开销，可尝试**Swish/SiLU**或**Mish**；它们在较深的网络上通常有稳定的小幅提升。
