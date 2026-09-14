@@ -581,7 +581,7 @@ $$
 \tilde{h} = g\left(\left(M \odot W\right)x\right),\qquad M_{ij} \sim \text{Bernoulli}(1-p)
 $$
 
-**Dropout**相当于**DropConnect**的一个特例（丢弃某个神经元等于同时丢弃它的所有出边），因此**DropConnect**的子模型空间更大（$$2^{|W|}$$而非$2^n$），正则化更强。代价是无法直接用“权重缩放：做推理近似：作者的做法是注意到$$u = (M\odot W)x$$在随机掩码下近似服从高斯分布，用矩匹配求出其均值$$(1-p)Wx$$与方差$$p(1-p)(W\odot W)(x\odot x)$$，然后采样若干次$u$再取平均。这个额外开销是**DropConnect**在实践中不如**Dropout**流行的主要原因。
+**Dropout**相当于**DropConnect**的一个特例（丢弃某个神经元等于同时丢弃它的所有出边），因此**DropConnect**的子模型空间更大（$2^{\|W\|}$而非$2^n$），正则化更强。代价是无法直接用“权重缩放：做推理近似：作者的做法是注意到$$u = (M\odot W)x$$在随机掩码下近似服从高斯分布，用矩匹配求出其均值$$(1-p)Wx$$与方差$$p(1-p)(W\odot W)(x\odot x)$$，然后采样若干次$u$再取平均。这个额外开销是**DropConnect**在实践中不如**Dropout**流行的主要原因。
 
 #### ⚪ Spatial Dropout：按通道丢弃
 
@@ -683,7 +683,7 @@ class DropBlock2d(nn.Module):
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-regularization-011-rdrop.jpg)
 
-具体地，把同一个输入$x_i$**两次**送入带**Dropout**的模型，得到两个输出分布$$P_1(y|x_i)$$和$$P_2(y|x_i)$$。它们相当于两个共享参数的子模型。损失函数包含两项：两次前向的负对数似然，以及两个输出分布之间的**对称KL散度**：
+具体地，把同一个输入$x_i$**两次**送入带**Dropout**的模型，得到两个输出分布$P_1(y\|x_i)$和$P_2(y\|x_i)$。它们相当于两个共享参数的子模型。损失函数包含两项：两次前向的负对数似然，以及两个输出分布之间的**对称KL散度**：
 
 $$
 \begin{aligned}
@@ -1046,7 +1046,7 @@ $$
 1. 使用编码器$p(z\|x)$输出特征分布的**均值和方差**，并加入[<font color=Blue>重参数化</font>](https://0809zheng.github.io/2022/04/24/repere.html)操作；
 2. 加入后验分布$p(z\|x)$与给定先验$q(z)$之间的**KL**散度作为额外的损失项。
 
-其形式与[<font color=Blue>变分自编码器</font>](https://0809zheng.github.io/2022/04/01/vae.html)非常类似。取$$q(z)=\mathcal{N}(0,1)$$、$$p(z|x)=\mathcal{N}(\mu, \sigma^2)$$时**KL**散度有闭式解：
+其形式与[<font color=Blue>变分自编码器</font>](https://0809zheng.github.io/2022/04/01/vae.html)非常类似。取$$q(z)=\mathcal{N}(0,1)$$、$$p(z\mid x)=\mathcal{N}(\mu, \sigma^2)$$时**KL**散度有闭式解：
 
 $$ \begin{aligned} KL\left[\mathcal{N}(\mu,\sigma^{2})||\mathcal{N}(0,1)\right] &= \frac{1}{2}  \left(-\log \sigma^2 + \mu^2+\sigma^2-1\right) \end{aligned} $$
 
