@@ -817,7 +817,7 @@ $$
 
 - paper：[Tensor Programs V: Tuning Large Neural Networks via Zero-Shot Hyperparameter Transfer](https://arxiv.org/abs/2203.03466)
 
-标准参数化(**SP**)下，最优学习率随网络宽度$n$漂移，因此每换一个模型尺寸都要重新调参。**muP(maximal update parametrization)**的出发点是：让**每一层的激活值与其单步更新量都保持$\Theta(1)$**（不随模型尺度$n$变化，故称“最大更新”）。满足这一条件后，最优学习率等超参数在宽度上**不再漂移**，于是可以在小代理模型上调参、零样本迁移到大模型（称为**muTransfer**）。
+标准参数化(**SP**)下，最优学习率随网络宽度$n$漂移，因此每换一个模型尺寸都要重新调参。**muP(maximal update parametrization)**的出发点是：让**每一层的激活值与其参数的单步更新量都保持$\Theta(1)$**（不随模型尺度$n$变化，故称“最大更新”）。满足这一条件后，最优学习率等超参数在宽度上**不再漂移**，于是可以在小代理模型上调参、零样本迁移到大模型（称为**muTransfer**）。
 
 考虑一个$$\mathbb{R}^{n_{in}} \to \mathbb{R}^{n_{out}}$$的三层神经网络，输入数据是$$X \in\mathbb{R}^{b \times n_{in}}$$：
 
@@ -829,18 +829,26 @@ Z_{out} &= Z_{hid}W_{out}\in\mathbb{R}^{b \times n_{out}}, W_{out}\in\mathbb{R}^
 \end{aligned}
 $$
 
-首先确定*初始化方差*。输入层的每个输出是$n_{in}$项之和，隐藏层的每个输出是$n$项之和。为了让随机初始化时的前向方差不随宽度发散，应取
+首先确定*参数初始化方差*。输入层的每个输出是$n_{in}$项之和，隐藏层的每个输出是$n$项之和。为了让随机初始化时的前向方差不随宽度发散，应取
 
 $$
 (W_{in})_{ij}=\Theta\left(n_{in}^{-1/2}\right),\qquad
 (W_{hid})_{ij}=\Theta\left(n^{-1/2}\right),
 $$
 
-也就是对应的初始化方差分别为$$\Theta(1/n_{in})$$和$$\Theta(1/n)$$。记输出层权重元素的量级为$(W_{out})_{ij}=\Theta(s_{out})$，由于$n_{out}$固定（由具体任务指定），反向传播到隐藏层的梯度满足$G_{hid}=G_{out}W_{out}^{\top}=\Theta(s_{out})$，从而
+也就是对应的初始化方差分别为$$\Theta(1/n_{in})$$和$$\Theta(1/n)$$。记输出层权重元素的量级为$$(W_{out})_{ij}=\Theta(s_{out})$$，由于$n_{out}$固定（由具体任务指定），反向传播到隐藏层的梯度满足：
+
+$$
+\frac{\partial \mathcal{L}}{\partial Z_{hid}}=\frac{\partial \mathcal{L}}{\partial Z_{out}}W_{out}^{\top}
+=\Theta\left(\sqrt{n_{out}}\cdot 1\cdot\frac{1}{n}\right)
+=\Theta(1/n)
+$$
+
+从而
 
 $$
 \frac{\partial\mathcal{L}}{\partial W_{hid}}
-=Z_{in}^{\top}G_{hid}=\Theta(s_{out}).
+=Z_{in}^{\top}\frac{\partial \mathcal{L}}{\partial Z_{hid}}=\Theta(s_{out}).
 $$
 
 对隐藏层做一次**SGD**更新，有
@@ -849,7 +857,7 @@ $$
 \begin{aligned}
 \Delta Z_{hid}
 &=Z_{in}\Delta W_{hid} \\
-&=-\eta_{hid}Z_{in}Z_{in}^{\top}G_{hid}.
+&=-\eta_{hid}Z_{in}Z_{in}^{\top}\frac{\partial \mathcal{L}}{\partial Z_{hid}}.
 \end{aligned}
 $$
 
@@ -857,29 +865,25 @@ $$
 
 $$
 \begin{aligned}
-G_{hid}
-&=G_{out}W_{out}^{\top}
-=\Theta\left(\sqrt{n_{out}}\cdot 1\cdot\frac{1}{n}\right)
-=\Theta(1/n), \\
-G_{in}
-&=G_{hid}W_{hid}^{\top}
+\frac{\partial \mathcal{L}}{\partial Z_{in}}
+&=\frac{\partial \mathcal{L}}{\partial Z_{hid}}W_{hid}^{\top}
 =\Theta\left(\sqrt{n}\cdot\frac{1}{n}\cdot\frac{1}{\sqrt{n}}\right)
 =\Theta(1/n), \\
 \frac{\partial\mathcal{L}}{\partial W_{out}}
-&=Z_{hid}^{\top}G_{out}=\Theta(1), \\
+&=Z_{hid}^{\top}\frac{\partial \mathcal{L}}{\partial Z_{out}}=\Theta(1), \\
 \frac{\partial\mathcal{L}}{\partial W_{hid}}
-&=Z_{in}^{\top}G_{hid}=\Theta(1/n), \\
+&=Z_{in}^{\top}\frac{\partial \mathcal{L}}{\partial Z_{hid}}=\Theta(1/n), \\
 \frac{\partial\mathcal{L}}{\partial W_{in}}
-&=X^{\top}G_{in}=\Theta(1/n).
+&=X^{\top}\frac{\partial \mathcal{L}}{\partial Z_{in}}=\Theta(1/n).
 \end{aligned}
 $$
 
 接下来确定学习率。需要保持各层激活的一步变化$$\Delta Z_{in},\Delta Z_{hid},\Delta Z_{out}=\Theta(1)$$。
 
 **(1) SGD学习率**
-- 对于输入层$\Delta Z_{in} =X\Delta W_{in} =-\eta_{in}XX^{\top}G_{in}$，由于$n_{in}$固定，$$XX^{\top}=\Theta(1)$$；又有$$G_{in}=\Theta(1/n)$$，因此$\Delta Z_{in}=\Theta\left(\eta_{in}/n\right)$。要使输入特征发生$$\Theta(1)$$的最大有限更新，应取$\eta_{in}=\Theta(n)$。
-- 对于隐藏层，前面已经得到$\eta_{hid}=\Theta(1)$。
-- 对于输出层$\Delta Z_{out}=Z_{hid}\Delta W_{out}=-\eta_{out}Z_{hid}Z_{hid}^{\top}G_{out}$，其中$$Z_{hid}Z_{hid}^{\top}=\Theta(n)$$、$$G_{out}=\Theta(1)$$，所以$\Delta Z_{out}=\Theta(\eta_{out}n)$。为了使输出变化保持$$\Theta(1)$$，应取$\eta_{out}=\Theta(1/n)$。
+- 对于输入层$$\Delta Z_{in} =X\Delta W_{in} =-\eta_{in}XX^{\top}\frac{\partial \mathcal{L}}{\partial Z_{in}}$$，由于$n_{in}$固定，$$XX^{\top}=\Theta(1)$$；又有$$\frac{\partial \mathcal{L}}{\partial Z_{in}}=\Theta(1/n)$$，因此$$\Delta Z_{in}=\Theta\left(\eta_{in}/n\right)$$。要使输入特征发生$$\Theta(1)$$的最大有限更新，应取$$\eta_{in}=\Theta(n)$$。
+- 对于隐藏层，前面已经得到$$\eta_{hid}=\Theta(1)$$。
+- 对于输出层$$\Delta Z_{out}=Z_{hid}\Delta W_{out}=-\eta_{out}Z_{hid}Z_{hid}^{\top}\frac{\partial \mathcal{L}}{\partial Z_{out}}$$，其中$$Z_{hid}Z_{hid}^{\top}=\Theta(n)$$、$$\frac{\partial \mathcal{L}}{\partial Z_{out}}=\Theta(1)$$，所以$$\Delta Z_{out}=\Theta(\eta_{out}n)$$。为了使输出变化保持$$\Theta(1)$$，应取$$\eta_{out}=\Theta(1/n)$$。
 
 **(2) Adam学习率**
 
@@ -907,11 +911,9 @@ $$
 | 隐藏层$W_{hid}$ | $\Theta(1/n)$ | $\Theta(1)$ | $\Theta(1/n)$ |
 | 输出层$W_{out}$ | $\Theta(1/n^2)$ | $\Theta(1/n)$ | $\Theta(1/n)$ |
 
-对于输出维度为$n$的隐藏偏置，其梯度是$$\Theta(1/n)$$，因此学习率与输入型参数相同：**SGD**取$$\Theta(n)$$、**Adam**取$$\Theta(1)$$；固定维度的输出偏置则两者都取$$\Theta(1)$$。偏置通常初始化为$0$，不能和权重矩阵共用$$1/n_{in}$$的初始化方差。嵌入矩阵可以视为one-hot输入层，因此在词表大小固定时属于输入型参数。
+对于输出维度为$n$的隐藏偏置，其梯度是$$\Theta(1/n)$$，因此学习率与输入型参数相同：**SGD**取$$\Theta(n)$$、**Adam**取$$\Theta(1)$$；固定维度的输出偏置则两者都取$$\Theta(1)$$。偏置通常初始化为$0$，不能和权重矩阵共用$$1/n_{in}$$的初始化方差。嵌入矩阵可以视为**one-hot**输入层，因此在词表大小固定时属于输入型参数。
 
-**muP**可以看成“把初始化、学习率、前向乘子三者作为一个整体来设计”，这是初始化研究在大模型时代的范式转变。
-
-后续工作[u-muP: The Unit-Scaled Maximal Update Parametrization](https://arxiv.org/abs/2407.17465)把**muP**与**unit scaling**结合，使所有张量（含激活值与梯度）在初始时都是单位尺度，从而天然适配**FP8**等低精度训练，并让超参数之间更加解耦。
+**muP**可以看成“把初始化、学习率、前向乘子三者作为一个整体来设计”，这是初始化研究在大模型时代的范式转变。后续工作[u-muP: The Unit-Scaled Maximal Update Parametrization](https://arxiv.org/abs/2407.17465)把**muP**与**unit scaling**结合，使所有张量（含激活值与梯度）在初始时都是单位尺度，从而天然适配**FP8**等低精度训练，并让超参数之间更加解耦。
 
 ### ⚪ A Spectral Condition for Feature Learning：用谱范数统一muP规则
 
@@ -919,15 +921,7 @@ $$
 
 前面的推导逐层跟踪了权重元素、梯度元素和学习率关于宽度$n$的量级。这样可以得到正确规则，但输入层、隐藏层和输出层看起来各不相同。**Spectral Condition**提供了一个与参数类型无关的统一描述：不要比较单个权重元素的大小，而要比较整个权重矩阵及其更新的**谱范数（算子范数）**。
 
-考虑一层
-
-$$
-Z_{out}=Z_{in}W,
-\qquad
-W\in\mathbb{R}^{n_{in}\times n_{out}}.
-$$
-
-若输入、输出的每个特征分量都是$$\Theta(1)$$，则单个样本的特征向量满足
+考虑一层$$Z_{out}=Z_{in}W,W\in\mathbb{R}^{n_{in}\times n_{out}}$$，若输入、输出的每个特征分量都是$$\Theta(1)$$，则单个样本的特征向量满足
 
 $$
 \left\|Z_{in}\right\|_2=\Theta\left(\sqrt{n_{in}}\right),
@@ -970,7 +964,7 @@ $$
 这就是用于特征学习的**谱条件**。它是必要的量级条件而不是充分条件：谱范数只给出最大可能放大率，还需要$\Delta W$的主要奇异向量与当前特征方向有足够对齐。梯度更新天然具有这种对齐性。以单个样本为例，
 
 $$
-\Delta W=-\eta Z_{in}^{\top}G_{out}
+\Delta W=-\eta Z_{in}^{\top}\frac{\partial \mathcal{L}}{\partial Z_{out}}
 $$
 
 是一个秩$1$外积，其输入侧奇异向量正是$Z_{in}$的方向；批量训练时更新秩至多为$b$。因此对梯度更新而言，上面的谱范数上界通常能够达到正确量级。
@@ -982,7 +976,7 @@ $$
 | 参数 | 矩阵形状 | 目标谱范数 |
 | ---- | ---- | ---- |
 | $W_{in}$ | $n_{in}\times n$ | $$\Theta\left(\sqrt{n/n_{in}}\right)=\Theta(\sqrt{n})$$ |
-| $W_{hid}$ | $n\times n$ | $$\Theta(1)$$ |
+| $W_{hid}$ | $n\times n$ | $$\Theta\left(\sqrt{n/n}\right)=\Theta(1)$$ |
 | $W_{out}$ | $n\times n_{out}$ | $$\Theta\left(\sqrt{n_{out}/n}\right)=\Theta(1/\sqrt{n})$$ |
 
 对于元素独立、零均值的随机初始化，矩阵谱范数的量级为
@@ -1000,7 +994,7 @@ $$
 
 这恰好给出前面推导的初始化方差$$1/n_{in}$$、$$1/n$$和$$1/n^2$$。
 
-再看一步更新。批量梯度是至多秩$b$的低秩矩阵，因此其谱范数与Frobenius范数具有相同量级。前面得到
+再看一步更新。批量梯度是至多秩$b$的低秩矩阵，因此其谱范数与**Frobenius**范数具有相同量级。前面得到
 
 $$
 (\Delta W_{in})_{ij}=\Theta(1),
@@ -1033,7 +1027,7 @@ $$
 
 对$n\times n$隐藏矩阵，初始化时$$\left\|W_{hid}\right\|_F=\Theta(\sqrt{n})$$、$$\left\|W_{hid}\right\|_2=\Theta(1)$$，稳定秩为$$\Theta(n)$$；而一步更新满足$$\left\|\Delta W_{hid}\right\|_F=\Theta(1)$$、$$\left\|\Delta W_{hid}\right\|_2=\Theta(1)$$，稳定秩只有$$\Theta(1)$$。
 
-所以即使更新的Frobenius范数比权重小$$\sqrt{n}$$倍，它仍然可以在某个与数据对齐的方向上产生与权重同阶的作用。谱范数恰好测量这种“最强方向上的变化”，比逐元素尺度或Frobenius范数更直接地对应特征是否真正发生学习。
+所以即使更新的**Frobenius**范数比权重小$$\sqrt{n}$$倍，它仍然可以在某个与数据对齐的方向上产生与权重同阶的作用。谱范数恰好测量这种“最强方向上的变化”，比逐元素尺度或**Frobenius**范数更直接地对应特征是否真正发生学习。
 
 ### ⚪ Depth-muP与CompleteP：把缩放律推广到深度
 
@@ -1042,7 +1036,7 @@ $$
 
 **muP**只解决了**宽度**方向的迁移。**Depth-muP**进一步处理**深度**$L$：对于残差网络，需要把残差分支乘以$$1/\sqrt{L}$$，并把分支内参数的学习率同样按$$1/\sqrt{L}$$缩放；论文证明这是唯一能在$L\to\infty$时保持特征学习（而非退化为核区域）的缩放方式，此时超参数可以同时跨宽度与深度迁移。
 
-**CompleteP**指出$$1/\sqrt{L}$$的缩放会让深层网络中的各个模块逐渐进入"惰性(lazy)"区域（每层只做线性化的微小更新）。它改用$1/L$的分支缩放并配合相应的逐层学习率调整，使每一层都保持**完备的特征学习**，在深宽比较大的**Transformer**上取得了$12\%$至$34\%$的计算效率提升，同时让最优超参数在深度方向上也保持稳定。
+**CompleteP**指出$$1/\sqrt{L}$$的缩放会让深层网络中的各个模块逐渐进入**惰性(lazy)区域**（每层只做线性化的微小更新）。它改用$1/L$的分支缩放并配合相应的逐层学习率调整，使每一层都保持**完备的特征学习**，在深宽比较大的**Transformer**上取得了$12\%$至$34\%$的计算效率提升，同时让最优超参数在深度方向上也保持稳定。
 
 ### ⚪ 训练不稳定的初始化视角
 
