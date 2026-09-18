@@ -10,31 +10,247 @@ pinned: true
 
 > Outlines about Deep Learning.
 
-- 提示：请点击任意[<font color=Blue>高亮位置</font>](https://0809zheng.github.io/2020/01/02/DL-outline.html)以发现更多细节！
+- 提示：持续更新中...请点击任意[<font color=Blue>高亮位置</font>](https://0809zheng.github.io/2020/01/02/DL-outline.html)以发现更多细节！
 
 **深度学习**(**Deep Learning**)是一种以深度神经网络为工具的机器学习方法。
-本文首先介绍深度神经网络的**类型**，其次介绍深度学习的**基本组件**和**方法技巧**，最后介绍深度学习在计算机视觉和自然语言处理等领域的**应用**。
+本文首先介绍深度学习的**基本组件**和**方法技巧**，其次介绍深度神经网络的**类型**，最后介绍深度学习在计算机视觉、自然语言处理与自然科学等领域的**应用**。
 
 本文目录：
-- **深度神经网络的类型**
-1. **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、卷积神经网络中的注意力机制、卷积神经网络中的自注意力机制、轻量级卷积神经网络
-2. **循环神经网络**：循环神经网络的基本概念、序列到序列模型、序列到序列模型中的注意力机制
-3. **自注意力网络**：自注意力机制、**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、预训练语言模型、
-4. **深度生成模型**：生成对抗网络、变分自编码器、流模型
-5. **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络
 - **深度学习的基本组件和方法技巧**
-1. **深度学习的基本组件**：激活函数、优化方法、正则化方法、归一化方法、参数初始化方法
-2. **深度学习的方法**：半监督学习、自监督学习、度量学习、多任务学习、主动学习、迁移学习
-3. **深度学习的技巧**：长尾分布、对抗训练、大模型的参数高效微调
+  - **深度学习的基本组件**：激活函数、优化方法、正则化方法、归一化方法、参数初始化方法
+  - **深度学习的方法**：半监督学习、自监督学习、度量学习、多实例学习、多任务学习、主动学习、迁移学习、终身学习、元学习
+  - **深度学习的技巧**：图像的数据增强、混合精度训练、长尾分布、对抗训练、大模型的参数高效微调
+- **深度神经网络的类型**
+  - **卷积神经网络**：卷积神经网络的基本概念、卷积神经网络中的池化层、卷积神经网络中的注意力机制、卷积神经网络中的自注意力机制、轻量级卷积神经网络
+  - **循环神经网络**：循环神经网络的基本概念、序列到序列模型、序列到序列模型中的注意力机制
+  - **自注意力网络**：自注意力机制、**Transformer**、**Transformer**中的位置编码、降低**Transformer**的计算复杂度、
+  - **深度生成模型**：生成对抗网络、变分自编码器、流模型、流匹配模型
+  - **其他类型的网络**：递归神经网络、记忆增强神经网络、图神经网络、状态空间模型
 - **深度学习的应用**
-1. **High-Level视觉**：图像识别、目标检测、开放集合目标检测、图像分割、点云分类、目标计数
-2. **Low-Level视觉**：图像超分辨率、全色锐化
-3. **AIGC**：图像到图像翻译、布局引导图像生成
-4. **Human-Centric感知**：人脸检测, 识别与验证、行人检测与属性识别、时空动作检测、射频人体感知
-5. **自然语言处理**：
-6. **AI for Science**
+  - **High-Level视觉**：图像识别、目标检测、开放集合目标检测、图像分割、点云分类、目标计数
+  - **Low-Level视觉**：图像超分辨率、全色锐化
+  - **GenAI**：图像到图像翻译、布局引导图像生成
+  - **Human-Centric感知**：人体姿态估计、人脸检测, 识别与验证、行人检测与属性识别、时空动作检测、射频人体感知
+  - **自然语言处理**：预训练语言模型、
+  - **多模态**：文本检测与识别、视觉-语言预训练
+- **AI for Science**
+  - **AI for Math**
 
-# 1. 深度神经网络的类型
+
+# 1. 深度学习的基本组件和方法技巧
+
+## (1) 深度学习的基本组件
+### ⚪ [<font color=Blue>激活函数 (Activation Function)</font>](https://0809zheng.github.io/2020/03/01/activation.html)
+**激活函数**为神经网络引入不可或缺的非线性。设计激活函数时可以考虑的七条准则包括：连续可导、计算量小、没有饱和区、没有偏置偏移、具有生物可解释性、能够提取上下文信息、具有通用近似性。
+
+常见的激活函数按设计思路可以分为七族：
+- **S**型激活函数：形如**S**型曲线，单调有界、处处光滑，因此两端必然饱和；如今主要用于门控机制与概率输出。包括**Step**, **Sigmoid**, **HardSigmoid**, **Tanh**, **HardTanh**, **ISRU**, **Softsign**
+- **ReLU**族激活函数：正半轴保持（近似）恒等映射从而不饱和，差别在于如何处理负半轴与原点处的不可导。包括光滑与有界变体(**ReLU**, **Softplus**, **Squareplus**, **ReLU6**)、修正负半轴斜率(**LeakyReLU**, **PReLU**, **RReLU**, **CReLU**, **SReLU**, **SUGAR**)、负半轴指数饱和(**ELU**, **CELU**, **SELU**, **ISRLU**, **PELU**)、概率视角(**GELU**)、以及反过来修改正半轴的幂与多项式(**Squared ReLU**, **StarReLU**, **xIELU**, **PolyCom**)
+- 自动搜索的激活函数：用强化学习、遗传算法或大语言模型在函数空间中搜索得到。包括**Swish**, **HardSwish**, **Mish**, **ELiSH**, **HardELiSH**, **E-Swish**, **LiSHT**, **TanhExp**, **GELUSine**
+- 周期性激活函数：引入正弦、余弦项以表示高频信号，主要用于隐式神经表示。包括**SIREN**, **Snake**, **GCU**
+- 通用近似激活函数：把激活函数本身参数化，从数据中学习它的形状。包括分段线性参数化(**Maxout**, **APL**, **PWLU**)、有理函数参数化(**PAU**, **OPAU**)、样条参数化(**KAN**)、非光滑激活函数的光滑化(**ACON**, **SMU**, **SAU**)、统一参数族(**AGLU**)
+- 上下文相关的激活函数：多输入单输出，由全局、通道或空间邻域的上下文决定函数形状。包括**Dynamic ReLU**, **Dynamic Shift-Max**, **FReLU**
+- 门控激活函数：用一路输出调制另一路，是当前大模型前馈层的标准形式。包括**GLU**, **ReGLU**, **GEGLU**, **SwiGLU**, **dReLU**, **xATLU**, **xGELU**, **xSiLU**, **PowLU**
+
+### ⚪ [<font color=Blue>优化方法 (Optimization)</font>](https://0809zheng.github.io/2020/03/02/optimization.html)
+
+深度学习中的**优化**问题是指在已有的数据集上最小化训练损失$L(\theta)$，通常用基于梯度的数值方法求解。在实际应用梯度方法时，可以根据截止到当前步$t$的历史梯度信息$$\{g_{1},...,g_{t}\}$$计算修正的参数更新量$h_t$（比如累积动量、累积二阶矩校正学习率等）。指定每次计算梯度所使用的数据批量$\mathcal{B}$和学习率$\gamma$，则第$t$次参数更新为：
+
+$$ \begin{aligned} g_t&=\frac{1}{|\mathcal{B}|}\sum_{x \in \mathcal{B}}^{}\nabla_{\theta} l(\theta_{t-1};x) \\ h_t &= f(g_{1},...,g_{t}) \\ \theta_t&=\theta_{t-1}-\gamma h_t \end{aligned} $$
+
+梯度下降可以从**动力学**、**逼近**、**概率**三个角度理解，此外还有隐式梯度正则化、与核方法的联系、深度集成与损失曲面等分析视角。针对基于梯度的方法的不同缺陷，优化器可以分为八族：
+- 基础方法与**动量**：更新过程容易在鞍点与病态方向上停滞，引入动量以累积一致的下降方向。包括**SGD**, **Momentum**, **NAG**, **signSGD**, **Signum**
+- **自适应**学习率：参数不同维度的梯度尺度差异巨大，为每个分量单独设置步长。包括**RProp**, **AdaGrad**, **RMSProp**, **AdaDelta**
+- 动量与自适应的结合（**Adam**族）：当前的主流选择，差别在于如何估计与修正一阶、二阶矩。包括**Adam**, **Adamax**, **AdamW**, **Nadam**, **AMSGrad**, **RAdam**, **AdaBound**, **AdaBelief**, **AdaX**, **Amos**, **Lion**, **Adan**
+- 二阶信息与**矩阵型预条件**：一阶信息不足以描述曲率，用近似的**Hessian**或**Fisher**信息矩阵做预条件。包括牛顿法, **L-BFGS**, 共轭梯度, **K-FAC**, **Shampoo**, **SOAP**, **Sophia**, **Muon**, **PSGD**, **AdaBK**, **KL-Shampoo**, **Newton-Muon**, **Pion**, **DeltaMomentum**
+- **降低显存**占用：优化器状态与参数同样大，通过分解、共享或融合压缩这部分开销。包括**Adafactor**, **SM3**, **Adam-mini**, **GaLore**, **LoMo**, **AdaLomo**
+- **层级**自适应与大批量训练：分布式训练中整体批量过大会导致精度崩塌，按层归一化更新量可以缓解。包括**LARS**, **LAMB**, **NovoGrad**
+- 免调参与步长自适应：学习率本身难以选择，在训练中在线估计它。包括指数梯度更新, **D-Adaptation**, **Prodigy**, **Schedule-Free**, **ScheduleFree++**
+- 不依赖反向传播的梯度估计：反向传播的显存占用与串行性受限，只用前向计算近似梯度。包括前向梯度, 零阶优化(**MeZO**)
+
+与优化器正交的还有三类训练技巧：**学习率与批量的调度**（**warmup**、余弦与线性衰减、梯度裁剪、线性缩放律、增大批量代替衰减学习率）、**权重平均**（**SWA**, **EMA**, **Lookahead**）与**数据流水线加速**（**Data Echoing**）。
+
+### ⚪ [<font color=Blue>正则化方法 (Regularization)</font>](https://0809zheng.github.io/2020/03/03/regularization.html)
+
+**正则化**指的是通过**引入噪声**或限制模型的**复杂度**，降低模型对输入或参数的敏感性，从而避免过拟合、提高泛化能力。从偏差-方差分解的角度看，正则化是用可控的偏差增加换取方差的显著下降；其实现有两条路径：**限制假设空间**与**在训练中注入噪声**。
+
+常用的正则化方法按作用对象分为三族：
+- 约束**目标函数**：在损失函数中增加关于参数或梯度的惩罚项。包括**L2**正则化, **L1**正则化, 弹性网络正则化, **L0**正则化, 谱正则化, 正交正则化, 自正交性正则化, **WEISSI**正则化, 梯度惩罚（对参数与对输入两种形式）
+- 约束**网络结构**：在网络结构中随机地丢弃神经元、连接、通道或整层。包括**Dropout**, **Gaussian Dropout**, **DropConnect**, **Spatial Dropout**, **DropBlock**, **Weighted Channel Dropout**, **R-Drop**, 随机深度, **DropPath**, **LayerDrop**, **Shake-Shake**, **ShakeDrop**, **Token Dropping**
+- 约束**优化过程**：在优化过程中施加额外的步骤或约束。包括数据增强, 梯度裁剪, **Early Stopping**, 标签平滑, 权重衰减与**AdamW**, 变分信息瓶颈, 虚拟对抗训练, 对抗训练, **Flooding**, **SAM**, 权重平均(**SWA**, **EMA**, **Model Soup**), 噪声标签下的正则化
+
+这些方法之间存在深刻的联系：**Dropout**与**Early Stopping**都可以在特定条件下等价于**L2**正则化，**SGD**本身也带有隐式正则化效应，而"梯度惩罚"是贯穿多种方法的一条统一主线。
+
+
+### ⚪ [<font color=Blue>归一化方法 (Normalization)</font>](https://0809zheng.github.io/2020/03/04/normalization.html)
+
+输入数据的特征通常具有不同的量纲和取值范围，使得不同特征的**尺度**差异很大。**归一化**泛指把数据特征的不同维度转换到相同尺度的方法。它之所以有效，通常归因于缓解特征尺度差异、减少内部协变量偏移、平滑损失曲面、引入尺度不变性（从而自动调节有效学习率）与隐式正则化效应。
+
+深度学习中的归一化方法按作用对象分为六族：
+- **数据层面**的归一化：在数据进入网络之前统一尺度。包括最小-最大值归一化, 标准化, 白化, 分位数归一化
+- **激活值**归一化（逐层归一化）：在网络内部对激活值做归一化，区别在于统计量沿哪些维度计算。（依赖批量统计）**BN**, **SyncBN**, **Ghost BN**, **Batch Renormalization**, **AdaBN**, **L1-Norm BN**, **Generalized BN**, **Decorrelated BN**, **IterNorm**；（不依赖批量统计）**LRN**, **LN**, **RMSNorm**, **IN**, **GN**, **FRN**, **PONO**, **RN**；（可学习与自动搜索）切换归一化**SN**, **EvoNorm**, **Attentive Normalization**
+- **条件与自适应**归一化：用外部条件生成归一化的缩放与偏移参数。包括**CIN**, **CBN**, **AdaIN**, **SPADE**, **FiLM**, **adaLN**, **adaLN-Zero**, **Modulated Convolution**
+- **参数**归一化：归一化权重而不是激活值。包括权重归一化**WN**, 中心化权重归一化, 权重标准化**WS**, 余弦归一化**CN**, 谱归一化**Spectral Norm**
+- 归一化在**Transformer**中的位置：位置的选择直接决定深层网络能否稳定训练。包括**Post-LN**, **Pre-LN**, **Sandwich-LN**, **Peri-LN**, **DeepNorm**, **Mix-LN**, **LayerNorm Scaling**, **ScaleNorm**, **FixNorm**, **QK-Norm**, **nGPT**
+- **去掉**归一化：用初始化或权重约束替代归一化层。包括**Fixup**, **SkipInit**, **ReZero**, **NF-Net**, **DyT**, **DyISRU**
+
+### ⚪ [<font color=Blue>参数初始化方法 (Parameter Initialization)</font>](https://0809zheng.github.io/2020/03/05/initialization.html)
+
+对神经网络进行训练时需要先对参数进行初始化。糟糕的初始化不仅会使模型效果变差，还有可能使得模型根本训练不动或者不收敛。初始化要解决的核心问题有两个：**打破神经元之间的对称性**，以及让**前向激活值与反向梯度的方差**在逐层传播中保持稳定（否则表现为梯度消失或梯度爆炸）。初始化的具体取值还与激活函数、归一化层和学习率相互耦合。
+
+常见的初始化方法分为六族：
+- **朴素**初始化：不考虑网络结构的简单方案。包括零初始化, 常数初始化, 随机正态初始化, 随机均匀初始化, 稀疏初始化, 偏置的初始化惯例
+- **方差缩放**初始化：按扇入或扇出缩放初始化方差，使信号方差逐层守恒。包括**LeCun**初始化, **Xavier**初始化, **Kaiming**初始化, **SELU**的自归一化不动点
+- **正交、恒等与等距**初始化：让权重矩阵（近似）保持向量的长度与夹角。包括正交初始化, 恒等初始化, **ZerO**初始化, **Delta-Orthogonal**初始化
+- **残差网络**的初始化：把残差分支初始化成接近零映射，使网络在初始化时接近恒等映射。包括**Zero-γ**, **Fixup**, **SkipInit**, **ReZero**, **LayerScale**, **T-Fixup**, **Admin**, **DeepNorm**
+- **Transformer**与大模型的初始化：兼顾深度、宽度与超参数的可迁移性。包括小标准差初始化, 残差缩放$1/\sqrt{2L}$, 嵌入层初始化与权重绑定, **muP**, 谱条件(**Spectral Condition**), **Depth-muP**, **CompleteP**
+- **数据驱动与学习式**初始化：用数据或优化过程本身决定初始值。包括**LSUV**, 数据依赖初始化, **MetaInit**, **GradInit**, 模仿初始化, 预训练权重迁移与模型生长, **LoRA**的初始化
+
+其中，**Spectral Condition**用统一的算子范数条件$$\lVert W\rVert_2,\lVert\Delta W\rVert_2=\Theta\left(\sqrt{n_{out}/n_{in}}\right)$$描述特征学习；**muP**的输入层、隐藏层与输出层缩放规则可以看成这一条件在不同矩阵形状下的逐元素表达。
+
+## (2) 深度学习的方法
+
+### ⚪ [<font color=Blue>半监督学习 (Semi-Supervised Learning)</font>](https://0809zheng.github.io/2022/09/01/semi.html)
+
+**半监督学习**是指同时从有标签数据和无标签数据中进行学习。半监督学习的假设包括平滑性假设、聚类假设、低密度分离假设和流形假设。
+
+常用的半监督学习方法包括：
+- **一致性正则化**：假设神经网络的随机性或数据增强不会改变输入样本的真实标签，如$\Pi$**-Model**, **Temporal Ensembling**, **Mean Teacher**, **VAT**, **ICT**, **UDA**。
+- **伪标签**：根据当前模型的最大预测概率为无标签样本指定假标签，如**Label Propagation**, **Confirmation Bias**, **Noisy Student**, **Meta Pseudo Label**。
+- **一致性正则化+伪标签**：既构造无标签样本的伪标签，又同时建立监督损失和无监督损失，如**MixMatch**, **ReMixMatch**, **FixMatch**, **DivideMix**。
+
+
+### ⚪ [<font color=Blue>自监督学习 (Self-Supervised Learning)</font>](https://0809zheng.github.io/2022/10/01/self.html)
+
+**自监督学习**是一种无监督表示学习方法，旨在根据无标签数据集中的一部分信息预测剩余的信息，并以有监督的方式来训练该数据集。
+
+适用于图像数据集的自监督任务包括：
+- **前置任务(pretext task)**：通过从数据集中自动构造伪标签而设计的对目标任务有帮助的辅助任务，如**Exemplar-CNN**, **Context Prediction**, **Jigsaw Puzzle**, **Image Colorization**, **Learning to Count**, **Image Rotation**, **Jigsaw Clustering**, **Evolving Loss**, **PIC**, **MP3**。
+- **对比学习(contrastive learning)**：学习一个特征嵌入空间使得正样本对彼此靠近、负样本对相互远离。(对比损失函数) **NCE**, **CPC**, **CPC v2**, **Alignment and Uniformity**, **Debiased Contrastive Loss**, **Hard Negative Samples**, **FlatNCE**; (并行数据增强) **InvaSpread**, **SimCLR**, **SimCLRv2**, **BYOL**, **SimSiam**, **DINO**, **SwAV**, **PixContrast**, **Barlow Twins**; (存储体) **InstDisc**, **MoCo**, **MoCo v2**, **MoCo v3**; (多模态) **CMC**, **CLIP**; (应用) **CURL**, **CUT**, **Background Augmentation**, **FD**。
+- **掩码图像建模(masked image modeling)**：随机遮挡图像中的部分**patch**，并以自编码器的形式重构这部分**patch**，如**BEiT**, **MAE**, **SimMIM**, **iBOT**, **ConvMAE**, **QB-Heat**, **LocalMIM**, **DeepMIM**。
+
+### ⚪ [<font color=Blue>度量学习 (Metric Learning)</font>](https://0809zheng.github.io/2022/11/01/metric.html)
+
+**深度度量学习**通过共享权重的**Siamese**网络把原始样本映射到低维特征空间，并设计合理的度量损失使得同类样本在特征空间上的距离比较近，不同类样本之间的距离比较远。
+
+度量学习的目标在于最小化相似样本(正样本对)之间的距离，最大化不相似样本(负样本对)之间的距离。深度度量损失包括：
+- 基于**对(pair)**的度量损失：考虑一个批次样本中样本对之间的关系，最小化正样本对$(x,x^+)$之间的距离，最大化负样本对$(x,x^-)$之间的距离。如**Contrastive Loss**, **Binomial Deviance Loss**, **Triplet Loss**, **Improved Triplet Loss**, **Batch Hard Triplet Loss**, **Hierarchical Triplet Loss**, **Angular Loss**, **Quadruplet Loss**, **N-pair Loss**, **Lift Structured Loss**, **Histogram Loss**, **Ranked List Loss**, **Soft Nearest Neighbor Loss**, **Multi-Similarity Loss**, **Circle Loss**。
+- 基于**代理(proxy)**的度量损失：为每个类别赋予一个代理样本，拉近每个类别的样本和该类别对应的代理样本之间的距离，拉远与其他类别对应的代理样本之间的距离。如**Magnet Loss**, **Clustering Loss**, **Proxy-NCA**, **ProxyNCA++**, **Proxy-Anchor**。
+
+### ⚪ [<font color=Blue>多实例学习 (Multi-Instance Learning)</font>](https://0809zheng.github.io/2025/10/01/mil.html)
+
+在标准的监督学习框架下，每一个实例(**instance**)都会被赋予一个标签。**多实例学习**是一种弱监督学习框架，它将数据组织成一种层级结构：由多个实例构成一个**包（Bag）**，标签是在“包”的层面上给出的。
+
+多实例学习的标准假设是：一个包被标记为正，当且仅当它至少包含一个正实例；一个包被标记为负，当且仅当它所有实例均为负。
+
+现有的**Deep MIL**方法根据其分类粒度(**Classification Granularity**)可以分为：
+- 实例级(**instance-level**) **MIL**：先对每个实例分别做预测，再对预测结果进行聚合；如**mi-Net**, **Adaptive Pooling**, **Certainty Pooling**, **Power Pooling**, **DSMIL**, **MIVAE**, **CausalMIL**, **Additive MIL**, **MILLET**, **MIREL**, **FocusMIL**。
+- 包级(**bag-level**) **MIL**：先将所有实例的特征向量聚合，再对包特征做预测；如**MI-Net**, **Attention MIL**, **DP-MINN**, **GNN-MIL**, **Loss-Attention**, **TransMIL**, **SA-AbMILP**, **DTFD-MIL**, **IBMIL**, **DAS-MIL**, **MHIM-MIL**, **Extreme MIL**。
+
+### ⚪ [<font color=Blue>多任务学习 (Multi-Task Learning)</font>](https://0809zheng.github.io/2021/08/28/MTL.html)
+
+**多任务学习**是指同时学习多个属于不同领域的任务，并通过特定任务的领域信息提高泛化能力。多任务学习的方法设计可以分别从**网络结构**与**损失函数**两个角度出发。
+
+一个高效的多任务网络，应同时兼顾特征共享部分和任务特定部分。根据模型在处理不同任务时网络参数的共享程度，多任务学习方法的网络结构可分为：
+- **硬参数共享 (Hard Parameter Sharing)**：模型的主体部分共享参数，输出结构任务独立。如**Multilinear Relationship Network**, **Fully-adaptive Feature Sharing**。
+- **软参数共享 (Soft Parameter Sharing)**：不同任务采用独立模型，模型参数彼此约束。如**Cross-Stitch Network**, **Sluice Network**, **Multi-Task Attention Network**。
+
+多任务学习将多个相关的任务共同训练，其总损失函数是每个任务的损失函数的加权求和式：$$\mathcal{L}_{total} = \sum_{k}^{} w_k\mathcal{L}_k$$。多任务学习的目的是寻找模型参数的**帕累托最优解**，因此需要设置合适的任务权重。一些权重自动设置方法包括**Uncertainty**, **Gradient Normalization**, **Dynamic Weight Average**, **Multi-Objective Optimization**, **Dynamic Task Prioritization**, **Loss-Balanced Task Weighting**
+
+### ⚪ [<font color=Blue>主动学习 (Active Learning)</font>](https://0809zheng.github.io/2022/08/01/activelearning.html)
+
+**主动学习**是指从未标注数据中只选择一小部分样本进行标注和训练来降低标注成本。深度主动学习最常见的场景是基于**池**(**pool-based**)的主动学习，即从大量未标注的数据样本中迭代地选择最“有价值”的数据，直到性能达到指定要求或标注预算耗尽；选择最“有价值”的数据的过程被称为**采样策略**。
+
+深度主动学习方法可以根据不同的**采样策略**进行分类：
+- **不确定性采样 (uncertainty sampling)**：选择使得模型预测的不确定性最大的样本。不确定性的衡量可以通过机器学习方法(如**entropy**)、**QBC**方法(如**voter entropy**, **consensus entropy**)、贝叶斯神经网络(如**BALD**, **bayes-by-backprop**)、对抗生成(如**GAAL**, **BGADL**)、对抗攻击(如**DFAL**)、损失预测(如**LPL**)、标签预测(如**forgetable event**, **CEAL**)
+- **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**, **Cluster-Margin**)、判别学习(如**VAAL**, **CAL**, **DAL**)
+- **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BatchBALD**, **BADGS**, **Active DPP**, **VAAL**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
+
+### ⚪ [<font color=Blue>迁移学习 (Transfer Learning)</font>](https://0809zheng.github.io/2020/05/22/transfer-learning.html)
+
+**迁移学习**是指将解决某个问题时获取的知识应用在另一个不同但相关的问题中。根据源域数据和目标域数据的标签存在情况，迁移学习可以细分为：
+- 源域数据有标签，目标域数据有标签：微调(**Fine Tuning**)
+- 源域数据有标签，目标域数据无标签：领域自适应(**Domain Adaptation**)、零样本学习(**Zero-Shot Learning**)
+- 源域数据无标签，目标域数据有标签：**self-taught learning**
+- 源域数据无标签，目标域数据无标签：**self-taught clustering**
+
+模型**微调**是指用带有标签的源域数据预训练模型后，再用带有标签的目标域数据微调模型。
+
+**领域自适应**是指通过构造合适的特征提取模型，使得源域数据和目标域数据的特征落入相同或相似的特征空间中，再用这些特征解决下游任务。常用的领域自适应方法包括：
+- 基于差异的方法：直接计算和减小源域和目标域数据特征向量的差异，如**Deep Domain Confusion**, **Deep Adaptation Network**, **CORAL**, **CMD**。
+- 基于对抗的方法：引入域判别器并进行对抗训练，如**DANN**, **SDT**, **PixelDA**。
+- 基于重构的方法：引入解码器重构输入样本，如**Domain Separation Network**。
+
+### ⚪ [<font color=Blue>终身学习（lifelong learning）</font>](https://0809zheng.github.io/2020/05/21/lifelong-learning.html)
+
+**终身学习**也叫**持续学习（Continuous Learning, Never Ending Learning）**或**增量学习（Incremental Learning）**；是指把模型应用到新任务后，对之前的任务和新任务都能有较好的表现；作为对比，迁移学习则不能保证模型在之前的任务上还有较好的表现。
+
+一些常见的终身学习算法包括多任务学习、**Elastic Weight Consolidation**、**Gradient Episodic Memory**、**Progressive Neural Networks**、**Net2Net**、**Curriculum Learning**、**SupSup**。
+
+### ⚪ [<font color=Blue>元学习（meta-learning）</font>](https://0809zheng.github.io/2020/05/20/meta-learning.html)
+
+**元学习（Meta Learning）**又叫**学会学习（Learning to learn）**，是指给定数据集后，训练一个函数$F$，使得该函数$F$能够选择一个合适的函数$f$解决问题。
+
+一些常见的元学习算法包括**MAML**、**Raptile**、**iMAML**。
+
+## (3) 深度学习的技巧
+
+### ⚪ [<font color=Blue>图像的数据增强 (Image Augmentation)</font>](https://0809zheng.github.io/2021/11/22/dataaugment.html)
+
+**图像数据增强**通过随机变换、样本重组或生成模型扩展训练分布，并把任务先验编码成不变性或等变性约束。它不仅是正则化技巧，也是检测、分割、自监督学习和小样本学习中定义训练样本的重要组成部分。
+
+常用方法按生成机制分为六族：
+- **几何与光度变换**：随机裁剪, 翻转, 旋转, 仿射, 颜色抖动, 模糊, 噪声与压缩退化
+- **区域遮挡与内容保留**：**Cutout**, **Random Erasing**, **Hide-and-Seek**, **GridMask**, **RandConv**, **KeepAugment**
+- **混合样本增强**：**Mixup**, **Manifold Mixup**, **CutMix**, **RICAP**, **FMix**, **Puzzle Mix**, **ResizeMix**, **SaliencyMix**, **SnapMix**, **TransMix**
+- **自动与鲁棒增强**：**AutoAugment**, **PBA**, **Fast AutoAugment**, **RandAugment**, **TrivialAugment**, **AugMix**
+- **任务感知增强**：小目标复制粘贴, **Mosaic**, **Copy-Paste**, **ClassMix**, **ReLabel**, 自监督多裁剪
+- **生成式增强**：类别/文本条件生成, 图像编辑, 检测框/掩码/密度图等结构条件扩散生成
+
+### ⚪ [<font color=Blue>混合精度训练 (Mixed Precision Training)</font>](https://0809zheng.github.io/2020/04/30/mpt.html)
+
+混合精度训练是指在训练深度学习模型的过程中，同时使用不同的数值精度（如半精度浮点数**float16**和单精度浮点数**float32**）进行计算，以提高计算速度并降低内存占用。混合精度训练的关键技巧包括**FP32**权重备份、损失缩放和改进算术方式。
+
+
+### ⚪ [<font color=Blue>长尾分布 (Long-Tailed)</font>](https://0809zheng.github.io/2020/03/02/optimization.html)
+
+实际应用中的数据集大多服从**长尾分布**，即少数类别(**head class**)占据绝大多数样本，多数类别(**tail class**)仅有少量样本。解决长尾分布问题的方法包括：
+- 重采样 **Re-sampling**：通过对**head class**进行欠采样或对**tail class**进行过采样，人为地构造类别均衡的数据集。包括**Random under/over-sampling**, **Class-balanced sampling**, **Meta Sampler**等。
+- 重加权 **Re-weighting**：在损失函数中对不同类别样本的损失设置不同的权重，通常是对**tail class**对应的损失设置更大的权重。其中在$\log$运算之外调整损失函数的本质是在调节样本权重或者类别权重(如**Inverse Class Frequency Weighting**, **Cost-Sensitive Cross-Entropy Loss**, **Focal Loss**, **Class-Balanced Loss**)。在$\log$运算之内调整损失函数的本质是调整**logits**得分$z$，从而缓解对**tail**类别的负梯度(如**Equalization Loss**, **Equalization Loss v2**, **Logit Adjustment Loss**, **Balanced Softmax Loss**, **Seesaw Loss**)。
+- 其他方法：一些方法将长尾分布问题解耦为特征的表示学习和特征的分类。一些方法按照不同类别的样本数量级对类别进行分组(如**BAGS**)。
+
+
+### ⚪ [<font color=Blue>对抗训练 (Adversarial Training)</font>](https://0809zheng.github.io/2020/07/26/adversirial_attack_in_classification.html)
+
+**对抗训练**是指通过构造对抗样本，对模型进行对抗攻击和防御来增强模型的稳健性。对抗训练的一般形式如下：
+
+$$
+\mathcal{\min}_{\theta} \mathbb{E}_{(x,y)\sim \mathcal{D}} \left[ \mathcal{\max}_{\Delta x \in \Omega}  \mathcal{L}(x+\Delta x,y;\theta) \right]
+$$
+
+- 对抗攻击是指想办法造出更多的对抗样本；常用的对抗攻击方法包括：**FGSM**, **I-FGSM**, **MI-FGSM**, **NI-FGSM**, **DIM**, **TIM**, **One Pixel Attack**, **Black-box Attack**。
+- 对抗防御是指想办法让模型能正确识别更多的对抗样本；常用的对抗防御方法包括**Smoothing**, **Feature Squeezing**, **Randomization**, **Proactive defense**。
+
+### ⚪ [<font color=Blue>大模型的参数高效微调 (Parameter-Efficient Fine-Tuning)</font>](https://0809zheng.github.io/2023/02/02/peft.html)
+
+将预训练好的大型模型在下游任务上进行微调已成为处理不同任务的通用范式；但是随着模型越来越大，对模型进行全部参数的微调（**full fine-tuning**）变得非常昂贵。**参数高效微调**是指冻结预训练模型的大部分参数，仅微调少量或额外的模型参数。
+
+参数高效微调方法有以下几种形式：
+- 增加额外参数(**addition**)：在原始模型中引入额外的可训练参数，如**Adapter**, **AdapterFusion**, **AdapterDrop**, **P-Tuning**, **Prompt Tuning**, **Prefix-Tuning**, **P-Tuning v2**, **Ladder Side-Tuning**
+- 选取部分参数(**specification**)：指定原始模型中的部分参数可训练，如**BitFit**, **Child-Tuning**
+- 重参数化(**reparameterization**)：将微调过程重参数化为低维子空间的优化，如**Diff Pruning**, **LoRA**, **AdaLoRA**, **QLoRA**, **GLoRA**, **LoRA+**, **LoRA-GA**
+- 混合方法：如**MAM Adapter**, **UniPELT**
+
+- [深度学习的可解释性](https://0809zheng.github.io/2020/04/28/explainable-DL.html)
+
+
+
+## () 网络压缩
+网络压缩旨在平衡网络的准确性和运算效率。
+压缩预训练的网络 设计新的网络结构
+- [网络压缩](https://0809zheng.github.io/2020/05/01/network-compression.html)：网络剪枝、知识蒸馏、结构设计、模型量化
+
+# 2. 深度神经网络的类型
 
 ## (1) 卷积神经网络
 
@@ -42,44 +258,73 @@ pinned: true
 
 **卷积神经网络**是由卷积层、激活函数和池化层堆叠构成的深度神经网络，可以从图像数据中自适应的提取特征。
 
-![](https://pic.downk.cc/item/5ea54956c2a9a83be5d81c10.jpg)
+卷积层是一种局部的互相关操作，使用卷积核在输入图像或特征上按照光栅扫描顺序滑动，并通过局部仿射变换构造输出特征。它引入了三条针对自然图像的**归纳偏置**：稀疏连接、权值共享和平移等变性；这既是卷积高效的原因，也是后续各种改进试图放松的对象。卷积层的基准形式为$y(p_0)=\sum_{p_n \in \mathcal{R}} w(p_n)\cdot x(p_0+p_n)+b$，几乎所有改进都可以看作对它某一部分的修改。
 
-卷积层是一种局部的互相关操作，使用卷积核在输入图像或特征上按照光栅扫描顺序滑动，并通过局部仿射变换构造输出特征；具有局部连接、参数共享和平移等变性等特点。
+卷积层的**基本超参数与形态**：$1\times 1$卷积, 扩张卷积(**Dilated Conv**, **HDC**, **IC-Conv**), 转置卷积（及棋盘效应）, 子像素卷积(**PixelShuffle**, **ICNR**), 组卷积, 深度卷积。
 
-卷积神经网络中的卷积层包括标准卷积, 转置卷积, 扩张卷积(**Dilated Conv**, **IC-Conv**), 可分离卷积(空间可分离卷积, 深度可分离卷积, 平展卷积), 组卷积, 可变形卷积, 差分卷积(中心差分卷积, 交叉中心差分卷积, 像素差分卷积), 动态卷积(**CondConv**, **DynamicConv**, **DyNet**, **ODConv**, **DRConv**), **Involution**, 圆形卷积, 八度卷积, 稀疏卷积(空间稀疏卷积, 子流形稀疏卷积), **CoordConv**。
+卷积算子的改进可以按“改动了基准公式的哪一部分”分为六族：
+- **采样位置自适应**（$p_0+p_n \to p_0+p_n+\Delta p_n$）：主动卷积**ACU**, 可变形卷积**Deformable Conv v1,v2**, **DCNv3**(**InternImage**), **DCNv4**, **LDConv**, 圆形卷积
+- **卷积核权重动态化**（$w(p_n) \to w(p_n \mid x)$）：**CondConv**, **DynamicConv**, **DyNet**, **ODConv**, **DRConv**, **Involution**, **LR-Net**, **Conv2Former**
+- 改变**聚合方式**（$\sum w \cdot x \to \sum w \cdot g(x)$）：差分卷积(中心差分卷积**CDC**, 交叉中心差分卷积, 像素差分卷积**PDC**), 部分卷积**Partial Conv**, 门控卷积**Gated Conv**, 稀疏卷积(空间稀疏卷积, 子流形稀疏卷积)
+- **分解与重参数化**卷积核（$w \to w_1 \otimes w_2 \otimes \cdots$）：空间可分离卷积, 深度可分离卷积, 平展卷积, **PConv**, **DO-Conv**, **ACNet**, **RepVGG**, **DBB**
+- 扩大**感受野**（改变$\mathcal{R}$）：**RepLKNet**, **SLaK**, **UniRepLKNet**, **InceptionNeXt**, 八度卷积**OctConv**, 快速傅里叶卷积**FFC**, 小波卷积**WTConv**
+- 注入**位置信息**（$x \to [x; \text{coord}]$）：**CoordConv**, 零填充与大核带来的隐式位置编码
+
+卷积的**高效实现**决定了**FLOPs**能否兑换成实际速度：**im2col + GEMM**, **FFT**卷积, **Winograd**卷积；深度卷积与大核卷积属于访存受限算子，需要专用核实现。
 
 ### ⚪ [<font color=Blue>卷积神经网络中的池化(Pooling)层</font>](https://0809zheng.github.io/2021/07/02/pool.html)
 
 
-**池化层**可以对特征图进行降采样，从而减小网络的计算成本，降低过拟合的风险。卷积神经网络中的池化方法包括：
-- 通用的池化方法：最大池化, 平均池化, 混合池化, 分数最大池化, 幂平均池化, 随机池化, 随机空间采样池化(**S3Pool**), 细节保留池化(**DPP**), 局部重要性池化(**LIP**), 软池化, 动态优化池化(**DynOPool**)
-- 为下游任务设计的池化方法：全局平均池化(**GAP**), 协方差池化, 空间金字塔池化(**SPP**), 感兴趣区域池化(**RoI Pooling**), 双线性池化
+**池化层**可以对特征图进行降采样，从而减小计算成本、扩大感受野、降低过拟合的风险。任何池化都可以拆解为**聚合**与**抽取**两步，据此可以按三个维度分类：聚合函数是确定性还是随机的、是否包含可学习参数、以及输出的空间尺寸是缩小还是坍缩为一个向量。理解这一点也就理解了池化与平移不变性的真实关系——不变性主要来自数据增强与全局池化，而抽取步骤恰恰是破坏它的元凶。
+
+**通用的降采样池化**分为三族：
+- **确定性池化**：最大池化, 平均池化, 混合池化与门控池化, 幂平均池化($L_p$), **LSE**池化, **AvgMax**池化, 抗锯齿池化**BlurPool**, 小波池化
+- **随机池化**：随机池化**Stochastic Pooling**, 分数最大池化**FMP**, 随机空间采样池化**S3Pool**, 池化窗口内的**Max-Pooling Dropout**
+- **可学习与保细节的池化**：细节保留池化**DPP**, 局部重要性池化**LIP**, 软池化**SoftPool**, 动态优化池化**DynOPool**, 带步长的卷积, 空间到通道的无损降采样**SPD-Conv**
+
+**面向下游任务的池化**把特征坍缩为定长表示：
+- **全局池化与二阶统计**：全局平均池化**GAP**, 全局最大池化**GMP**, 广义均值池化**GeM**, 协方差池化(**iSQRT-COV**), 双线性池化
+- **空间对齐与多尺度池化**：空间金字塔池化**SPP**, 感兴趣区域池化**RoI Pooling**, **RoI Align**, **PPM**与**ASPP**
+- **序列与集合的池化**：注意力池化, 多头注意力池化**PMA**, **NetVLAD**, **SimPool**, **Token Merging**
+
+与池化相对的**反池化与上采样**：最大反池化, 平均反池化, 最近邻/双线性插值, 转置卷积, 子像素卷积。
 
 ### ⚪ [<font color=Blue>卷积神经网络中的注意力机制(Attention Mechanism)</font>](https://0809zheng.github.io/2020/11/18/AinCNN.html)
 
-卷积神经网络中的**注意力机制**表现为在特征的某个维度上计算相应**统计量**，并根据所计算的统计量对该维度上的每一个元素赋予不同的权重，用以增强网络的特征表达能力。
+卷积神经网络中的**注意力机制**表现为在特征的某个维度上计算相应**统计量**，并根据所计算的统计量对该维度上的每一个元素赋予不同的权重，用以增强网络的特征表达能力。它把卷积"对所有通道、所有位置一视同仁"的固定权重变成了**输入自适应的重标定**，并且几乎所有模块都遵循同一个通用形式：**聚合上下文 → 生成权重 → 融合回特征**。这类模块的共同特点是即插即用、开销极低，但也因此存在增益不稳定、难以复现的问题。
 
 卷积层的特征维度包括通道维度和空间维度，因此注意力机制可以应用在不同维度上：
-- **通道注意力(Channel Attention)**：**SENet**, **CMPT-SE**, **GENet**, **GSoP**, **SRM**, **SKNet**, **DIA**, **ECA-Net**, **SPANet**, **FcaNet**, **EPSA**, **TSE**, **NAM**
-- **空间注意力(Spatial Attention)**：**Residual Attention Network**, **SGE**, **ULSAM**
-- 通道+空间：(**并联**)**scSE**, **BAM**, **SA-Net**, **Triplet Attention**; (**串联**)**CBAM**; (**融合**)**SCNet**, **Coordinate Attention**, **SimAM** 
-- 其他注意力：**DCANet**, **WE**, **ATAC**, **AFF**, **AW-Convolution**, **BA^2M**, **Interflow**, **CSRA**
+- **通道注意力(Channel Attention)**：（基于全局池化）**SENet**, **CMPE-SE**, **GENet**, **TSE**, **SPANet**, **ECA-Net**；（更强的统计量）**SRM**风格池化, **GSoP**全局二阶池化, **FcaNet**频域通道注意力；（归一化与门控视角）**GCT**, **NAM**, **ATAC**
+- **空间注意力(Spatial Attention)**：**Residual Attention Network**, **SGE**, **ULSAM**, **CSRA**
+- **通道与空间的混合**：（并联）**scSE**, **BAM**, **SA-Net**, **Triplet Attention**；（串联）**CBAM**；（坐标分解与三维权重）**Coordinate Attention**, **ELA**, **EMA**, **SCSA**, **SCNet**
+- **分支、核选择与大核注意力**：（多分支与核选择）**SKNet**, **Split-Attention**(**ResNeSt**), **EPSA**；（跨层与跨分支融合）**AFF**, **Interflow**；（大核注意力）**LKA**/**VAN**, **MSCA**, **LSK**, **D-LKA**, **CAA**
+- **无参数与能量函数视角**：**SimAM**（由空间抑制的能量函数解析导出，零可学习参数即可产生三维权重）
+- **其他作用对象与模块间连接**：（作用在卷积权重与样本上）**WE**, **AW-Conv**, **BA$^2$M**；（模块之间的连接）**DIA**, **DCANet**
 
 ### ⚪ [<font color=Blue>卷积神经网络中的自注意力机制(Self-Attention Mechanism)</font>](https://0809zheng.github.io/2020/11/21/SAinCNN.html)
 
-卷积神经网络中的**自注意力机制**表现为**非局部滤波**操作，通过计算任意两个位置之间的关系直接捕捉远程依赖，而不用局限于相邻点，相当于构造了一个**和特征图尺寸一样大**的卷积核，从而可以捕捉更多信息。
+卷积神经网络中的**自注意力机制**表现为**非局部滤波**操作，通过计算任意两个位置之间的关系直接捕捉远程依赖，而不用局限于相邻点，相当于构造了一个**和特征图尺寸一样大**的卷积核，从而可以捕捉更多信息。它的通用形式$y_i=\frac{1}{\mathcal{C}(x)}\sum_j f(x_i,x_j)g(x_j)$源自图像去噪中的**非局部均值**，与**Transformer**的自注意力只是相似度函数与归一化方式的差别。这类模块的核心矛盾在于$O(N^2)$的复杂度：特征图的空间尺寸稍大就无法承受，因此绝大多数后续工作都在解决这个问题。
 
 卷积神经网络中的自注意力机制包括：
-- 增强特征提取能力：**Non-local Net**, **DANet**, **A^2-Net**, **AAConv**, **RNL**, **DMSANet**, **SAN**, **PSA**, **SNL**。 
-- 降低计算复杂度：**CCNet**, **GCNet**, **EMANet**, **ISANet**, **ANNNet**, **LightNL**, **NLSA**, **Hamburger**。
+- **Non-local及其直接改进**：**Non-local Block**, **RNL**（用区域代替单点）, **AAConv**（多头与相对位置编码）, **CGNL**（把通道纳入成对建模）, **DNL**（解耦成对项与一元项）, **SNL**（谱视角下的对称化）
+- **降低复杂度：稀疏化与分解**：**CCNet**（十字形注意力与循环覆盖）, **ISANet**（长程与短程交错）, **Axial Attention**/**Axial-DeepLab**（沿坐标轴分解）, **NLSA**（哈希做内容自适应稀疏）, **LightNL**
+- **降低复杂度：低秩与矩阵分解**：**Efficient Attention**（把**softmax**拆到两侧实现线性化）, **GCNet**（退化为**SE**）, **ANNNet**（金字塔池化采样键值）, **A$^2$-Net**（双线性池化收集全局描述子）, **EMANet**（**EM**算法迭代出紧凑基）, **OCRNet**（类别中心作中间表示）, **Hamburger**（直接做矩阵分解）, **FLatten**, **Agent Attention**
+- **多维度联合的自注意力**：**DANet**（空间与通道对偶）, **PSA**（极化自注意力）, **DMSANet**, **PSANet**（用卷积直接预测注意力图）
+- **把自注意力当作卷积的替代算子**：**SASA**, **HaloNet**, **SAN**（**pairwise**与**patchwise**两种聚合）, **LambdaNetworks**（把上下文编码成线性函数）, **CoTNet**（静态上下文引导动态注意力）
 
 ### ⚪ [卷积神经网络的可视化](https://0809zheng.github.io/2020/12/16/custom.html)
 
 ### ⚪ [<font color=Blue>轻量级(LightWeight)卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)
 
-**轻量级**网络设计旨在设计计算复杂度更低的卷积网络结构。
-- 从**结构**的角度考虑，卷积层提取的特征存在冗余，可以设计特殊的卷积操作，减少卷积操作的冗余，从而减少计算量。如**SqueezeNet**, **SqueezeNext**, **MobileNet V1,2,3**, **ShuffleNet V1,2**, **IGCNet V1,2**, **ChannelNet**, **EfficientNet V1,2**, **GhostNet**, **MicroNet**, **CompConv**。
-- 从**计算**的角度，模型推理过程中存在大量乘法运算，而乘法操作(相比于加法)对于目前的硬件设备不友好，可以对乘法运算进行优化，也可以减少计算量。如**AdderNet**使用**L1**距离代替卷积乘法；使用**Mitchell**近似代替卷积乘法。
+**轻量级**网络设计旨在设计计算复杂度更低的卷积网络结构。一个贯穿全篇的关键认识是：**FLOPs不等于实际延迟**。深度卷积、通道重排、逐元素加法等算子的**算术强度**很低，属于访存受限，因此"**FLOPs**降低$8$倍、实测只快$2$倍"是常态；评价轻量模型必须在目标硬件上实测时延，而不能只看参数量与**FLOPs**。
+
+轻量化的基本手段包括分解卷积、通道重排与稀疏连接、特征复用与廉价算子、降分辨率降通道与缩放、以及替代乘法。据此常见的轻量级网络可以分为六条路线：
+- **分解卷积路线**：**SqueezeNet**, **SqueezeNext**, **Xception**, **MobileNet V1,2,3**, **MobileNeXt**, **ESPNet**/**ESPNetv2**, **MixConv**, **DiCENet**
+- **分组卷积与通道重排路线**：**ShuffleNet V1,2**, **IGCNet V1,2,3**, **ChannelNet**, **MicroNet**, **CondenseNet**
+- **特征冗余与廉价操作路线**：**GhostNet V1,2,3**, **CompConv**, **ShiftNet**, **FasterNet**(**PConv**), **StarNet**
+- **复合缩放与架构搜索路线**：**MnasNet**, **EfficientNet V1,2**, **RegNet**, **Slimmable Networks**
+- **替换乘法的路线**：**AdderNet**（用**L1**距离代替卷积乘法）, **Mitchell**近似（在对数域把乘法变成加法）
+- **面向推理延迟设计的路线**：**PeleeNet**, **HarDNet**, **RepVGG**, **MobileOne**, **RepViT**, **MobileNetV4**, **EfficientFormer**/**EfficientViT**, **MobileMamba**
 
 
 
@@ -90,15 +335,20 @@ pinned: true
 
 ### ⚪ [<font color=Blue>循环神经网络(Recurrent Neural Network)的基本概念</font>](https://0809zheng.github.io/2020/03/07/RNN.html)
 
-**循环神经网络(RNN)**可以处理输入长度不固定的文本等时间序列数据。**RNN**每一时刻的隐状态$h_t$不仅和当前时刻的输入$x_t$相关，也和上一时刻的隐状态$h_{t-1}$相关。**RNN**具有通用近似性、图灵完备性等特点。
+**循环神经网络(RNN)**可以处理输入长度不固定的文本等时间序列数据。**RNN**每一时刻的隐状态$h_t$不仅和当前时刻的输入$x_t$相关，也和上一时刻的隐状态$h_{t-1}$相关。**RNN**具有通用近似性、图灵完备性等特点，但这些理论表达力与实际可学习性之间存在明显的鸿沟。
 
-![](https://pic.downk.cc/item/5e9fdc29c2a9a83be5533395.jpg)
+$$ h_t = f(h_{t-1},x_t), \quad y_t = g(h_t) $$
 
-**RNN**存在长程依赖问题：理论上可以建立长时间间隔的状态之间的依赖关系，但是由于梯度消失现象，实际上只能学习到短期的依赖关系。解决措施是引入门控机制，如**LSTM**, **GRU**, **QRNN**, **SRU**, **ON-LSTM**。
+**RNN**的训练依赖**随时间反向传播(BPTT)**（也可用**实时循环学习RTRL**，以$O(d^3)$的计算换取$O(1)$的时间复杂度和在线更新能力）。它存在**长程依赖问题**：理论上可以建立长时间间隔的状态之间的依赖关系，但由于梯度沿时间维度以雅可比矩阵连乘的形式传播，实际上只能学习到短期的依赖关系。缓解长程依赖的**非门控手段**包括梯度裁剪, 恒等初始化与**IRNN**, 酉循环网络**uRNN**, 跳跃连接与多时间尺度, 截断**BPTT**, 归一化。
 
-也可以通过增加循环层的深度增强**RNN**的特征提取能力，包括**Stacked RNN**, **Bidirectional RNN**。
+更根本的解决措施是引入**门控机制**，用加性的状态更新把连乘的雅可比矩阵变成接近恒等的传播路径。门控循环网络可以分为：
+- **经典门控单元**：**LSTM**, **GRU**, **MGU**, **JANET**与**chrono**初始化
+- **面向并行化的简化循环单元**（去掉门对$h_{t-1}$的依赖，从而可用并行扫描把串行递推压缩到对数深度）：**QRNN**, **SRU**, **IndRNN**, **LRU**
+- **结构化与连续时间的记忆**：**ON-LSTM**（把句法层级编码进神经元顺序）, **LMU**（用勒让德多项式最优压缩历史）, 连续时间**RNN**与**Neural ODE**
+- **隐状态即模型**：**TTT**（把隐状态换成一个在测试时通过自监督梯度下降持续更新的小模型）
+- 门控循环网络**复兴**：**xLSTM**（指数门控、矩阵记忆与稳定器状态）, **minLSTM**/**minGRU**（去掉隐状态依赖后可完全并行）
 
-
+也可以通过增加循环层的深度增强**RNN**的特征提取能力，包括**Stacked RNN**, **Bidirectional RNN**, 残差与高速连接；循环网络**专用的正则化**包括**Variational**/**Recurrent Dropout**（跨时间步共享掩码）与**Zoneout**（随机保持上一时刻的状态）。
 
 ### ⚪ [<font color=Blue>序列到序列模型 (Sequence to Sequence)</font>](https://0809zheng.github.io/2020/04/21/sequence-2-sequence.html)
 
@@ -112,7 +362,7 @@ pinned: true
 
 ### ⚪ [<font color=Blue>序列到序列模型中的注意力机制 (Attention Mechanism)</font>](https://0809zheng.github.io/2020/04/22/attention.html)
 
-在**Seq2Seq**模型中，将输入序列通过编码器转换为一个上下文向量$c$，再喂入解码器。注意力机制是指在解码器的每一步中，通过输入序列的所有隐状态$h_{1:T}$构造注意力分布$(α_1,...,α_t,...,α_T)$，然后构造当前步的上下文向量$c= \sum_{t=1}^{T} {α_th_t}$。
+在**Seq2Seq**模型中，将输入序列通过编码器转换为一个上下文向量$c$，再喂入解码器。注意力机制是指在解码器的每一步中，通过输入序列的所有隐状态$h_{1:T}$构造注意力分布$(\alpha_1,...,\alpha_t,...,\alpha_T)$，然后构造当前步的上下文向量$c= \sum_{t=1}^{T} {\alpha_th_t}$。
 
 
 ## (3) 自注意力网络
@@ -129,34 +379,24 @@ pinned: true
 
 ![](https://pic.imgdb.cn/item/618b94ea2ab3f51d91f6d24e.jpg)
 
-### ⚪ [<font color=Blue>Transformer中的位置编码 (Position Encoding)</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)
+### ⚪ [<font color=Blue>Transformer中的位置编码 (Position Encoding)</font>](https://0809zheng.github.io/2022/07/01/posencode.html)
 
-**Transformer**中的自注意力机制具有置换不变性(**permutation invariant**)，导致打乱输入序列的顺序对输出结果不会产生任何影响。通过**位置编码**把位置信息引入输入序列中，以打破模型的全对称性。
-- **绝对位置编码**：只依赖于单一位置，将绝对位置信息加入到输入序列中，相当于引入索引的嵌入。比如**Sinusoidal**, **Learnable**, **FLOATER**, **Complex-order**, **RoPE**
-- **相对位置编码**：不同位置的交互项，通过微调自注意力运算过程使其能分辨不同**token**之间的相对位置。比如**XLNet**, **T5**, **DeBERTa**, **URPE**
+**Transformer**中的自注意力机制具有置换等变性(**permutation equivariant**)，导致打乱输入序列的顺序只会同步打乱输出而不改变对应关系，因此必须显式注入位置信息以打破全对称性。从**Taylor**展开与注意力**logit**中的位置偏置这一统一视角看，各类位置编码可归纳为：
+- **绝对位置编码**：只依赖于单一位置，将绝对位置信息加入到输入序列中，相当于引入索引的嵌入。比如**Sinusoidal**, **Learnable**, **FLOATER**, **Complex-order**
+- **相对位置编码**：不同位置的交互项，通过微调自注意力运算过程使其能分辨不同**token**之间的相对位置。比如经典**RPE**, **XLNet**式, **T5**式分桶, **DeBERTa**式解耦, **Swin**式二维偏置, **URPE**
+- **旋转位置编码(RoPE)**：用旋转矩阵作用于查询与键，使内积只依赖相对位置，是当前大模型的绝对主流；变体包括二维**RoPE**、混合频率等
+- **长度外推(length extrapolation)**：让短序列训练的模型迁移到更长上下文，包括单调偏置类(**ALiBi**、**KERPLE**)、**RoPE**的插值与频率缩放(**位置插值PI**、**NTK-aware**、**YaRN**)、免训练的位置重映射
+- **无位置编码与内容相关位置编码**：**NoPE**（因果掩码隐式提供位置）、**CoPE**（内容决定位置）、**CPVT**（卷积零填充生成条件位置编码）
 
 
 ### ⚪ [<font color=Blue>降低Transformer的计算复杂度</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)
 
-自注意力运算中**计算注意力矩阵**以及**加权求和计算输出**这两个步骤引入了$O(N^2)$的计算复杂度。因此可以改进这两个步骤，从而降低计算复杂度。
-- 改进注意力矩阵的计算: 这类方法的改进思路是使得注意力矩阵的计算**稀疏化**，即对输入序列中的每一个位置只计算其与一部分位置(而不是全部位置)之间的相关性，表现为注意力矩阵是稀疏的。如**Sparse Transformer**, **Reformer**, **Longformer**, **Big Bird**。
-- 改进输出的加权求和: 这类方法的改进思路是使得自注意力的计算**线性化**。如**Efficient Attention**, **Synthesizer**, **Linformer**, **Linear Transformer**, **Performer**, **Nyströmformer**, **External Attention**, **FLASH**。
-
-### ⚪ [<font color=Blue>预训练语言模型 (Pretrained Language Model)</font>](https://0809zheng.github.io/2020/04/27/elmo-bert-gpt.html)
-
-预训练语言模型是一种从大量无标签的语料库中学习通用的自然语言特征表示的方法。使用预训练语言模型的步骤如下：1. 在大量无标签的语料库上进行特定任务的**预训练**；2. 在下游任务的语料库上进行**微调**。
-
-根据预训练的任务不同，预训练语言模型可以划分为以下几类：
-- **词嵌入(word embedding)**：上下文无关的嵌入
-- **概率语言建模 Language Modeling(LM)**：自回归或单向语言建模，即给定前面所有词预测下一个词。如**ELMo**, **GPT 1,2,3**。
-- **掩码语言建模 Masked Language Modeling(MLM)**：从输入序列中遮盖一些**token**，然后训练模型通过其余的**token**预测**masked token**。如**BERT**, **ALBERT**, **ELECTRA**, **REALM**。
-- **序列到序列的掩码语言建模 Seq2Seq Masked Language Modeling(Seq2Seq MLM)**：采用编码器-解码器结构，将**masked**序列输入编码器，解码器以自回归的方式顺序生成**masked token**。如**MASS**, **UniLM**, **T5**, **T5.1.1**, **mT5**。
-- **增强掩码语言建模 Enhanced Masked Language Modeling(E-MLM)**：在掩码语言建模的过程中使用了一些增强方法。如**RoBERTa**, **DeBERTa**。
-- **排列语言建模 Permuted Language Modeling(PLM)**：在输入序列的随机排列上进行语言建模。如**XLNet**。
-
-
-
-
+自注意力运算中**计算注意力矩阵**以及**加权求和计算输出**这两个步骤引入了$O(N^2)$的计算复杂度。降低复杂度有四条改进路线，另有一类专门针对推理阶段的显存瓶颈：
+- **稀疏注意力（改变注意力矩阵的支撑集）**：让每个位置只与一部分位置计算相关性。固定模式如**Sparse Transformer**, **Longformer**, **Big Bird**；内容自适应如**Reformer**（**LSH**分桶）, **Routing Transformer**, **Clustered Attention**。
+- **低秩与核化（改变注意力矩阵的秩）**：低秩投影把键值压缩到固定长度，如**Linformer**, **Nyströmformer**, **Synthesizer**；核化把**softmax**替换为特征映射内积实现线性化，如**Linear Transformer**, **Performer**, **Efficient Attention**, **External Attention**, **FLASH**。
+- **递归与状态（把注意力写成RNN）**：片段递归如**Transformer-XL**；现代线性注意力用统一的门控状态更新模板$S_i=\Lambda_i\odot S_{i-1}+\phi(k_i)v_i^\top$，如**RetNet**, **RWKV**, **GLA**, **DeltaNet**（详见[状态空间模型](https://0809zheng.github.io/2024/07/01/ssm.html)）。
+- **IO感知（不改数学定义，只改访存模式）**：如**FlashAttention**系列通过分块与重计算减少显存读写，以及分布式与服务化优化。
+- **推理阶段的KV cache**：减少**KV**头（**MQA**, **GQA**, **MLA**）或减少缓存的**token**数量，是长上下文自回归解码的关键瓶颈。
 
 
 ## (4) 深度生成模型
@@ -219,6 +459,20 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 
 ### ⚪ [扩散模型]()
 
+### ⚪ [<font color=Blue>流匹配模型 (Flow Matching Model)</font>](https://0809zheng.github.io/2025/05/01/flowmatching.html)
+
+**流匹配**通过回归一个时变速度场$v_\theta(x,t)$来构造从先验分布$p_0$到数据分布$p_1$的连续变换，其轨迹由**ODE** $dx_t/dt = v_\theta(x_t,t)$ 给出。直接匹配边际速度场$u_t(x)$是不可行的，但可以证明**条件流匹配**目标与之具有相同的梯度：
+
+$$ \begin{aligned} \mathcal{L}_{CFM}(\theta) = \mathbb{E}_{t, q(z), p_t(x|z)} \| v_\theta(x, t) - u_t(x|z) \|^2, \quad \nabla_\theta \mathcal{L}_{FM} = \nabla_\theta \mathcal{L}_{CFM} \end{aligned} $$
+
+其中条件路径$p_t(x\|z)$与条件速度$u_t(x\|z)$由人为设计，因而有解析形式，使训练完全**无模拟**。若采用仿射高斯路径$x_t=\alpha_tx_1+\sigma_tx_0$，则速度、$x_1$、$x_0$与分数四种预测目标可以相互线性换算，扩散模型的概率流**ODE**正是其中一个特例；流匹配的额外自由度在于路径调度、源分布的任意性以及回归目标与时间加权的选择。流匹配模型的研究可以分为以下几类：
+- **连续流匹配**：处理欧氏空间或流形上的连续数据，区别在于条件变量$z$（如何配对起点与终点）与条件路径$p_t(x\|z)$（如何在这对点之间移动）的选择。包括**InterFlow**, **FM**, **I-CFM**, **OT-CFM**, **SB-CFM**, **Rectified Flow**, **2-Rectified Flow++**, **Equivariant OT FM**, **RFM**, **FFM**, **FoldFlow**, **OFM**, **COT-FM**, **Metric FM**, **VFM**, **Meta FM**, **WFM**
+- **离散流匹配**：处理文本、序列、分子图等分类数据。连续状态方法把离散状态松弛到概率单纯形上并沿测地线流动（如**Dirichlet FM**, **Fisher-Flow**, **SFM**, **GAF**, **Gumbel-Softmax Flow**, **α-Flow**）；离散状态方法则全程保持状态离散，用连续时间马尔可夫链的速率矩阵描述状态跳跃（如**DFM**, **Discrete Guidance**, **Discrete Flow Matching**, **DFM-KO**）
+- **“拉直”流匹配与少步采样**：轨迹越直，用越少的**ODE**求解步数就能保持精度。思路包括降低轨迹曲率、改进耦合、递归**Reflow**与蒸馏、以及直接建模跨步长的平均速度。包括**Minimizing Trajectory Curvature**, **Multisample FM**, **InstaFlow**, **BOSS**, **PeRFlow**, **Flow Map Matching**, **Consistency-FM**, **Shortcut Models**, **MeanFlow**
+- **流匹配的条件生成**：分为在训练时把条件作为输入的模型内条件化，以及在推理时引导无条件模型的指导方法（如预测器指导、无分类器指导**CFG**与**∆FM**、免训练指导**TFG-Flow**）
+- **多边际流匹配**：除首尾分布外还给定中间时刻的观测快照，需要恢复穿过所有快照且平滑的轨迹。包括**3MSBM**（提升到相空间、优化加速度）, **MMSFM**（重叠窗口上的测度值样条）, **OTP-FM**（中间边际诱导的势能项）
+- **规模化实践**：在固定架构下逐维消融扩散与流匹配的差异，并确立大规模图像生成的配方。包括**SiT**（连续时间+线性路径+速度预测+可调扩散系数的**SDE**采样）, **SD3**（**logit-normal**时间步采样、**MM-DiT**联合注意力、分辨率偏移）
+
 ### ⚪ 其他生成网络
 
 [Generative Moment Matching Network](https://0809zheng.github.io/2022/03/27/gmmn.html)
@@ -228,9 +482,15 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 
 ### ⚪ [<font color=Blue>递归神经网络 (Recursive Neural Network)</font>](https://0809zheng.github.io/2020/03/08/recursive-neural-network.html)
 
-**递归神经网络**是循环神经网络在有向无环图上的扩展，主要用来建模自然语言句子的语义。给定一个句子的语法结构（一般为树状结构），可以使用递归神经网络来按照句法的组合关系来合成一个句子的语义。句子中每个短语成分又可以分成一些子成分，即每个短语的语义都可以由它的子成分语义组合而来，并进而合成整句的语义。
+**递归神经网络**在树或有向无环图上递归地共享组合函数：先编码叶节点，再根据子节点表示计算父节点，直至得到根节点表示。循环神经网络是其链式特例，而TreeRNN也可以看成树上的单次有向消息传递。它适合句法树、程序抽象语法树、场景层级和3D部件树等具有可靠层级结构的数据。
 
-典型的递归神经网络包括递归神经张量网络、矩阵-向量递归网络、**Tree LSTM**。
+递归网络的方法可以分为四族：
+- **基础组合与结构训练**：二叉TreeRNN, 节点级监督, 结构反向传播(**BPTS**), 成分树与依存树
+- **增强组合函数**：递归自编码器(**RAE**), 矩阵-向量递归网络(**MV-RNN**), 递归神经张量网络(**RNTN**)
+- **门控与高效树计算**：**Child-Sum Tree-LSTM**, **N-ary Tree-LSTM**, **SPINN**
+- **潜在结构与现代混合模型**：**RL-SPINN**, **Gumbel Tree-LSTM**, 可微chart parser, **Tree Transformer**
+
+显式树结构能缩短句法相关成分之间的路径并提供可解释的组合过程，但依赖解析质量、难以批量并行。对一般自然语言任务，预训练Transformer通常是默认选择；对AST、XML和部件树等原生层级输入，递归网络仍具有直接而有效的结构归纳偏置。
 
 ### ⚪ [<font color=Blue>记忆增强神经网络 (Memory Augmented Neural Network)</font>](https://0809zheng.github.io/2020/04/23/memory-network.html)
 
@@ -247,162 +507,34 @@ $$ \begin{aligned}  \log p(x)  = \log  p(z) - \sum_{k=1}^{K}\log  | \det J_{f_k}
 - 基于空间的**GNN**直接根据邻域聚合特征信息，把图粗化为高级子结构，可用于提取图的各级表示和执行下游任务。如**NN4G**, **DCNN**, **DGC**, **MoNET**, **GraphSAGE**, **GAT**, **GIN**。
 - 基于谱的**GNN**把图网络通过傅里叶变换转换到谱域，引入滤波器处理图谱后通过逆变换还原到顶点域。如**ChebNet**, **GCN**, **DropEdge**。
 
+### ⚪ [<font color=Blue>状态空间模型 (State Space Model)</font>](https://0809zheng.github.io/2024/07/01/ssm.html)
+
+**状态空间**包含完整描述系统的最小变量数，这些变量称为**状态向量**。**状态空间模型**是用于描述这些状态向量的模型，并根据额外的输入预测它们的下一个状态。
+
+**状态方程**描述了系统内部状态$h(t)$随时间和输入的演化：
+
+$$
+h^\prime(t) = Ah(t) + Bx(t)
+$$
+
+**观测方程**描述了系统的输出$y(t)$如何依赖于系统状态和控制输入：
+
+$$
+y(t) = Ch(t)
+$$
+
+现代研究揭示状态空间模型、线性注意力与门控线性**RNN**在"带状态的线性递归"这一模板下是统一的（均可写成$h_t=A_t h_{t-1}+B_t x_t$的循环形式，并支持并行/递归/分块递归三种等价计算）。深度学习中的相关模型包括：
+- 处理序列的**SSM**：如**HiPPO**, **LSSL**, **S4**, **S5**, **DSS**, **S4D**, **H3**, **Hyena**, **Mamba**, **Mamba-2**, **MoE-Mamba**, **RTF**。
+- 线性注意力与门控线性**RNN**：**Linear Transformer**, **Fast Weight Programmer**, **LRU**, **RetNet**, **HGRN**, **GLA**, **RWKV**, **xLSTM**, **Griffin**, **DeltaNet**, **Gated DeltaNet**。
+- 混合架构（**SSM/线性注意力 + 局部注意力**）：**Jamba**, **Samba**, **Zamba**, **Falcon Mamba**。
+- 处理图像的**SSM**：**Vim**, **VMamba**, **MambaOut**, **MambaR**。
+
+
 ### ⚪ [胶囊网络](https://0809zheng.github.io/2020/04/20/Capsule-Network.html)
 
 
 
-# 2. 深度学习的基本组件和方法技巧
 
-## (1) 深度学习的基本组件
-### ⚪ [<font color=Blue>激活函数 (Activation Function)</font>](https://0809zheng.github.io/2020/03/01/activation.html)
-**激活函数**能为神经网络引入非线性，在设计激活函数时可以考虑的性质包括：连续可导、计算量小、没有饱和区、没有偏置偏移、具有生物可解释性、提取上下文信息、通用近似性。
-
-常见的激活函数根据设计思路分类如下：
-- **S**型激活函数：形如**S**型曲线的激活函数。包括**Step**，**Sigmoid**，**HardSigmoid**，**Tanh**，**HardTanh**
-- **ReLU**族激活函数：形如**ReLU**的激活函数。包括**ReLU**，**Softplus**, **Squareplus**，**ReLU6**，**LeakyReLU**，**PReLU**，**RReLU**，**ELU**，**GELU**，**CELU**，**SELU**
-- 自动搜索激活函数：通过自动搜索解空间得到的激活函数。包括**Swish**，**HardSwish**，**Elish**，**HardElish**，**Mish**
-- 基于梯度的激活函数：通过梯度下降为每个神经元学习独立函数。包括**APL**，**PAU**，**ACON**，**PWLU**，**OPAU**，**SAU**，**SMU**
-- 基于上下文的激活函数：多输入单输出函数，输入上下文信息。包括**maxout**，**Dynamic ReLU**，**Dynamic Shift-Max**，**FReLU**
-
-### ⚪ [<font color=Blue>优化方法 (Optimization)</font>](https://0809zheng.github.io/2020/03/02/optimization.html)
-
-深度学习中的**优化**问题是指在已有的数据集上实现最小的训练误差$l(\theta)$，通常用基于梯度的数值方法求解。在实际应用梯度方法时，可以根据截止到当前步$t$的历史梯度信息$$\{g_{1},...,g_{t}\}$$计算修正的参数更新量$h_t$（比如累积动量、累积二阶矩校正学习率等）。指定每次计算梯度所使用数据批量 $\mathcal{B}$ 和学习率 $\gamma$，则第$t$次参数更新为：
-
-$$ \begin{aligned} g_t&=\frac{1}{\|\mathcal{B}\|}\sum_{x \in \mathcal{B}}^{}\nabla_{\theta} l(θ_{t-1}) \\ h_t &= f(g_{1},...,g_{t}) \\ θ_t&=θ_{t-1}-\gamma h_t \end{aligned} $$
-
-基于梯度的方法存在一些缺陷，不同的改进思路如下：
-- 更新过程中容易陷入局部极小值或鞍点；常见解决措施是在梯度更新中引入**动量**(如**momentum**, **NAG**, **Funnelled SGDM**)。
-- 参数的不同维度的梯度大小不同，导致参数更新时在梯度大的方向震荡，在梯度小的方向收敛较慢；常见解决措施是为每个特征设置**自适应**学习率(如**RProp**, **AdaGrad**, **RMSprop**, **AdaDelta**)。
-- 可以结合基于动量的方法和基于自适应学习率的方法，如**Adam**, **AdamW**, **Adamax**, **Nadam**, **AMSGRad**, **Radam**, **AdaX**, **Amos**, **Lion**。这类方法需要同时存储与模型参数具有相同尺寸的动量和方差，通常会占用较多内存，一些减少内存占用的优化算法包括**Adafactor**, **SM3**。
-- 在分布式训练大规模神经网络时，整体批量通常较大，权重更新的次数减少，常见解决措施是通过**层级自适应**实现每一层的梯度归一化(如**LARS**, **LAMB**, **NovoGrad**)。
-- 其他优化方法：随机权重平均、零阶优化、使用前向梯度代替反向传播梯度、**Lookahead**、**Data Echoing**。
-
-### ⚪ [<font color=Blue>正则化方法 (Regularization)</font>](https://0809zheng.github.io/2020/03/03/regularization.html)
-
-**正则化**指的是通过**引入噪声**或限制模型的**复杂度**，降低模型对输入或者参数的敏感性，避免过拟合，提高模型的泛化能力。常用的正则化方法包括：
-- 约束**目标函数**：在目标函数中增加模型参数的正则化项，包括**L2**正则化, **L1**正则化, **L0**正则化, 弹性网络正则化, 谱正则化, 自正交性正则化, **WEISSI**正则化, 梯度惩罚
-- 约束**网络结构**：在网络结构中添加噪声，包括随机深度, **Dropout**及其系列方法,
-- 约束**优化过程**：在优化过程中施加额外步骤，包括数据增强, 梯度裁剪, **Early Stop**, 标签平滑, 变分信息瓶颈, 虚拟对抗训练, **Flooding**
-
-
-### ⚪ [<font color=Blue>归一化方法 (Normalization)</font>](https://0809zheng.github.io/2020/03/04/normalization.html)
-
-
-输入数据的特征通常具有不同的量纲和取值范围，使得不同特征的**尺度**差异很大。**归一化**泛指把数据特征的不同维度转换到相同尺度的方法。深度学习中常用的归一化方法包括：
-1. 基础归一化方法：最小-最大值归一化、标准化、白化、逐层归一化
-2. 深度学习中的特征归一化：局部响应归一化**LRN**、批归一化**BN**、层归一化**LN**、实例归一化**IN**、组归一化**GN**、切换归一化**SN**
-3. 改进特征归一化：（改进**BN**）**Batch Renormalization**, **AdaBN**, **L1-Norm BN**, **GBN**, **SPADE**；（改进**LN**）**RMS Norm**；（改进**IN**）**FRN**, **AdaIN**
-4. 深度学习中的参数归一化：权重归一化**WN**、余弦归一化**CN**、谱归一化**SN**
-
-### ⚪ [<font color=Blue>参数初始化方法 (Parameter Initialization)</font>](https://0809zheng.github.io/2020/03/05/initialization.html)
-
-对神经网络进行训练时，需要对神经网络的参数进行初始化。糟糕的初始化不仅会使模型效果变差，还有可能使得模型根本训练不动或者不收敛。
-
-常见的初始化方法包括零初始化、随机初始化、稀疏初始化、**Xavier**初始化、**Kaiming**初始化、正交初始化、恒等初始化、**ZerO**初始化、模仿初始化。
-
-## (2) 深度学习的方法
-
-### ⚪ [<font color=Blue>半监督学习 (Semi-Supervised Learning)</font>](https://0809zheng.github.io/2022/09/01/semi.html)
-
-**半监督学习**是指同时从有标签数据和无标签数据中进行学习。半监督学习的假设包括平滑性假设、聚类假设、低密度分离假设和流形假设。
-
-常用的半监督学习方法包括：
-- **一致性正则化**：假设神经网络的随机性或数据增强不会改变输入样本的真实标签，如$\Pi$**-Model**, **Temporal Ensembling**, **Mean Teacher**, **VAT**, **ICT**, **UDA**。
-- **伪标签**：根据当前模型的最大预测概率为无标签样本指定假标签，如**Label Propagation**, **Confirmation Bias**, **Noisy Student**, **Meta Pseudo Label**。
-- **一致性正则化+伪标签**：既构造无标签样本的伪标签，又同时建立监督损失和无监督损失，如**MixMatch**, **ReMixMatch**, **FixMatch**, **DivideMix**。
-
-
-### ⚪ [<font color=Blue>自监督学习 (Self-Supervised Learning)</font>](https://0809zheng.github.io/2022/10/01/self.html)
-
-**自监督学习**是一种无监督表示学习方法，旨在根据无标签数据集中的一部分信息预测剩余的信息，并以有监督的方式来训练该数据集。
-
-适用于图像数据集的自监督任务包括：
-- **前置任务(pretext task)**：通过从数据集中自动构造伪标签而设计的对目标任务有帮助的辅助任务，如**Exemplar-CNN**, **Context Prediction**, **Jigsaw Puzzle**, **Image Colorization**, **Learning to Count**, **Image Rotation**, **Jigsaw Clustering**, **Evolving Loss**, **PIC**, **MP3**。
-- **对比学习(contrastive learning)**：学习一个特征嵌入空间使得正样本对彼此靠近、负样本对相互远离。(对比损失函数) **NCE**, **CPC**, **CPC v2**, **Alignment and Uniformity**, **Debiased Contrastive Loss**, **Hard Negative Samples**, **FlatNCE**; (并行数据增强) **InvaSpread**, **SimCLR**, **SimCLRv2**, **BYOL**, **SimSiam**, **DINO**, **SwAV**, **PixContrast**, **Barlow Twins**; (存储体) **InstDisc**, **MoCo**, **MoCo v2**, **MoCo v3**; (多模态) **CMC**, **CLIP**; (应用) **CURL**, **CUT**, **Background Augmentation**, **FD**。
-- **掩码图像建模(masked image modeling)**：随机遮挡图像中的部分**patch**，并以自编码器的形式重构这部分**patch**，如**BEiT**, **MAE**, **SimMIM**, **iBOT**, **ConvMAE**, **QB-Heat**, **LocalMIM**, **DeepMIM**。
-
-### ⚪ [<font color=Blue>度量学习 (Metric Learning)</font>](https://0809zheng.github.io/2022/11/01/metric.html)
-
-**深度度量学习**通过共享权重的**Siamese**网络把原始样本映射到低维特征空间，并设计合理的度量损失使得同类样本在特征空间上的距离比较近，不同类样本之间的距离比较远。
-
-度量学习的目标在于最小化相似样本(正样本对)之间的距离，最大化不相似样本(负样本对)之间的距离。深度度量损失包括：
-- 基于**对(pair)**的度量损失：考虑一个批次样本中样本对之间的关系，最小化正样本对$(x,x^+)$之间的距离，最大化负样本对$(x,x^-)$之间的距离。如**Contrastive Loss**, **Binomial Deviance Loss**, **Triplet Loss**, **Improved Triplet Loss**, **Batch Hard Triplet Loss**, **Hierarchical Triplet Loss**, **Angular Loss**, **Quadruplet Loss**, **N-pair Loss**, **Lift Structured Loss**, **Histogram Loss**, **Ranked List Loss**, **Soft Nearest Neighbor Loss**, **Multi-Similarity Loss**, **Circle Loss**。
-- 基于**代理(proxy)**的度量损失：为每个类别赋予一个代理样本，拉近每个类别的样本和该类别对应的代理样本之间的距离，拉远与其他类别对应的代理样本之间的距离。如**Magnet Loss**, **Clustering Loss**, **Proxy-NCA**, **ProxyNCA++**, **Proxy-Anchor**。
-
-### ⚪ [<font color=Blue>多任务学习 (Multi-Task Learning)</font>](https://0809zheng.github.io/2021/08/28/MTL.html)
-
-**多任务学习**是指同时学习多个属于不同领域的任务，并通过特定任务的领域信息提高泛化能力。多任务学习的方法设计可以分别从**网络结构**与**损失函数**两个角度出发。
-
-一个高效的多任务网络，应同时兼顾特征共享部分和任务特定部分。根据模型在处理不同任务时网络参数的共享程度，多任务学习方法的网络结构可分为：
-- **硬参数共享 (Hard Parameter Sharing)**：模型的主体部分共享参数，输出结构任务独立。如**Multilinear Relationship Network**, **Fully-adaptive Feature Sharing**。
-- **软参数共享 (Soft Parameter Sharing)**：不同任务采用独立模型，模型参数彼此约束。如**Cross-Stitch Network**, **Sluice Network**, **Multi-Task Attention Network**。
-
-多任务学习将多个相关的任务共同训练，其总损失函数是每个任务的损失函数的加权求和式：$$\mathcal{L}_{total} = \sum_{k}^{} w_k\mathcal{L}_k$$。多任务学习的目的是寻找模型参数的**帕累托最优解**，因此需要设置合适的任务权重。一些权重自动设置方法包括**Uncertainty**, **Gradient Normalization**, **Dynamic Weight Average**, **Multi-Objective Optimization**, **Dynamic Task Prioritization**, **Loss-Balanced Task Weighting**
-
-### ⚪ [<font color=Blue>主动学习 (Active Learning)</font>](https://0809zheng.github.io/2022/08/01/activelearning.html)
-
-**主动学习**是指从未标注数据中只选择一小部分样本进行标注和训练来降低标注成本。深度主动学习最常见的场景是基于**池**(**pool-based**)的主动学习，即从大量未标注的数据样本中迭代地选择最“有价值”的数据，直到性能达到指定要求或标注预算耗尽；选择最“有价值”的数据的过程被称为**采样策略**。
-
-深度主动学习方法可以根据不同的**采样策略**进行分类：
-- **不确定性采样 (uncertainty sampling)**：选择使得模型预测的不确定性最大的样本。不确定性的衡量可以通过机器学习方法(如**entropy**)、**QBC**方法(如**voter entropy**, **consensus entropy**)、贝叶斯神经网络(如**BALD**, **bayes-by-backprop**)、对抗生成(如**GAAL**, **BGADL**)、对抗攻击(如**DFAL**)、损失预测(如**LPL**)、标签预测(如**forgetable event**, **CEAL**)
-- **多样性采样 (diversity sampling)**：选择更能代表整个数据集分布的样本。多样性的衡量可以通过聚类(如**core-set**, **Cluster-Margin**)、判别学习(如**VAAL**, **CAL**, **DAL**)
-- **混合策略 (hybrid strategy)**：选择既具有不确定性又具有代表性的样本。样本的不确定性和代表性既可以同时估计(如**exploration-exploitation**, **BatchBALD**, **BADGS**, **Active DPP**, **VAAL**, **MAL**)，也可以分两阶段估计(如**Suggestive Annotation**, **DBAL**)。
-
-### ⚪ [<font color=Blue>迁移学习 (Transfer Learning)</font>](https://0809zheng.github.io/2020/05/22/transfer-learning.html)
-
-**迁移学习**是指将解决某个问题时获取的知识应用在另一个不同但相关的问题中。根据源域数据和目标域数据的标签存在情况，迁移学习可以细分为：
-- 源域数据有标签，目标域数据有标签：微调(**Fine Tuning**)
-- 源域数据有标签，目标域数据无标签：领域自适应(**Domain Adaptation**)、零样本学习(**Zero-Shot Learning**)
-- 源域数据无标签，目标域数据有标签：**self-taught learning**
-- 源域数据无标签，目标域数据无标签：**self-taught clustering**
-
-模型**微调**是指用带有标签的源域数据预训练模型后，再用带有标签的目标域数据微调模型。
-
-**领域自适应**是指通过构造合适的特征提取模型，使得源域数据和目标域数据的特征落入相同或相似的特征空间中，再用这些特征解决下游任务。常用的领域自适应方法包括：
-- 基于差异的方法：直接计算和减小源域和目标域数据特征向量的差异，如**Deep Domain Confusion**, **Deep Adaptation Network**, **CORAL**, **CMD**。
-- 基于对抗的方法：引入域判别器并进行对抗训练，如**DANN**, **SDT**, **PixelDA**。
-- 基于重构的方法：引入解码器重构输入样本，如**Domain Separation Network**。
-
-## (3) 深度学习的技巧
-
-
-### ⚪ [<font color=Blue>长尾分布 (Long-Tailed)</font>](https://0809zheng.github.io/2020/03/02/optimization.html)
-
-实际应用中的数据集大多服从**长尾分布**，即少数类别(**head class**)占据绝大多数样本，多数类别(**tail class**)仅有少量样本。解决长尾分布问题的方法包括：
-- 重采样 **Re-sampling**：通过对**head class**进行欠采样或对**tail class**进行过采样，人为地构造类别均衡的数据集。包括**Random under/over-sampling**, **Class-balanced sampling**, **Meta Sampler**等。
-- 重加权 **Re-weighting**：在损失函数中对不同类别样本的损失设置不同的权重，通常是对**tail class**对应的损失设置更大的权重。其中在$\log$运算之外调整损失函数的本质是在调节样本权重或者类别权重(如**Inverse Class Frequency Weighting**, **Cost-Sensitive Cross-Entropy Loss**, **Focal Loss**, **Class-Balanced Loss**)。在$\log$运算之内调整损失函数的本质是调整**logits**得分$z$，从而缓解对**tail**类别的负梯度(如**Equalization Loss**, **Equalization Loss v2**, **Logit Adjustment Loss**, **Balanced Softmax Loss**, **Seesaw Loss**)。
-- 其他方法：一些方法将长尾分布问题解耦为特征的表示学习和特征的分类。一些方法按照不同类别的样本数量级对类别进行分组(如**BAGS**)。
-
-
-### ⚪ [<font color=Blue>对抗训练 (Adversarial Training)</font>](https://0809zheng.github.io/2020/07/26/adversirial_attack_in_classification.html)
-
-**对抗训练**是指通过构造对抗样本，对模型进行对抗攻击和防御来增强模型的稳健性。对抗训练的一般形式如下：
-
-$$
-\mathcal{\min}_{\theta} \mathbb{E}_{(x,y)\sim \mathcal{D}} \left[ \mathcal{\max}_{\Delta x \in \Omega}  \mathcal{L}(x+\Delta x,y;\theta) \right]
-$$
-
-- 对抗攻击是指想办法造出更多的对抗样本；常用的对抗攻击方法包括：**FGSM**, **I-FGSM**, **MI-FGSM**, **NI-FGSM**, **DIM**, **TIM**, **One Pixel Attack**, **Black-box Attack**。
-- 对抗防御是指想办法让模型能正确识别更多的对抗样本；常用的对抗防御方法包括**Smoothing**, **Feature Squeezing**, **Randomization**, **Proactive defense**。
-
-### ⚪ [<font color=Blue>大模型的参数高效微调 (Parameter-Efficient Fine-Tuning)</font>](https://0809zheng.github.io/2023/02/02/peft.html)
-
-将预训练好的大型模型在下游任务上进行微调已成为处理不同任务的通用范式；但是随着模型越来越大，对模型进行全部参数的微调（**full fine-tuning**）变得非常昂贵。**参数高效微调**是指冻结预训练模型的大部分参数，仅微调少量或额外的模型参数。
-
-参数高效微调方法有以下几种形式：
-- 增加额外参数(**addition**)：在原始模型中引入额外的可训练参数，如**Adapter**, **AdapterFusion**, **AdapterDrop**, **P-Tuning**, **Prompt Tuning**, **Prefix-Tuning**, **P-Tuning v2**, **Ladder Side-Tuning**
-- 选取部分参数(**specification**)：指定原始模型中的部分参数可训练，如**BitFit**, **Child-Tuning**
-- 重参数化(**reparameterization**)：将微调过程重参数化为低维子空间的优化，如**Diff Pruning**, **LoRA**, **AdaLoRA**, **QLoRA**, **GLoRA**, **LoRA+**, **LoRA-GA**
-- 混合方法：如**MAM Adapter**, **UniPELT**
-
-- [深度学习的可解释性](https://0809zheng.github.io/2020/04/28/explainable-DL.html)
-
-
-
-## () 网络压缩
-网络压缩旨在平衡网络的准确性和运算效率。
-压缩预训练的网络 设计新的网络结构
-- [网络压缩](https://0809zheng.github.io/2020/05/01/network-compression.html)：网络剪枝、知识蒸馏、结构设计、模型量化
 
 # 3. 深度学习的应用
 
@@ -412,10 +544,18 @@ $$
 
 **图像识别**是计算机视觉的基本任务，旨在对每张图像内出现的物体进行类别区分。基于深度学习的图像识别方法不需要手工提取特征，而是使用卷积神经网络自动提取特征并进行分类。应用于图像识别任务的卷积神经网络的结构发展包括：
 1. 早期探索：奠定“卷积层-下采样层-全连接层”的拓扑结构。如**LeNet5**, **AlexNet**, **ZFNet**, **NIN**, **SPP-net**, **VGGNet**
-2. 深度化：增加堆叠卷积层的数量。如**Highway Network**, **ResNet**, **Stochastic Depth**, **DenseNet**, **Pyramidal ResNet**
-3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **NASNet**, **ResNeSt**, **ConvNeXt v1-2**
-4. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
-5. 其他结构：**Noisy Student**, **SCAN**, **NFNet**, **ResNet-RS**
+2. 深度化：增加堆叠卷积层的数量。如**Highway Network**, **ResNet**, **Stochastic Depth**, **DenseNet**, **Pyramidal ResNet**, **DPN**, **Res2Net**, **SpineNet**, **SpinalNet**
+3. 模块化：设计用于堆叠的网络模块。如**Inception v1-4**, **WideResNet**, **Xception**, **ResNeXt**, **SENet**, **ResNeSt**
+4. 缩放与架构搜索：用**NAS**或复合缩放自动设计网络。如**NASNet**, **MnasNet**, **DARTS**, **EfficientNet**/**V2**, **RegNet**
+5. 结构重参数化：训练用多分支、推理时合并为单路。如**ACNet**, **RepVGG**, **DBB**
+6. 大核卷积与现代卷积网络：用大卷积核重新逼近自注意力的全局感受野。如**ConvNeXt v1-2**, **RepLKNet**, **SLaK**, **InternImage**, **MogaNet**, **InceptionNeXt**, **UniRepLKNet**, **OverLoCK**
+7. 轻量化：设计轻量级卷积层，可参考[<font color=Blue>轻量级卷积神经网络</font>](https://0809zheng.github.io/2021/09/10/lightweight.html)。
+8. 训练配方与稳定性：架构之外的训练技巧同样关键。如**Bag of Tricks**, **ResNet strikes back**, **NFNet**, **ResNet-RS**
+9. 少标注学习范式：如**Noisy Student**, **Meta Pseudo Labels**, **SCAN**, **BiT**（**ImageNet-21k**预训练）
+
+图像识别的常用训练基准是**ImageNet-1k/21k**；评估分布外泛化与鲁棒性时还会用到**ImageNet-V2**, **-A**, **-R**, **-Sketch**, **-C**等测试集。
+
+除卷积网络外，基于自注意力的[<font color=Blue>视觉Transformer</font>](https://0809zheng.github.io/2023/01/01/vit.html)已成为图像识别的另一条主线。
 
 ### ⚪ [<font color=blue>目标检测 (Object Detection)</font>](https://0809zheng.github.io/2020/05/08/object-detection.html)
 
@@ -507,7 +647,9 @@ $$
 3. 模型优化法(**MO-based**)：建立并优化融合图像与全色图像和多光谱图像之间的能量函数，如**SIRF**, **PSFG**$S^2$**LR**, **LGC**, **PGCP-PS**, **BPSM**, **F-BMP**。
 4. 深度学习方法(**DL-based**)：使用深度学习模型自动学习图像特征，从而实现图像分辨率的提升，如**PNN**, **PanNet**, **MSDCNN**, **GPPNN**, **SRPPNN**, **INNformer**, **PanFormer**, **SFIIN**, **MIDPS**, **PanFlowNet**, **Pan-Mamba**, **HFIN**。
 
-## (3) AIGC (AI-Generated Content)
+## (3) GenAI (Generative AI)
+
+生成式人工智能 (**GenAI**) 旨在从现有数据（如文本、图像、视频、音频和代码）中学习，然后生成具有相似特征的数据。
 
 ### ⚪ [<font color=blue>图像到图像翻译 (Image-to-Image Translation)</font>](https://0809zheng.github.io/2020/05/23/image_translation.html)
 
@@ -578,11 +720,35 @@ $$
 **射频人体感知**又称为**可见光谱外的人体感知**，是指使用雷达系统进行人体感知应用。雷达系统向检测环境中发射电磁波信号，照射人体目标，并接收反射信号用于执行下游任务。与光学系统相比，雷达系统可以在低能见度等特殊环境中工作，并且可以提供更好的隐私保护性。在特定频段工作的雷达系统还可以穿透墙壁等非金属障碍物，从而实现隐蔽场景下的人体感知。
 
 根据发射信号的工作频段不同，射频人体感知方法可以细分为基于毫米波雷达的方法、基于**WiFi**阵列的方法与基于穿墙雷达的方法。（部分工作简写为标题首字母）
-- 基于毫米波雷达的方法：工作频段30-300GHZ，人体目标被视为散射体，可以捕获细粒度的人体细节，如**mm-Pose**, **HMRER-SRNN**, **ITL**, **1-D-DAN**。
-- 基于**WiFi**阵列的方法：工作频段2.4-5GHZ，人体目标被视为反射体，可以通过深度学习技术学习人体统计信息，如**RF-Pose**, **RF-Pose3D**, **RF-Avatar**, **TWPIRT-MMEDP**, **Person-in-WiFi**, **RF-Action**, **WiPose**, **RF-ReID**, **TGUL**。
-- 基于穿墙雷达的方法：工作频段0-3GHZ，超宽带穿墙雷达系统可用于非接触式穿墙人体感知，如**UDA-MDHMC**, **ADA-MDHAC**, **SCGRNN**, **TWHPR-UWB**, **UWB-Pose**, **TWHMR-TLEL**, **HPR-TWRI**, **UHCE-TWRI**, **TWHPR-CMLSSL**, **RPSNet**, **MIMDSN**, **RadarFormer**。
+- 基于毫米波雷达的方法：工作频段$30$-$300$**GHZ**，人体目标被视为散射体，可以捕获细粒度的人体细节，如**mm-Pose**, **HMRER-SRNN**, **ITL**, **1-D-DAN**。
+- 基于**WiFi**阵列的方法：工作频段$2.4$-$5$**GHZ**，人体目标被视为反射体，可以通过深度学习技术学习人体统计信息，如**RF-Pose**, **RF-Pose3D**, **RF-Avatar**, **TWPIRT-MMEDP**, **Person-in-WiFi**, **RF-Action**, **WiPose**, **RF-ReID**, **TGUL**。
+- 基于穿墙雷达的方法：工作频段$0$-$3$**GHZ**，超宽带穿墙雷达系统可用于非接触式穿墙人体感知，如**UDA-MDHMC**, **ADA-MDHAC**, **SCGRNN**, **TWHPR-UWB**, **UWB-Pose**, **TWHMR-TLEL**, **HPR-TWRI**, **UHCE-TWRI**, **TWHPR-CMLSSL**, **RPSNet**, **MIMDSN**, **RadarFormer**。
 
 ## (5) 自然语言处理
+
+
+### ⚪ [<font color=Blue>预训练语言模型 (Pretrained Language Model)</font>](https://0809zheng.github.io/2020/04/27/elmo-bert-gpt.html)
+
+预训练语言模型是一种从大量无标签的语料库中学习通用的自然语言特征表示的方法。使用预训练语言模型的步骤如下：1. 在大量无标签的语料库上进行特定任务的**预训练**；2. 在下游任务的语料库上进行**微调**（或直接通过**提示**驱动）。
+
+语言的特征表示可以分为**上下文无关的嵌入**（如**Word2Vec**，同一个词在任何句子中都得到同一个向量，无法表达多义性）和**上下文相关的嵌入**（如**ELMo**，根据上下文为每个词元位置动态生成表示）两类。
+
+根据采用的模型结构不同，预训练语言模型可以划分为以下几类：
+- **编码端（Encoder-Only）架构**：优点是可以提取文本的上下文表征，适用于自然语言理解任务；缺点是不能自然地生成文本，且需要更多的特定训练目标。典型模型包括**ELMo**, **BERT**, **RoBERTa**, **SpanBERT**, **ERNIE**, **ALBERT**, **ELECTRA**, **REALM**, **DeBERTa**, **DeBERTaV3**, **XLNet**, **ModernBERT**。
+- **解码端（Decoder-Only）架构**：优点是能够自然地生成文本，有简单的训练目标（最大似然），适用于自然语言生成任务；缺点是文本的上下文表征只能单向地依赖于左侧上下文。典型模型包括**GPT**系列, **Gopher**, **Jurassic-1**, **PaLM**, **OPT**, **BLOOM**, **LLaMA**系列, **Mistral**, **Mixtral**, **Qwen**系列, **DeepSeek**系列。这一路线是当前大模型的绝对主流。
+- **编码-解码端（Encoder-Decoder）架构**：优点是可以使用双向上下文表征来处理输入文本，并且可以生成输出文本；缺点是需要更多的特定训练目标。典型模型包括**MASS**, **UniLM**, **BART**, **T5**, **T5.1.1**, **mT5**。此外**GLM**和**UL2**试图用统一的预训练目标把三种架构的能力合并到一个模型中。
+
+预训练语言模型的预训练任务包括概率语言建模、掩码语言建模、序列到序列的掩码语言建模、增强掩码语言建模、排列语言建模、前缀语言建模等。
+
+模型规模、数据规模与算力之间的关系由**规模化定律(scaling law)**刻画：**Kaplan**等人给出了损失关于$N,D,C$的幂律形式，**Chinchilla**修正了最优配比（参数量与训练词元数应当同比例增长），而部分能力只在超过一定规模后才出现，即**涌现能力(emergent ability)**。
+
+现代大模型在预训练之后还有两个对齐阶段：**指令微调**（在大量任务的指令化数据上微调以获得零样本泛化，如**FLAN**）和**偏好对齐**（如基于人类反馈强化学习的**InstructGPT/RLHF**，以及把奖励模型解析地消去、直接在偏好数据上优化策略的**DPO**）。
+
+预训练语言模型从文本数据中学习到的知识包括语言类知识（包括浅层语言知识和抽象语言知识）和世界知识（包括事实性知识和常识性知识）两大类。其中语言类知识主要分布在模型的浅层和中层，世界知识主要分布在模型的中层和深层。大型预训练模型在大规模数据上性能提升的主要驱动力是世界知识。
+
+预训练语言模型的知识存储在Transformer的全连接层结构中。全连接层可以看作键-值记忆单元（$FFN(x)=f(x⋅K^\top )⋅V$），其中第一层的参数$K$作为输入序列的模式检测器，第二层的参数$V$存储了对应模式下输出词汇表上的概率分布。
+
+修正预训练语言模型里存储的错误或者过时的知识有三种手段：① 通过数据归因定位并删除对应的数据源，并重新进行预训练；② 在知识修正的数据集上进行约束微调；③ 定位存储知识的模型参数并进行修正（通常是修改全连接层参数$V$，如**Knowledge Neuron**, **MEND**, **ROME**, **MEMIT**）。
 
 ### ⚪ [1](https://0809zheng.github.io/2020/08/27/SR.html)
 
@@ -599,25 +765,100 @@ $$
 
 **文本检测**是指找出图像中的文字区域；文本识别是指对定位好的文字区域进行识别，将图像中的文字区域进转化为字符信息。常用的文本检测与识别方法包括**EAST**, **CRNN**, **Mask TextSpotter**。
 
+### ⚪ [<font color=blue>视觉-语言预训练 (Vision-Language Pretraining)</font>](https://0809zheng.github.io/2024/01/01/vlp.html)
+
+视觉-语言预训练旨在从大规模的图像-文本对中学习通用的跨模态表示，使得模型能够理解图像和文本之间的语义关联。预训练完成后，模型可以直接在下游的视觉-语言任务上进行微调。
+
+根据视觉数据和语言数据的特征交互和对齐方式不同，视觉-语言预训练方法可以分为：
+- 单塔结构模型；将文本和视觉特征连接到一起，然后使用**Transformer**编码器提取特征；如**VisualBERT**, **VL-BERT**, **UNITER**, **ImageBERT**, **Oscar**, **Pixel-BERT**, **VinVL**, **ViLT**, **Frozen**, **VLMo**, **VL-BEiT**, **BEiT-3**。
+- 双塔结构模型；将文本和视觉特征分别编码，然后使用交叉注意力来实现不同模态之间的交互；如**ViLBERT**, **LXMERT**, **ALBEF**。
+- 编解码器模型：通过完整的**Transformer**模型把视觉和语言任务统一为**Token**生成任务；如**VL-T5**, **SimVLM**, **GIT**, **CoCa**。
+- 对比学习模型：通过使匹配的图像和文本在嵌入空间中彼此靠近来提取图像和文本的共享表示；如**ALIGN**, **CLIP**, **SLIP**, **GLIP**, **GLIPv2**, **BLIP**, **BLIP-2**, **MaskCLIP**, **Chinese CLIP**, **FLIP**, **A-CLIP**, **SigLIP**, **SigLIP 2**, **LaCLIP**。
 
 
 
 
+# 4. AI for Science
 
-
-## (7) AI for Science
-
-- [A universal SNP and small-indel variant caller using deep neural networks](https://0809zheng.github.io/2024/08/29/deepvariant.html)：(Nature Biotechnology 2018)使用深度神经网络的通用单核苷酸多态性和插入/缺失变异比对器。
+## （1）AI for Math
 - [Fourier Neural Operator for Parametric Partial Differential Equations](https://0809zheng.github.io/2021/06/28/fno.html)：(arXiv2010)为偏微分方程设计的傅里叶神经算子。
 - [Advancing mathematics by guiding human intuition with AI](https://0809zheng.github.io/2022/01/08/mathai.html)：(Nature 2021.12)用人工智能引导人类直觉推进数学发展。
-- [Noether Networks: Meta-Learning Useful Conserved Quantities](https://0809zheng.github.io/2022/06/19/noether.html)：(arXiv2112)Noether网络：通过元学习学习有用的守恒量。
-- [Competition-Level Code Generation with AlphaCode](https://0809zheng.github.io/2022/03/13/alphacode.html)：(arXiv2203)AlphaCode: 竞赛级别的代码生成。
 - [Discovering faster matrix multiplication algorithms with reinforcement learning](https://0809zheng.github.io/2022/11/21/alphatensor.html)：(Nature 2022.10)AlphaTensor：通过强化学习发现更快的矩阵乘法算法。
+
+## （2）AI for Physics
+- [Noether Networks: Meta-Learning Useful Conserved Quantities](https://0809zheng.github.io/2022/06/19/noether.html)：(arXiv2112)Noether网络：通过元学习学习有用的守恒量。
+
+## （3）AI for Computer Science
+- [Competition-Level Code Generation with AlphaCode](https://0809zheng.github.io/2022/03/13/alphacode.html)：(arXiv2203)AlphaCode: 竞赛级别的代码生成。
 - [Faster sorting algorithms discovered using deep reinforcement learning](https://0809zheng.github.io/2023/06/07/alphadev.html)：(Nature 2023.06)AlphaDev：通过深度强化学习发现更快的排序算法。
 
 
+## （4）AI for Life Science
 
-# 4. 参考文献与扩展阅读
+**组学 omics** 通常指生物学中对各类研究对象（生物分子）的集合所进行的系统性研究（这些研究对象的集合被称为**组 ome**），旨在对转化为有机体的结构、功能和动力学的生物分子池（**pools of biological molecules**）进行集体表征和量化。
+
+## ⭐ 基因组学（Genomics）
+
+**基因组学**系统性研究生物体基因组（**genome**）中各种基因（**gene**）以及它们之间的相互关系。
+
+### 基因组变异检测
+
+- [A universal SNP and small-indel variant caller using deep neural networks](https://0809zheng.github.io/2024/08/29/deepvariant.html)：(Nature Biotechnology 2018)使用深度神经网络的通用单核苷酸多态性和插入/缺失变异比对器。
+
+### 基因组基础模型
+
+
+**序列到功能（Sequence-to-function）**模型能够从**DNA**序列数据中预测基因表达，这对于理解调控过程及其对复杂表型的影响至关重要。**基因组语言模型（Genomic language models）**通过在海量**DNA**序列上进行预训练，能够生成蕴含基因组上下文信息的、鲁棒的序列表示。然而，目前很少有研究能够评估基因表达水平的可预测性，并将这两类模型结合起来，以探索**个性化**的基因表达预测。
+
+EPInformer
+
+enformer
+performer
+
+### ⚪ [<font color=blue>片段组学模型 (Fragmentomics Model)</font>](https://0809zheng.github.io/2026/01/01/fragmentomics.html)
+
+**片段组学**专注于分析细胞游离**DNA**（**cfDNA**）的片段化特征（如长度分布、末端基序、分布模式等），该模式与核小体结构以及细胞死亡过程中的**DNA**片段化现象有关。
+
+
+
+## ⭐ 转录组学（Transcriptomics）
+
+**转录组学**研究在单个细胞或特定类型的细胞、组织、器官或发育阶段的细胞群内所生产的各类**RNA**（通常是**mRNA**）分子的类型和数量。
+
+## ⭐ 蛋白质组学（Proteomics）
+
+**蛋白质组学**是对蛋白质结构和功能的大规模研究，蛋白质组是由有机体或系统产生或修饰的整套蛋白质。
+
+
+
+
+## ⭐ 表观基因组学（Epigenomics）
+
+**表观基因组学**是对细胞遗传物质（称为表观基因组）上所有表观遗传修饰的研究。表观遗传修饰是细胞**DNA**或组蛋白的可逆修饰，它会影响基因表达，而不会改变**DNA**序列。
+
+### ⚪ [<font color=blue>DNA甲基化组模型 (DNA Methylome Model)</font>](https://0809zheng.github.io/2026/02/01/methylome.html)
+
+**DNA甲基化**是指**DNA**分子在**DNA**甲基转移酶(**DNMT**)的作用下将甲基基团选择性地添加到特定碱基上的过程。
+
+甲基化位点预测的目标是发现新位点。输入通常是围绕待预测碱基的一段固定长度的序列，输出是判断该序列中心某个特定的碱基（如**C**或**A**）是否是一个甲基化位点。这是一个二元分类 问题。常用的甲基化位点预测模型包括：
+- 预测**4mc**位点（甲基基团被添加到胞嘧啶的第4位氮原子上）：**4mCCNN**, **4mcDeep-CBI**, **Deep4mcPred**, **DNC4mC-Deep**, **i4mC-Deep**, **4mCPred-CNN**, **iRG-4mC**, **4mCNLP-Deep**, **DeepTorrent**, **Deep4mC**, **4mC-w2vec**, **DCNN-4mC**, **4mCPred-MTL**, **DeepDNA4mC**, **MSNet-4mC**, **MultiScale-CNN-4mCPred**, **i4mC-GRU**, **4mC-CGRU**, **4mCPred-GSIMP**, **DeepSF-4mC**
+- 预测**5mc**位点（甲基基团被添加到胞嘧啶的第5位碳原子上）：**iPromoter-5mC**, **BiLSTM-5mC**, **DeepSignal-plant**, **FRAGMA**, **DeepMethylation**, **BERT-5mC**, **DGA-5mC**, **DeepMod2**, **Deep5mC**, **TCN-5mC**
+- 预测**6mA**位点（甲基基团被添加到腺嘌呤的第6位氮原子上）：**SNNRice6mA**, **DNA6mA-MINT**, **SpineNet-6mA**, **SICD6mA**, **6mA-Pred**, **i6mA-CNN**, **Deep6mA**, **BERT6mA**, **CNN6mA**, **PSATF-6mA**, **HD-6mAPred**
+- 预测多种位点：**DeepSignal**, **iDNA-ABT**, **iDNA-ABF**, **StableDNAm**, **iDNA-EBT**, **iDNA-ITLM**, **iDNA-OpenPrompt**, **Methyl-GP**, **MuLan-Methyl**, **iDNA-DAPHA**
+
+甲基化数据插补 (**Imputation**) 的目标是填补缺失值。输入通常是稀疏的甲基化矩阵：包含大量细胞/样本（行）和 **CpG** 位点（列），但矩阵中有很多缺失值。输出是补全后的完整的甲基化水平矩阵。这是一个回归问题。常用的甲基化数据插补模型包括：**DeepCpG**, **CpG Transformer**, **GraphCpG**, **MethylProphet**, **DMRU**, **scMeFormer**, **DiffuCpG**。
+
+**DNA**甲基化应用模型是指利用标记好的甲基化数据集，通过监督学习等方法训练，以解决特定下游临床任务（如疾病诊断、分型或预后预测）的专用预测工具。包括**HNSC or LUSC**, **MethylNet**, **DISMIR**, **AltumAge**, **Alzheimer Detector**, **MT-CAE & MT-LSTMAE**, **HiTAIC**, **CHCT**, **NCAE**, **Sturgeon**, **Decoding Depression**, **MethPriorGCN**, **cfMethylPre**。
+
+**DNA**甲基化基础模型是指在海量的、通常是无标签的**DNA**甲基化数据上进行预训练的大规模深度学习模型，旨在学习通用的、富含上下文信息的特征表示（如**CpG**嵌入），并能通过微调快速适应多种不同的下游任务。包括**CpGPT**, **MethylGPT**, **MethylQUEEN**, **scWGBS-GPT**, **MethylBERT**。
+
+## ⭐ 单细胞多学组（Single-Cell Multiomics）
+
+### ⚪ 单细胞多组学整合模型
+
+### ⚪ 单细胞多组学翻译模型
+
+# 5. 参考文献与扩展阅读
 
 ### ⚪ Life-Long Deep Learning
 
@@ -646,3 +887,4 @@ $$
 
 
 
+<!-- 为这篇论文写一篇markdown格式的中文技术博客。首先给出TLDR（参考摘要和总结）；第一章进行背景介绍；第二章全面地介绍方法，结合公式进行说明；第三章介绍实验分析，详细地给出所有实验的结论和分析。要求对文中所有英文词进行加粗（** **），不要加粗中文。行内公式用$ $给出且不要加粗。背景介绍章节中不要出现口语化。不要用“我们”而是用“作者”。如果一个实验结果图有多个子图，则结论需要对应到每一个子图。 -->
