@@ -301,7 +301,7 @@ $$ \frac{\left(W^TW\right)^tu^{(0)}}{\lambda_1^t} = c_1v_1+c_2\left(\frac{\lambd
 
 即最大特征值对应的方向指数级地压倒其余方向。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -540,7 +540,7 @@ $$
 
 后者的好处是推理路径与不使用**Dropout**时完全相同，便于部署，也便于在训练中动态调整$p$。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -635,7 +635,7 @@ $$
 
 在实现上，可以先对**center mask**做**padding**，然后用**kernel_size**为**block_size**的最大池化把中心点膨胀为方块。最后将特征乘以**block mask**，并按“总元素数/保留元素数”做归一化以保持训练测试的一致性：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -883,7 +883,7 @@ $$
 \theta \leftarrow \theta - \eta \,\text{Clip} \left( \nabla_{\theta}f(\theta) , - \text{maxVal}, \text{maxVal} \right)
 $$
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -909,7 +909,7 @@ $$
 \text{grad}_i \leftarrow \text{grad}_i \times \min\left(1, \frac{\text{maxNorm}}{\text{totalNorm}}\right)
 $$
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -1070,7 +1070,7 @@ $$
 
 $$ \begin{aligned} KL\left[\mathcal{N}(\mu,\sigma^{2})||\mathcal{N}(0,1)\right] &= \frac{1}{2}  \left(-\log \sigma^2 + \mu^2+\sigma^2-1\right) \end{aligned} $$
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -1127,7 +1127,7 @@ $$
 
 注意当$r=0$时相当于向输入添加各向同性的高斯噪声；**VAT**通过$r \geq 1$次迭代把噪声“聚焦”到模型最脆弱的方向上，因此比随机噪声有效得多。实践中$r=1$就足够，每步的额外代价是一次前向和一次反向。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -1178,7 +1178,7 @@ $$
 
 实现只需一行代码：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python

@@ -245,7 +245,7 @@ y_{nd} &= \gamma \hat{x}_{nd} + \beta
 \end{aligned}
 $$
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -272,7 +272,7 @@ y_{nchw} &= \gamma \hat{x}_{nchw} + \beta
 \end{aligned}
 $$
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -289,7 +289,7 @@ torch.nn.BatchNorm2d(
 如果要实现类似 **BN** 滑动平均的操作，在 **forward** 函数中要使用原地（**inplace**）操作给滑动平均赋值。
 
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -333,7 +333,7 @@ $$
 \end{aligned}
 $$
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -479,7 +479,7 @@ $$
 
 超参数的取值：$k=1, \alpha=0.0001, \beta=0.75$。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -515,7 +515,7 @@ $$
 2. **LN**对同一个样本的所有特征进行相同的转换，如果不同输入特征含义不同（比如颜色和大小），那么**LN**的处理可能会降低模型的表达能力；
 3. **LN**假设同一层的所有**channel**对结果具有相似的贡献，而**CNN**中每个通道提取不同模式的特征，因此**LN**不适用于**CNN**。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -560,7 +560,7 @@ $$
 
 **RMSNorm**如今是大语言模型中**事实上的标准归一化层**：[LLaMA](https://arxiv.org/abs/2302.13971)采用**Pre-RMSNorm**之后，**LLaMA 2/3**、**Mistral**、**Qwen**、**Gemma**、**DeepSeek**等主流开源模型几乎全部沿用。原因有三：省掉求均值这一趟归约后，访存量与**kernel**数量都减少（归一化是**memory-bound**算子，这个收益在推理时相当可观）；只做缩放使它天然与残差流的“方向语义”一致；实证上去掉**re-center**没有任何性能损失。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -597,7 +597,7 @@ $$
 
 **IN**在风格迁移中格外有效的原因值得单独一提：单个样本单个通道的均值与方差恰好编码了图像的**风格**信息（而空间结构编码内容），因此把这组统计量抹掉就等于抹掉风格。这个观察直接催生了$2.4$节的**AdaIN**：既然$\mu,\sigma$携带风格，那么把它们替换成目标风格的统计量即可完成风格迁移。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -646,7 +646,7 @@ $$
 
 作者通过实验发现**GN**相比于**BN**更容易优化，但损失了一定的正则化能力。**GN**对不同**batch size**具有很好的鲁棒性，尤其适合**batch size**较小的计算机视觉任务中（如目标检测，分割）。**GN**的分组思想在传统视觉特征中早有先例：**SIFT**、**HOG**都是按**block**分组做直方图归一化的。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -843,7 +843,7 @@ $$
 
 **AdaIN**最漂亮的地方是它**完全没有可学习参数**：仿射参数直接取自风格图像特征的均值与标准差。这使得它可以处理**任意**（训练时未见过的）风格，突破了**CIN**风格数固定的限制。**StyleGAN**把这个机制反过来用：$\gamma,\beta$不再来自风格图像，而是由隐编码$w$经仿射层预测，从而实现了对生成图像不同尺度属性的解耦控制。
 
-<details>
+<details markdown="1">
   <summary>向网络中加入**AdaIN**层的参考代码实现</summary>
 
 ```python
@@ -928,7 +928,7 @@ $$
 
 向网络中加入**SPADE**层的参考代码实现：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -1126,7 +1126,7 @@ $$ v \leftarrow \frac{W^Tu}{||W^Tu||},\quad u \leftarrow \frac{Wv}{||Wv||},\quad
 
 幂迭代收敛的原因是：把初值在$A=W^TW$的特征向量基下展开$u^{(0)}=\sum_i c_iv_i$，迭代$t$步后$A^tu^{(0)}=\sum_i c_i\lambda_i^tv_i$，除以$\lambda_1^t$后除主特征向量外的所有项都按$(\lambda_i/\lambda_1)^t\to 0$衰减，因此$A^tu^{(0)}$的方向趋于主特征向量。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python

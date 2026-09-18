@@ -1438,7 +1438,7 @@ $$ \theta_{\text{SWA}} \leftarrow \frac{n \cdot \theta_{\text{SWA}}+\theta_i}{n+
 
 **PyTorch**在`torch.optim.swa_utils`中提供了实现：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python

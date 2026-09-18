@@ -271,7 +271,7 @@ $$ \mathop{\min}_{b} \mathop{\max}_{x} \left|\frac{1}{2}\left(x+\sqrt{x^2+b}\rig
 
 上式可以通过[<font color=Blue>非线性规划</font>](https://0809zheng.github.io/2021/08/23/minimize.html)求解：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -449,7 +449,7 @@ $$
 
 使用[<font color=Blue>sympy</font>](https://0809zheng.github.io/2021/09/01/solve.html)可以快速求解上述方程组：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python

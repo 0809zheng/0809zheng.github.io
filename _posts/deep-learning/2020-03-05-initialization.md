@@ -106,7 +106,7 @@ $$
 - 对于使用**ReLU**的神经元，也可以把偏置设为$0.01$等小正数，使神经元在训练初期更容易被激活；
 - 残差分支的**最后一层**权重（或其$\gamma$）初始化为$0$，反而是深层网络的最佳实践之一（见$2.4$节）。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -122,7 +122,7 @@ torch.nn.init.constant_(tensor, val) # 初始化为常数val
 
 **(1) 正态分布初始化**：使用$$\mathcal{N}(0,\sigma^2)$$采样。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -141,7 +141,7 @@ $$
 
 因此若要指定均值$\mu$与方差$\sigma^2$，对应的均匀分布为$$U(\mu-\sqrt{3}\sigma,\mu+\sqrt{3}\sigma)$$。这个换算关系在下文所有“均匀分布版本”的方差缩放初始化中反复出现。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -151,7 +151,7 @@ torch.nn.init.uniform_(tensor, a=0.0, b=1.0)
 
 **(3) 截尾正态分布初始化**：正态分布的采样结果更加多样化，但理论上无界，采样到绝对值过大的结果可能不利于优化；均匀分布有界，但采样结果通常更单一。**截尾正态分布(truncated normal)**结合两者优点：从$$\mathcal{N}(\mu,\sigma^2)$$采样并把数值截断在$[a,b]$内（通常取$\pm 2\sigma$）。**BERT**、**ViT**等模型的官方实现都使用截尾正态分布。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -171,7 +171,7 @@ $$
 
 其中$B$是与$W$同形状的二元掩码矩阵，其元素取$0$或$1$，且$1$的比例为$\rho$（实践中取$0.1$或$0.01$）。稀疏初始化最早用于**Hessian-free**优化与深层网络的预训练时代：当扇入很大时，随机初始化会让每个神经元接收成百上千个方向随机的小信号，其输出趋于“平均化”而缺乏区分度；只保留少量强连接反而能让每个神经元在初始时就具有清晰的特征选择性。它的缺点是被置零的连接在**ReLU**网络中可能长期得不到梯度。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -294,7 +294,7 @@ $$
 
 其中$g$是补偿激活函数的增益值（见下方讨论），无激活函数时$g=1$。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -329,7 +329,7 @@ $$
 
 使用[<font color=Blue>sympy</font>](https://0809zheng.github.io/2021/09/01/solve.html)库可以快速求解该方程：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -360,7 +360,7 @@ $$
 | Leaky ReLU（负斜率$\alpha$） | $$\sqrt{2/(1+\alpha^2)}$$ |
 | SELU | $$3/4$$ |
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -410,7 +410,7 @@ $$
 
 若采用正态分布，则$$\sigma = g\sqrt{2/n_{in}}$$；若采用均匀分布$U(-a,a)$，则$$a = g\sqrt{6/n_{in}}$$（推导同**Xavier**）。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -512,7 +512,7 @@ $$
 
 使用[<font color=Blue>sympy</font>](https://0809zheng.github.io/2021/09/01/solve.html)库求解：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -586,7 +586,7 @@ $$
 
 实现过程为：$1)$用标准高斯分布$$\mathcal{N}(0,1)$$初始化一个矩阵；$2)$对其做奇异值分解（或**QR**分解），取得到的正交矩阵作为权重。非方阵情形取半正交矩阵（行或列正交）。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -608,7 +608,7 @@ $$
 
 正交矩阵中最特殊的一个就是单位矩阵。**恒等初始化**把权重层初始化为单位矩阵，使网络层的输出与输入完全相等，各层之间的方差自然不会发生变化。
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -1210,7 +1210,7 @@ $$
 
 在**PyTorch**中，可以在定义网络时为每个模块（如卷积层、**BatchNorm**）指定初始化类型：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -1234,7 +1234,7 @@ class Model(nn.Module):
 
 也可以在实例化网络后，对其中的模块统一进行初始化：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
@@ -1265,7 +1265,7 @@ weights_init(model)
 
 若需要实现残差分支的零初始化（**Zero-$\gamma$**）与**GPT-2**式的残差缩放，只需在遍历模块时按名称筛选：
 
-<details>
+<details markdown="1">
   <summary>点击展开代码</summary>
 
 ```python
