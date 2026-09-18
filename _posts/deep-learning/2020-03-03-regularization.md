@@ -20,7 +20,7 @@ tags: 深度学习
    - 2.3 约束优化过程
    - 2.4 正则化方法之间的关系
 
-**符号约定**：全文用$\theta$表示模型的全体参数，用$w$表示参数向量、$W$表示参数矩阵（$W_l$为第$l$层的权重）；用$$\mathcal{L}$$表示损失函数（$$\mathcal{L}(x,y;\theta)$$为单样本损失，$$L(\theta)$$为数据集上的平均损失）；用$\lambda$表示正则化强度系数、$\eta$或$\alpha$表示学习率；用$N$表示样本数、$K$表示类别数、$L$表示网络层数；用$p$**统一表示"丢弃"概率**（保留概率为$1-p$）；用$$\|\cdot\|$$表示$L_2$范数，$$\|\cdot\|_F$$表示矩阵的**Frobenius**范数，$$\|\cdot\|_2$$在作用于矩阵时表示**谱范数**；用$\odot$表示逐元素乘法。
+**符号约定**：全文用$\theta$表示模型的全体参数，用$w$表示参数向量、$W$表示参数矩阵（$W_l$为第$l$层的权重）；用$$\mathcal{L}$$表示损失函数（$$\mathcal{L}(x,y;\theta)$$为单样本损失，$$L(\theta)$$为数据集上的平均损失）；用$\lambda$表示正则化强度系数、$\eta$或$\alpha$表示学习率；用$N$表示样本数、$K$表示类别数、$L$表示网络层数；用$p$**统一表示“丢弃”概率**（保留概率为$1-p$）；用$$\|\cdot\|$$表示$L_2$范数，$$\|\cdot\|_F$$表示矩阵的**Frobenius**范数，$$\|\cdot\|_2$$在作用于矩阵时表示**谱范数**；用$\odot$表示逐元素乘法。
 
 # 1. 什么是正则化
 
@@ -61,7 +61,7 @@ $$
 
 绝大多数正则化方法的作用机制都可以概括为：**以少量偏差的增加换取方差的显著下降**。这个视角也解释了为什么正则化过强反而有害：一旦偏差的增量超过方差的减量，泛化误差就会回升。
 
-需要注意的是，经典的"**U**型"偏差-方差曲线在深度学习中并不完整。[**双下降(double descent)**](https://arxiv.org/abs/1812.11118)现象表明，当模型容量继续增大越过插值阈值后，测试误差会**再次下降**，这也是“更大的模型往往泛化更好”的经验来源。
+需要注意的是，经典的“**U**型”偏差-方差曲线在深度学习中并不完整。[**双下降(double descent)**](https://arxiv.org/abs/1812.11118)现象表明，当模型容量继续增大越过插值阈值后，测试误差会**再次下降**，这也是“更大的模型往往泛化更好”的经验来源。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-regularization-019-double-descent.png)
 
@@ -159,7 +159,7 @@ $$
 w^{(t+1)} \leftarrow w^{(t)} - \alpha \frac{\hat{m}^{(t)}\left(\nabla_w L+2\lambda w^{(t)}\right)}{\sqrt{\hat{v}^{(t)}\left(\nabla_w L+2\lambda w^{(t)}\right)}+\epsilon}
 $$
 
-对于损失梯度较大的权重，$\sqrt{\hat v}$较大，其$L_2$惩罚项被缩得更小——**梯度大的权重反而被正则化得更弱**，这恰好与"惩罚大权重"的初衷相反。一个粗糙但直观的近似是：当$L_2$项主导二阶矩时，$2\lambda w/\sqrt{(2\lambda w)^2}=\text{sign}(w)$，即衰减变得与$\|w\|$无关：
+对于损失梯度较大的权重，$\sqrt{\hat v}$较大，其$L_2$惩罚项被缩得更小——**梯度大的权重反而被正则化得更弱**，这恰好与“惩罚大权重”的初衷相反。一个粗糙但直观的近似是：当$L_2$项主导二阶矩时，$2\lambda w/\sqrt{(2\lambda w)^2}=\text{sign}(w)$，即衰减变得与$\|w\|$无关：
 
 $$ w^{(t+1)} \leftarrow w^{(t)} -2\alpha \lambda \,\text{sign}(w^{(t)}) - \alpha \nabla_w L(w) $$
 
@@ -249,7 +249,7 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-regularization-002-l0-regularization.jpg)
 
-其中$\log \alpha$是位置参数（可学习），$\beta$是温度参数，$\beta \to 0$时$s$退化为伯努利分布；$\gamma < 0, \zeta > 1$把分布的取值区间拉伸到$[\gamma,\zeta]$，再用**hard-sigmoid**截断，从而让$z$**能够精确取到$0$和$1$**（这是"hard"的含义，也是真正产生稀疏的关键）。
+其中$\log \alpha$是位置参数（可学习），$\beta$是温度参数，$\beta \to 0$时$s$退化为伯努利分布；$\gamma < 0, \zeta > 1$把分布的取值区间拉伸到$[\gamma,\zeta]$，再用**hard-sigmoid**截断，从而让$z$**能够精确取到$0$和$1$**（这是“hard”的含义，也是真正产生稀疏的关键）。
 
 把上述分布代入$1-Q(\overline{s}\leq 0)$可以得到闭式解：
 
@@ -301,6 +301,9 @@ $$ \frac{\left(W^TW\right)^tu^{(0)}}{\lambda_1^t} = c_1v_1+c_2\left(\frac{\lambd
 
 即最大特征值对应的方向指数级地压倒其余方向。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 def spectral_norm(w, t=5):
     w = w.view(-1, w.shape[-1]) # [m, n]
@@ -312,6 +315,7 @@ def spectral_norm(w, t=5):
         u = u/torch.norm(u)
     return torch.sum(torch.mm(torch.mm(u, w), v.T))
 ```
+</details>
 
 谱正则化是**软约束**（加在损失里）；与之对应的**硬约束**做法是直接把权重除以其谱范数，即**谱归一化(spectral normalization)**，详见[<font color=Blue>深度学习中的归一化方法</font>](https://0809zheng.github.io/2020/03/04/normalization.html)。前者更灵活，后者对**Lipschitz**常数的控制更严格，是**GAN**判别器的标准配置。
 
@@ -329,7 +333,7 @@ $$ \left|\left| W^TW - I \right|\right|_F^2 $$
 
 $$ \left|\left|\left( W^TW - I\right)  \odot (1-I) \right|\right|_F^2 $$
 
-在$W$为"高瘦"矩阵（输出维度小于输入维度）时，还可以用**互相干性(mutual coherence)**或谱限制等距（**SRIP**，即$$\|W^TW-I\|_2$$的谱范数版本）作为更强的替代，实践中**SRIP**的表现通常最好。
+在$W$为“高瘦”矩阵（输出维度小于输入维度）时，还可以用**互相干性(mutual coherence)**或谱限制等距（**SRIP**，即$$\|W^TW-I\|_2$$的谱范数版本）作为更强的替代，实践中**SRIP**的表现通常最好。
 
 ### ⚪ 自正交性正则化 Self-Orthogonality Regularization
 
@@ -536,6 +540,9 @@ $$
 
 后者的好处是推理路径与不使用**Dropout**时完全相同，便于部署，也便于在训练中动态调整$p$。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 def dropout(x, level):
     if level < 0. or level >= 1:
@@ -546,6 +553,7 @@ def dropout(x, level):
     x /= retain_prob   # inverted dropout
     return x
 ```
+</details>
 
 从不同角度理解**Dropout**：
 
@@ -581,7 +589,7 @@ $$
 \tilde{h} = g\left(\left(M \odot W\right)x\right),\qquad M_{ij} \sim \text{Bernoulli}(1-p)
 $$
 
-**Dropout**相当于**DropConnect**的一个特例（丢弃某个神经元等于同时丢弃它的所有出边），因此**DropConnect**的子模型空间更大（$2^{\|W\|}$而非$2^n$），正则化更强。代价是无法直接用“权重缩放：做推理近似：作者的做法是注意到$$u = (M\odot W)x$$在随机掩码下近似服从高斯分布，用矩匹配求出其均值$$(1-p)Wx$$与方差$$p(1-p)(W\odot W)(x\odot x)$$，然后采样若干次$u$再取平均。这个额外开销是**DropConnect**在实践中不如**Dropout**流行的主要原因。
+**Dropout**相当于**DropConnect**的一个特例（丢弃某个神经元等于同时丢弃它的所有出边），因此**DropConnect**的子模型空间更大（$2^{\|W\|}$而非$2^n$），正则化更强。代价是无法直接用“权重缩放”做推理近似：作者的做法是注意到$$u = (M\odot W)x$$在随机掩码下近似服从高斯分布，用矩匹配求出其均值$$(1-p)Wx$$与方差$$p(1-p)(W\odot W)(x\odot x)$$，然后采样若干次$u$再取平均。这个额外开销是**DropConnect**在实践中不如**Dropout**流行的主要原因。
 
 #### ⚪ Spatial Dropout：按通道丢弃
 
@@ -589,7 +597,7 @@ $$
 
 标准**Dropout**作用在卷积特征图上效果很差，原因是相邻像素**高度相关**：即使某个位置被置零，它的信息仍然可以从邻居那里恢复，噪声几乎不起作用。
 
-**Spatial Dropout**（**PyTorch**中的`nn.Dropout2d`）把丢弃的单位从"像素"改为"整个通道"：对形状为$(N,C,H,W)$的特征图采样$(N,C,1,1)$的掩码，一个通道要么整体保留、要么整体置零。
+**Spatial Dropout**（**PyTorch**中的`nn.Dropout2d`）把丢弃的单位从“像素”改为“整个通道”：对形状为$(N,C,H,W)$的特征图采样$(N,C,1,1)$的掩码，一个通道要么整体保留、要么整体置零。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-regularization-006-spatial-dropout.jpg)
 
@@ -627,6 +635,9 @@ $$
 
 在实现上，可以先对**center mask**做**padding**，然后用**kernel_size**为**block_size**的最大池化把中心点膨胀为方块。最后将特征乘以**block mask**，并按“总元素数/保留元素数”做归一化以保持训练测试的一致性：
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 class DropBlock2d(nn.Module):
     def __init__(self, p: float, block_size: int) -> None:
@@ -652,6 +663,7 @@ class DropBlock2d(nn.Module):
         normalize_scale = mask.numel() / (1e-6 + mask.sum())
         return input * mask * normalize_scale
 ```
+</details>
 
 #### ⚪ Weighted Channel Dropout：按激活幅度加权地丢弃通道
 
@@ -871,11 +883,15 @@ $$
 \theta \leftarrow \theta - \eta \,\text{Clip} \left( \nabla_{\theta}f(\theta) , - \text{maxVal}, \text{maxVal} \right)
 $$
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 losses.backward()
 torch.nn.utils.clip_grad_value_(model.parameters(), clip_value)
 optimizer.step()
 ```
+</details>
 
 数值裁剪会**改变梯度方向**（不同分量被不同程度地压缩），因此一般不如范数裁剪常用。
 
@@ -893,6 +909,9 @@ $$
 \text{grad}_i \leftarrow \text{grad}_i \times \min\left(1, \frac{\text{maxNorm}}{\text{totalNorm}}\right)
 $$
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 losses.backward()
 torch.nn.utils.clip_grad_norm_(
@@ -903,6 +922,7 @@ torch.nn.utils.clip_grad_norm_(
 )
 optimizer.step()
 ```
+</details>
 
 范数裁剪保持梯度方向不变，是大模型训练的默认配置（常取$$\text{maxNorm}=1.0$$）。注意必须在`backward()`之后、`step()`之前调用；若使用混合精度训练，还需先对梯度做`unscale`。
 
@@ -1050,14 +1070,18 @@ $$
 
 $$ \begin{aligned} KL\left[\mathcal{N}(\mu,\sigma^{2})||\mathcal{N}(0,1)\right] &= \frac{1}{2}  \left(-\log \sigma^2 + \mu^2+\sigma^2-1\right) \end{aligned} $$
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 (mu, std), logit = self.model(x)
 class_loss = F.cross_entropy(logit, y)
 info_loss = -0.5*(1+2*std.log()-mu.pow(2)-std.pow(2)).sum(1).mean()
 total_loss = class_loss + self.lambd*info_loss
 ```
+</details>
 
-从噪声的视角看，**VIB**其实是"在隐层加高斯噪声"的一个有原则的版本：**KL**项迫使$\sigma$不能太小（噪声不能太弱）、$\mu$不能太大（信号不能太强），信噪比因此被显式地控制住。
+从噪声的视角看，**VIB**其实是“在隐层加高斯噪声”的一个有原则的版本：**KL**项迫使$\sigma$不能太小（噪声不能太弱）、$\mu$不能太大（信号不能太强），信噪比因此被显式地控制住。
 
 ### ⚪ 虚拟对抗训练 Virtual Adversarial Training
 
@@ -1103,6 +1127,9 @@ $$
 
 注意当$r=0$时相当于向输入添加各向同性的高斯噪声；**VAT**通过$r \geq 1$次迭代把噪声“聚焦”到模型最脆弱的方向上，因此比随机噪声有效得多。实践中$r=1$就足够，每步的额外代价是一次前向和一次反向。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 class VATLoss(nn.Module):
     def __init__(self, xi=10.0, eps=1.0, ip=1):
@@ -1125,6 +1152,7 @@ class VATLoss(nn.Module):
             lds = F.kl_div(logp_hat, pred, reduction='batchmean')
         return lds
 ```
+</details>
 
 注意实现中需要临时关闭**BatchNorm**的统计量更新，否则对抗样本会污染运行均值方差。
 
@@ -1150,9 +1178,13 @@ $$
 
 实现只需一行代码：
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 loss = (loss - b).abs() + b
 ```
+</details>
 
 当$$\mathcal{L}(\theta)>b$$时$$\tilde{\mathcal{L}}=\mathcal{L}$$，执行正常的梯度下降；当$$\mathcal{L}(\theta)<b$$时$$\tilde{\mathcal{L}}=2b-\mathcal{L}$$，损失变号，执行**梯度上升**。
 
@@ -1201,9 +1233,9 @@ $$
 
 **SAM**的两倍开销是它在大规模训练中最大的障碍，随后出现了一系列改进：
 
-- **ASAM**：[ASAM: Adaptive Sharpness-Aware Minimization for Scale-Invariant Learning of Deep Neural Networks](https://arxiv.org/abs/2102.11600)。**SAM**定义的"锐度"不是尺度不变的（对权重重新缩放会改变锐度但不改变函数）。**ASAM**用逐元素的归一化算子$$T_\theta = \text{diag}(\mid \theta \mid+\eta)$$重新定义邻域，使锐度对权重缩放不变：$$\hat\epsilon = \rho T_\theta^2\nabla\mathcal{L}/\|T_\theta\nabla\mathcal{L}\|$$。
+- **ASAM**：[ASAM: Adaptive Sharpness-Aware Minimization for Scale-Invariant Learning of Deep Neural Networks](https://arxiv.org/abs/2102.11600)。**SAM**定义的“锐度”不是尺度不变的（对权重重新缩放会改变锐度但不改变函数）。**ASAM**用逐元素的归一化算子$$T_\theta = \text{diag}(\mid \theta \mid+\eta)$$重新定义邻域，使锐度对权重缩放不变：$$\hat\epsilon = \rho T_\theta^2\nabla\mathcal{L}/\|T_\theta\nabla\mathcal{L}\|$$。
 - **ESAM**：[Efficient Sharpness-aware Minimization for Improved Training of Neural Networks](https://arxiv.org/abs/2110.03141)。用两个技巧降低开销：**随机权重扰动**（只扰动一部分权重）和**锐度敏感的数据选择**（只用对锐度贡献大的样本计算第二次梯度），把额外开销从$100\%$降到约$40\%$。
-- **LookSAM**：[Towards Efficient and Scalable Sharpness-Aware Minimization](https://arxiv.org/abs/2203.02714)。观察到**SAM**梯度中"垂直于普通梯度"的那个分量变化很慢，因此只需每$k$步（如$k=5$）计算一次完整的**SAM**梯度，中间步骤复用缓存的垂直分量，把平均开销摊薄到接近基线。
+- **LookSAM**：[Towards Efficient and Scalable Sharpness-Aware Minimization](https://arxiv.org/abs/2203.02714)。观察到**SAM**梯度中“垂直于普通梯度”的那个分量变化很慢，因此只需每$k$步（如$k=5$）计算一次完整的**SAM**梯度，中间步骤复用缓存的垂直分量，把平均开销摊薄到接近基线。
 - **GSAM**：[Surrogate Gap Minimization Improves Sharpness-Aware Training](https://arxiv.org/abs/2203.08065)。指出$$\max_\epsilon \mathcal{L}(\theta+\epsilon)$$在损失很小时未必反映锐度，改为同时最小化损失和“代理间隙”$$\max_\epsilon\mathcal{L}(\theta+\epsilon)-\mathcal{L}(\theta)$$。
 
 #### ⭐ 讨论：锐度与泛化的争论
@@ -1340,4 +1372,4 @@ $$
 
 **几乎所有正则化方法都在做同一件事：让模型落在损失曲面更平坦、函数对输入更光滑的区域**。它们的差别只在于：惩罚的是参数梯度还是输入梯度、用一阶还是二阶信息、是显式加在损失里还是隐式来自优化算法、是各向同性还是沿最坏方向。
 
-这个统一视角有很实际的价值：它解释了**为什么正则化方法之间常常是"重复"而非"叠加"的**。同时使用强$L_2$、强**Dropout**、强增强、**SAM**和**Flooding**，往往不会得到五份收益，而是过度正则化导致欠拟合。反过来，如果某个技巧在你的任务上没有效果，很可能是因为已有的配置中已经存在等价的正则化了。
+这个统一视角有很实际的价值：它解释了**为什么正则化方法之间常常是“重复”而非“叠加”的**。同时使用强$L_2$、强**Dropout**、强增强、**SAM**和**Flooding**，往往不会得到五份收益，而是过度正则化导致欠拟合。反过来，如果某个技巧在你的任务上没有效果，很可能是因为已有的配置中已经存在等价的正则化了。

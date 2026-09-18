@@ -341,7 +341,7 @@ m_t &= \beta_1 m_{t-1} + (1-\beta_1)g_t \\
 \end{aligned}
 $$
 
-符号化有三个后果：一是通信量可以压缩到$1$比特，天然适合分布式训练；二是它可以看作一种极端的自适应学习率（等价于用$\|g_t\|$归一化梯度），因此对梯度尺度完全不敏感；三是符号化引入了额外的噪声，倾向于把模型推向更平坦的区域。**Signum**是理解2.3节中**Lion**的关键前身：**Lion**基本上就是"**Signum** + 解耦权重衰减 + 两个不同的$\beta$"。
+符号化有三个后果：一是通信量可以压缩到$1$比特，天然适合分布式训练；二是它可以看作一种极端的自适应学习率（等价于用$\|g_t\|$归一化梯度），因此对梯度尺度完全不敏感；三是符号化引入了额外的噪声，倾向于把模型推向更平坦的区域。**Signum**是理解2.3节中**Lion**的关键前身：**Lion**基本上就是“**Signum** + 解耦权重衰减 + 两个不同的$\beta$”。
 
 
 
@@ -374,7 +374,7 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-010-rprop.jpg)
 
-**RProp**对参数初始化和梯度尺度都不敏感，且几乎不需要调超参数。但它有一个致命限制：符号比较要求梯度是**确定性**的，因此它只适用于全量梯度下降。在小批量训练中相邻两步的梯度符号变化主要由采样噪声决定，**RProp**会失效；**RMSProp**正是为了把**RProp**"改造成可用于小批量"而提出的。
+**RProp**对参数初始化和梯度尺度都不敏感，且几乎不需要调超参数。但它有一个致命限制：符号比较要求梯度是**确定性**的，因此它只适用于全量梯度下降。在小批量训练中相邻两步的梯度符号变化主要由采样噪声决定，**RProp**会失效；**RMSProp**正是为了把**RProp**“改造成可用于小批量”而提出的。
 
 ### ⚪ AdaGrad：累积平方梯度
 
@@ -515,7 +515,7 @@ $$
 \end{aligned}
 $$
 
-即"在损失里加**L2**项"与"每步把参数乘以$(1-\lambda)$"是同一件事，这正是权重衰减这一名称的来源。
+即“在损失里加**L2**项”与“每步把参数乘以$(1-\lambda)$”是同一件事，这正是权重衰减这一名称的来源。
 
 然而这种等价性在自适应梯度算法中**不成立**：**Adam**用二阶矩对更新量进行缩放，因此**L2**正则化项的梯度$\lambda\theta$也会被$\sqrt{\hat v_t}$缩放——梯度大的权重，其正则化强度反而被缩小了，这与权重衰减“所有权重以相同比例收缩”的意图完全相反。**AdamW**把权重衰减从梯度更新过程中解耦出来，直接作用在参数上：
 
@@ -709,7 +709,7 @@ $$
 \end{aligned}
 $$
 
-即学习率与权重衰减都采用**逆时间衰减(inverse time decay)**。这里$\alpha_0$是全局相对更新幅度（一般取$10^{-3}$），$q=1$，而$\|\|\epsilon_0\|\|=\|\|\theta_0-\theta^{\*}\|\|$代表参数的变化尺度：若参数按$0$均值、$\sigma^2$方差初始化，则对$\theta \in \Bbb{R}^k$有$\|\|\epsilon_0\|\|^2\approx k\sigma^2$（训练前后参数的整体尺度不会剧烈变化）；对全零或全一初始化的参数（偏置、归一化层的**rescale/reshift**）可取$\sigma=0.5$。**Amos**的意义在于它把"学习率调度"从超参数搜索问题变成了一个可以由**模型结构与初始化**推算出来的量。
+即学习率与权重衰减都采用**逆时间衰减(inverse time decay)**。这里$\alpha_0$是全局相对更新幅度（一般取$10^{-3}$），$q=1$，而$\|\|\epsilon_0\|\|=\|\|\theta_0-\theta^{\*}\|\|$代表参数的变化尺度：若参数按$0$均值、$\sigma^2$方差初始化，则对$\theta \in \Bbb{R}^k$有$\|\|\epsilon_0\|\|^2\approx k\sigma^2$（训练前后参数的整体尺度不会剧烈变化）；对全零或全一初始化的参数（偏置、归一化层的**rescale/reshift**）可取$\sigma=0.5$。**Amos**的意义在于它把“学习率调度”从超参数搜索问题变成了一个可以由**模型结构与初始化**推算出来的量。
 
 ### ⚪ Lion：自动搜索出的符号动量优化器
 
@@ -752,7 +752,7 @@ $$
 
 - [A Simple Convergence Proof of Adam and Adagrad](https://arxiv.org/abs/2003.02395)：在有界梯度与光滑性假设下，只要$\beta_2$随问题恰当选取，**Adam**（含偏差修正）在非凸光滑目标上具有$O(\log T/\sqrt{T})$的梯度范数收敛速率。
 - [Adam Can Converge Without Any Modification On Update Rules](https://arxiv.org/abs/2208.09632)：**AMSGrad**的反例本质上是**先给定$\beta_2$再构造问题**。反过来，对任意固定问题，只要$\beta_2$**足够大**，**Adam**就能收敛；存在一个明确的$\beta_2$分界线。这解释了为什么实践中$\beta_2=0.999$几乎从不出问题，而在梯度分布重尾的大模型训练里偶尔需要把$\beta_2$调到$0.95$以下时反而容易出现损失尖峰；两者是同一个现象的两端。
-- [Why Transformers Need Adam: A Hessian Perspective](https://arxiv.org/abs/2402.16788)：从**Hessian**谱的角度解释了为什么**Transformer**上**SGD**远不如**Adam**：不同参数块（**Attention**、**MLP**、**Embedding**、**LayerNorm**）的**Hessian**谱差异极大（"块异质性"），单一学习率无法同时适配，而**Adam**的逐坐标缩放天然处理了这一点。
+- [Why Transformers Need Adam: A Hessian Perspective](https://arxiv.org/abs/2402.16788)：从**Hessian**谱的角度解释了为什么**Transformer**上**SGD**远不如**Adam**：不同参数块（**Attention**、**MLP**、**Embedding**、**LayerNorm**）的**Hessian**谱差异极大（“块异质性”），单一学习率无法同时适配，而**Adam**的逐坐标缩放天然处理了这一点。
 
 实践结论是：**Adam/AdamW**的收敛性在深度学习中不是一个真实的痛点，$\beta_2$与$\epsilon$才是需要关注的旋钮。
 
@@ -800,7 +800,7 @@ $$ F^{(i)} \approx A^{(i-1)} \otimes G^{(i)}, \quad A^{(i-1)}=\Bbb{E}\left[a^{(i
 
 $$ \Delta W^{(i)} = {G^{(i)}}^{-1}\left(\nabla_{W^{(i)}}L\right){A^{(i-1)}}^{-1} $$
 
-若第$i$层的权重是$m\times n$的，则只需存储$m\times m$与$n\times n$的两个因子，把$O(m^2n^2)$降到$O(m^2+n^2)$。逆矩阵每隔若干步才重算一次以摊销开销。**K-FAC**是"矩阵型预条件在深度学习中可行"的第一个有力证据。
+若第$i$层的权重是$m\times n$的，则只需存储$m\times m$与$n\times n$的两个因子，把$O(m^2n^2)$降到$O(m^2+n^2)$。逆矩阵每隔若干步才重算一次以摊销开销。**K-FAC**是“矩阵型预条件在深度学习中可行”的第一个有力证据。
 
 ### ⚪ PSGD：在李群上拟合预条件矩阵
 
@@ -916,7 +916,7 @@ $$
 
 其中 $\|\cdot\|_*$ 是核范数（谱范数的对偶范数）。等号在 $U^\top O V = -I$，即 $O = -UV^\top$ 时取得。因此谱范数下的最速下降方向恰好是 $-UV^\top = -\text{mSign}(m_t)$，正是**Muon**的更新方向。这也解释了为什么更新的**RMS**依赖矩阵形状、需要按 $\sqrt{\max(m,n)}$ 一类因子重新缩放：谱范数最速下降给出的单位是“谱范数为 $1$”，而非逐元素的**RMS**为 $1$。
 
-关键的工程细节：精确**SVD**太慢，因此用五次**Newton-Schulz**迭代$X \leftarrow aX+b\,XX^\top X+c\left(XX^\top\right)^2X$在**bfloat16**下近似（系数经过调优，允许奇异值只收敛到$[0.7,1.3]$区间内，实践中足够）。**Muon只用于二维隐藏层权重**；标量与向量参数（偏置、归一化层的增益）、嵌入层与输出头仍然使用**AdamW**，因为这些参数的"矩阵结构"并不对应线性映射。
+关键的工程细节：精确**SVD**太慢，因此用五次**Newton-Schulz**迭代$X \leftarrow aX+b\,XX^\top X+c\left(XX^\top\right)^2X$在**bfloat16**下近似（系数经过调优，允许奇异值只收敛到$[0.7,1.3]$区间内，实践中足够）。**Muon只用于二维隐藏层权重**；标量与向量参数（偏置、归一化层的增益）、嵌入层与输出头仍然使用**AdamW**，因为这些参数的“矩阵结构”并不对应线性映射。
 
 **Muon**的额外显存只有一组动量（与**SGD-M**相同，是**AdamW**的一半），却在同等**FLOPs**下显著优于**AdamW**；[Muon is Scalable for LLM Training](https://arxiv.org/abs/2502.16982)进一步验证了它在数十亿参数规模上的有效性（需要配合权重衰减与逐参数更新尺度调整）。
 
@@ -1002,7 +1002,7 @@ u_t&= \frac{g_t}{\sqrt{\hat{v}_t}} \\
 \end{aligned}
 $$
 
-其中分母只在$\text{RMS}(u_t)$超过阈值$d$时才生效（缺省$d=1$）。此时学习率$\gamma$的含义变成"相对更新比例"，因此**Adafactor**可以使用与模型规模无关的**相对步长**。
+其中分母只在$\text{RMS}(u_t)$超过阈值$d$时才生效（缺省$d=1$）。此时学习率$\gamma$的含义变成“相对更新比例”，因此**Adafactor**可以使用与模型规模无关的**相对步长**。
 
 综合以上四点即为**Adafactor**：
 
@@ -1017,7 +1017,7 @@ u_t &= \frac{g_t}{\sqrt{\hat{v}_t}}, \quad \hat{u}_t = u_t \frac{\max\left(\epsi
 \end{aligned}
 $$
 
-**关于Adafactor在大模型训练中的实际用法**，有几点值得说明：**T5**采用了完整配置（无动量、因子化二阶矩、相对步长、更新量裁剪$d=1$），代价是相比**AdamW**有可观的精度损失；**PaLM**则采用了"**Adafactor without factorization**"，即保留$\beta_1=0.9$的动量和完整的$v_t$，只借用了参数尺度自适应与更新量裁剪，这实际上是"**AdamW** + 参数尺度化学习率"，说明**Adafactor**贡献最大的部分未必是低秩分解。如今在超大模型上，低秩分解带来的显存收益常常被**ZeRO**/张量并行等分布式切分手段以更无损的方式取代，但**Adafactor**的更新量裁剪与相对步长仍被广泛沿用。
+**关于Adafactor在大模型训练中的实际用法**，有几点值得说明：**T5**采用了完整配置（无动量、因子化二阶矩、相对步长、更新量裁剪$d=1$），代价是相比**AdamW**有可观的精度损失；**PaLM**则采用了“**Adafactor without factorization**”，即保留$\beta_1=0.9$的动量和完整的$v_t$，只借用了参数尺度自适应与更新量裁剪，这实际上是“**AdamW** + 参数尺度化学习率”，说明**Adafactor**贡献最大的部分未必是低秩分解。如今在超大模型上，低秩分解带来的显存收益常常被**ZeRO**/张量并行等分布式切分手段以更无损的方式取代，但**Adafactor**的更新量裁剪与相对步长仍被广泛沿用。
 
 ### ⚪ SM3：用集合共享二阶矩
 
@@ -1141,7 +1141,7 @@ m_t^{(i)} &= \beta_1 m_{t-1}^{(i)} + \left(\frac{g_t^{(i)}}{\sqrt{v_t^{(i)}}+\ep
 \end{aligned}
 $$
 
-初始化为$v_1^{(i)}=\|\|g_1^{(i)}\|\|^2$、$m_1^{(i)}=\frac{g_1^{(i)}}{\sqrt{v_1^{(i)}}}+\lambda \theta_1^{(i)}$以消除偏差。先归一化再累积动量的好处是：极端的梯度"异常值"在进入动量之前就被压缩了，因此不会污染后续多步的更新。**NovoGrad**的显存占用只有**Adam**的一半（二阶矩退化为$L$个标量），对学习率与初始化的选择也更鲁棒。
+初始化为$v_1^{(i)}=\|\|g_1^{(i)}\|\|^2$、$m_1^{(i)}=\frac{g_1^{(i)}}{\sqrt{v_1^{(i)}}}+\lambda \theta_1^{(i)}$以消除偏差。先归一化再累积动量的好处是：极端的梯度“异常值”在进入动量之前就被压缩了，因此不会污染后续多步的更新。**NovoGrad**的显存占用只有**Adam**的一半（二阶矩退化为$L$个标量），对学习率与初始化的选择也更鲁棒。
 
 
 ## 2.7 免调参与步长自适应
@@ -1210,7 +1210,7 @@ $$
 
 **D-Adaptation**的下界$\hat d_t$增长偏慢，导致训练初期步长过小、浪费预算。**Prodigy**保持整个框架不变，但修改$\hat d$的估计方式：分子直接累积$\lambda_i\langle g_i, \theta_0-\theta_{i-1}\rangle$（去掉那个使估计变保守的负项），分母改用$\|\|s_t\|\|_1$，并在$\lambda_i$的权重中额外乘入$d_i$。
 
-论文证明这些改动使收敛速率相比**D-Adaptation**改善了$O\left(\sqrt{\log(D/d_0)}\right)$倍（其中$d_0$是$d$的初值），实践上使$d_t$逼近$D$的速度快出一个量级。**Prodigy**（配合**AdamW**基座）是目前"开箱即用、不调学习率"这一路线中最实用的选择，在扩散模型微调等社区场景中被广泛使用。
+论文证明这些改动使收敛速率相比**D-Adaptation**改善了$O\left(\sqrt{\log(D/d_0)}\right)$倍（其中$d_0$是$d$的初值），实践上使$d_t$逼近$D$的速度快出一个量级。**Prodigy**（配合**AdamW**基座）是目前“开箱即用、不调学习率”这一路线中最实用的选择，在扩散模型微调等社区场景中被广泛使用。
 
 ### ⚪ Schedule-Free：用平均代替调度
 
@@ -1234,7 +1234,7 @@ $$
 
 - paper：[ScheduleFree+: Scaling Learning-Rate-Free & Schedule-Free Learning to Large Language Models](https://arxiv.org/abs/2605.19095)
 
-朴素的**Schedule-Free**在大语言模型的训练规模上会失效：在**大批量**下发散，且它与**权重衰减**的相互作用会引起梯度范数漂移、权重范数持续收缩，从而破坏长时训练的稳定性。**ScheduleFree+**保持"用平均代替调度"的核心不变，针对这些问题做了若干工程化修正，使这条免调参路线能扩展到十亿参数级别的**LLM**：
+朴素的**Schedule-Free**在大语言模型的训练规模上会失效：在**大批量**下发散，且它与**权重衰减**的相互作用会引起梯度范数漂移、权重范数持续收缩，从而破坏长时训练的稳定性。**ScheduleFree+**保持“用平均代替调度”的核心不变，针对这些问题做了若干工程化修正，使这条免调参路线能扩展到十亿参数级别的**LLM**：
 
 - **重新引入内层动量**：朴素**Schedule-Free**去掉了动量，**ScheduleFree+**在基础序列$z$上恢复动量（$\beta_1\approx 0.75$），以抑制大批量下的方差。
 - **梯度范数倒数加权**：把迭代平均的权重取为$\gamma_t \propto 1/\|\|g_t\|\|_1$，让梯度范数大的步少贡献于平均，缓解范数漂移。
@@ -1262,7 +1262,7 @@ $$
 
 $$ g(\theta) = \left(\nabla_{\theta} L(\theta)\cdot v\right) v, \quad v \sim \mathcal{N}(0,I) $$
 
-即把标量的方向导数$\nabla_{\theta}L(\theta)\cdot v = \sum_{i}\frac{\partial L}{\partial \theta_i}v_i$按权重向量$v$"归还"给每个参数分量。
+即把标量的方向导数$\nabla_{\theta}L(\theta)\cdot v = \sum_{i}\frac{\partial L}{\partial \theta_i}v_i$按权重向量$v$“归还”给每个参数分量。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-019-forward-gradient.jpg)
 
@@ -1270,7 +1270,7 @@ $$ g(\theta) = \left(\nabla_{\theta} L(\theta)\cdot v\right) v, \quad v \sim \ma
 
 $$ \Bbb{E}[g_i(\theta)] = \frac{\partial L}{\partial \theta_i} \quad \Rightarrow \quad \Bbb{E}[g(\theta)] = \nabla_{\theta} L(\theta) $$
 
-用它替代反向传播的梯度即得**前向梯度下降(forward gradient descent, FGD)**。需要清醒认识到它的局限：无偏但**方差随参数维度$n$线性增长**，因此在真实规模的网络上单次前向梯度的信噪比极低。它在小模型上的加速（约$2$倍）无法直接外推，目前主要价值在于理论意义与"生物可实现性"的讨论。
+用它替代反向传播的梯度即得**前向梯度下降(forward gradient descent, FGD)**。需要清醒认识到它的局限：无偏但**方差随参数维度$n$线性增长**，因此在真实规模的网络上单次前向梯度的信噪比极低。它在小模型上的加速（约$2$倍）无法直接外推，目前主要价值在于理论意义与“生物可实现性”的讨论。
 
 ### ⚪ 零阶优化
 
@@ -1346,7 +1346,7 @@ $$ ||\nabla^2 L(\theta)|| \leq L_0 + L_1||\nabla L(\theta)|| $$
 
 即曲率随梯度大小增长。在这一假设下，固定步长的梯度下降必须用最坏情况的曲率来选步长（因此极慢），而**裁剪后的梯度下降可以达到显著更快的收敛速率**；这解释了为什么裁剪不仅防止发散，还能加速训练。
 
-**自适应梯度裁剪(AGC)**由[High-Performance Large-Scale Image Recognition Without Normalization](https://arxiv.org/abs/2102.06171)提出，它逐层按“梯度范数与参数范数之比“裁剪（与2.6节**LARS**的思想同源），是**NFNet**得以在无**BatchNorm**的情况下稳定训练大批量的关键。关于梯度裁剪与归一化层的关系可参考[<font color=Blue>深度学习中的归一化方法</font>](https://0809zheng.github.io/2020/03/04/normalization.html)。
+**自适应梯度裁剪(AGC)**由[High-Performance Large-Scale Image Recognition Without Normalization](https://arxiv.org/abs/2102.06171)提出，它逐层按“梯度范数与参数范数之比”裁剪（与2.6节**LARS**的思想同源），是**NFNet**得以在无**BatchNorm**的情况下稳定训练大批量的关键。关于梯度裁剪与归一化层的关系可参考[<font color=Blue>深度学习中的归一化方法</font>](https://0809zheng.github.io/2020/03/04/normalization.html)。
 
 ## (3) 批量大小与学习率的关系
 
@@ -1368,7 +1368,7 @@ $$ \hat{\theta}_{t+1} = \theta_t - \hat{\gamma} \frac{1}{kB}\sum_{j<k}\sum_{x \i
 
 在实现分布式训练时，有几个容易出错的细节：
 
-- **权重衰减**：梯度更新中权重衰减项$\gamma\lambda\theta_t$与批量无关。由于对学习率的缩放等价于对损失的缩放，而权重衰减项不参与批量平均，因此"缩放学习率"与"缩放损失函数"在使用权重衰减时**不再等价**，必须分别处理。
+- **权重衰减**：梯度更新中权重衰减项$\gamma\lambda\theta_t$与批量无关。由于对学习率的缩放等价于对损失的缩放，而权重衰减项不参与批量平均，因此“缩放学习率”与“缩放损失函数”在使用权重衰减时**不再等价**，必须分别处理。
 - **梯度聚合**：$k$个设备的梯度必须求**平均**而非求和。一个简洁的做法是把$1/k$放进每个设备的损失里（即用$\frac{1}{kB}$而不是$\frac{1}{B}$做归一化），这样只需对分布式梯度求和。
 - **数据打乱**：每个**epoch**都应对整个数据集重新打乱，再划分给$k$个设备，而不是让每个设备固定持有一个数据分片。
 - **动量修正**：动量有两种等价写法，$h_t = \mu h_{t-1}+ g_t;\ \theta_t = \theta_{t-1} - \gamma_t h_t$（动量与学习率无关）与$v_t = \mu v_{t-1}+ \gamma_t g_t;\ \theta_t = \theta_{t-1} - v_t$（学习率被吸收进动量）。当学习率随时间变化时，后者必须引入**动量修正**因子$\gamma_{t}/\gamma_{t-1}$：
@@ -1402,7 +1402,7 @@ $$ \sigma_{\text{noise}} = \gamma\left(\frac{N}{B}-1\right) $$
 
 - 存在一个**临界批量**$B_{\text{crit}}$：小于它时，增大批量几乎线性地减少所需的更新步数（完美的数据并行）；大于它时收益迅速饱和，只是在浪费算力。$B_{\text{crit}}$由梯度噪声尺度决定，与模型规模、任务难度和训练阶段相关（训练后期梯度噪声更大，$B_{\text{crit}}$更大），详见[An Empirical Model of Large-Batch Training](https://arxiv.org/abs/1812.06162)。
 - 线性缩放律$\gamma \propto B$在$B<B_{\text{crit}}$的范围内是可靠的，但需要配合warmup，且在$B$很大时会失效（此时最优学习率不再随$B$增长，反而需要回调）；对**Adam**族这类自适应方法，由于更新量已被$\sqrt{v_t}$归一化，经验上$\gamma \propto \sqrt{B}$比线性缩放更稳。
-- 学习率衰减与增大批量在"降低梯度噪声尺度"这一点上是**等价**的，因此二者只需选其一为主：受显存与并行度限制时用学习率衰减，追求墙上时间时用增大批量（或梯度累积的反向操作：减少累积步数）。
+- 学习率衰减与增大批量在“降低梯度噪声尺度”这一点上是**等价**的，因此二者只需选其一为主：受显存与并行度限制时用学习率衰减，追求墙上时间时用增大批量（或梯度累积的反向操作：减少累积步数）。
 - 实践建议：先用能吃满显存的批量作为起点，按线性/平方根缩放律外推学习率并加$5\%\sim10\%$步数的warmup；如果增大批量后精度掉了，优先怀疑学习率没有相应放大、warmup太短、或权重衰减/正则强度没有随更新次数减少而调整。
  
 # 4. 与优化器正交的训练技巧
@@ -1438,6 +1438,9 @@ $$ \theta_{\text{SWA}} \leftarrow \frac{n \cdot \theta_{\text{SWA}}+\theta_i}{n+
 
 **PyTorch**在`torch.optim.swa_utils`中提供了实现：
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 from torch.optim.swa_utils import AveragedModel, SWALR, update_bn
 
@@ -1457,6 +1460,7 @@ for epoch in range(epochs):
 
 update_bn(loader, swa_model)                        # 重新估计BatchNorm统计量
 ```
+</details>
 
 ### ⚪ EMA：权重的指数滑动平均
 
@@ -1474,7 +1478,7 @@ $$ \theta_{\text{EMA}} \leftarrow \beta\theta_{\text{EMA}}+(1-\beta)\theta_t $$
 
 - paper：[Lookahead Optimizer: k steps forward, 1 step back](https://arxiv.org/abs/1907.08610)
 
-**Lookahead**与"自适应学习率"、"动量"这两类改进是正交的，可以套在任意优化算法$A$的外面。它维护两组权重：**慢权重(slow weight)** $\phi$与**快权重(fast weight)** $\theta$。第$t$轮先把快权重初始化为上一轮的慢权重$\theta_{t,0}=\phi_{t-1}$，用$A$更新$k$次；随后慢权重朝最终快权重的方向做一次线性插值：
+**Lookahead**与“自适应学习率”、“动量”这两类改进是正交的，可以套在任意优化算法$A$的外面。它维护两组权重：**慢权重(slow weight)** $\phi$与**快权重(fast weight)** $\theta$。第$t$轮先把快权重初始化为上一轮的慢权重$\theta_{t,0}=\phi_{t-1}$，用$A$更新$k$次；随后慢权重朝最终快权重的方向做一次线性插值：
 
 $$
 \begin{aligned}
@@ -1493,7 +1497,7 @@ $$
 \end{aligned}
 $$
 
-因此**Lookahead**与**EMA**的关键区别是：它不仅平均权重，还把平均结果**写回**优化轨迹，让后续探索从平滑后的点重新出发。当快权重沿低曲率方向来回振荡时，慢权重的插值把振荡"剪掉"，从而在保留探索能力的同时降低了优化器的方差。下图是在**CIFAR-100**上优化**ResNet-32**时两组权重的轨迹：快权重在极小值附近探索，慢权重的一次更新把参数推向测试精度更高的区域。
+因此**Lookahead**与**EMA**的关键区别是：它不仅平均权重，还把平均结果**写回**优化轨迹，让后续探索从平滑后的点重新出发。当快权重沿低曲率方向来回振荡时，慢权重的插值把振荡“剪掉”，从而在保留探索能力的同时降低了优化器的方差。下图是在**CIFAR-100**上优化**ResNet-32**时两组权重的轨迹：快权重在极小值附近探索，慢权重的一次更新把参数推向测试精度更高的区域。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-025-lookahead.jpg)
 
@@ -1505,7 +1509,7 @@ $$
 
 - paper：[Faster Neural Network Training with Data Echoing](https://arxiv.org/abs/1907.05550)
 
-前面讨论的都是"拿到一个批量之后如何更新参数"，但真实训练中每一步的墙上时间往往并不由参数更新决定。典型的训练流水线是：读取数据并张量化$\to$打乱$\to$数据增强$\to$取出一个批量$\to$梯度更新。其中前几步（**upstream**）在**CPU**上执行，最后一步（**downstream**）在**GPU/TPU**上执行；随着加速器越来越快，预处理反而成为瓶颈，加速器有相当比例的时间在空转。
+前面讨论的都是“拿到一个批量之后如何更新参数”，但真实训练中每一步的墙上时间往往并不由参数更新决定。典型的训练流水线是：读取数据并张量化$\to$打乱$\to$数据增强$\to$取出一个批量$\to$梯度更新。其中前几步（**upstream**）在**CPU**上执行，最后一步（**downstream**）在**GPU/TPU**上执行；随着加速器越来越快，预处理反而成为瓶颈，加速器有相当比例的时间在空转。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-optimization-026-data-echoing.jpg)
 

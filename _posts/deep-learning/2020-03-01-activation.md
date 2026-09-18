@@ -271,6 +271,9 @@ $$ \mathop{\min}_{b} \mathop{\max}_{x} \left|\frac{1}{2}\left(x+\sqrt{x^2+b}\rig
 
 上式可以通过[<font color=Blue>非线性规划</font>](https://0809zheng.github.io/2021/08/23/minimize.html)求解：
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 import numpy as np
 from scipy.optimize import minimize
@@ -285,6 +288,7 @@ options = {'xtol': 1e-10, 'ftol': 1e-10, 'maxiter': 100000}
 result = minimize(g, 0, method='Powell', options=options)
 print(result.x) # [1.52382104]
 ```
+</details>
 
 注意到**Squareplus**和**Softplus**都是**ReLU**的上界；如果进一步希望**Squareplus**是**Softplus**的上界，则应有：
 
@@ -445,6 +449,9 @@ $$
 
 使用[<font color=Blue>sympy</font>](https://0809zheng.github.io/2021/09/01/solve.html)可以快速求解上述方程组：
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 import sympy
 from sympy import Symbol, nsolve, integrate
@@ -461,6 +468,7 @@ fn2 = a**2*l**2/sympy.sqrt(2*sympy.pi)*int3 + l**2/sympy.sqrt(2*sympy.pi)*int4 -
 z = nsolve([fn1,fn2], [a,l], [1,1])
 print(z) # Matrix([[1.67326324235438], [1.05070098735548]])
 ```
+</details>
 
 即$\alpha=1.6732632423543772$，$\lambda=1.0507009873554805$。
 

@@ -106,11 +106,15 @@ $$
 - 对于使用**ReLU**的神经元，也可以把偏置设为$0.01$等小正数，使神经元在训练初期更容易被激活；
 - 残差分支的**最后一层**权重（或其$\gamma$）初始化为$0$，反而是深层网络的最佳实践之一（见$2.4$节）。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.init.zeros_(tensor)         # 初始化为0
 torch.nn.init.ones_(tensor)          # 初始化为1
 torch.nn.init.constant_(tensor, val) # 初始化为常数val
 ```
+</details>
 
 ### ⚪ 随机正态与随机均匀初始化
 
@@ -118,9 +122,13 @@ torch.nn.init.constant_(tensor, val) # 初始化为常数val
 
 **(1) 正态分布初始化**：使用$$\mathcal{N}(0,\sigma^2)$$采样。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.init.normal_(tensor, mean=0.0, std=1.0)
 ```
+</details>
 
 **(2) 均匀分布初始化**：使用$U(a,b)$采样，其均值$\mu$与方差$\sigma^2$满足
 
@@ -133,15 +141,23 @@ $$
 
 因此若要指定均值$\mu$与方差$\sigma^2$，对应的均匀分布为$$U(\mu-\sqrt{3}\sigma,\mu+\sqrt{3}\sigma)$$。这个换算关系在下文所有“均匀分布版本”的方差缩放初始化中反复出现。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.init.uniform_(tensor, a=0.0, b=1.0)
 ```
+</details>
 
 **(3) 截尾正态分布初始化**：正态分布的采样结果更加多样化，但理论上无界，采样到绝对值过大的结果可能不利于优化；均匀分布有界，但采样结果通常更单一。**截尾正态分布(truncated normal)**结合两者优点：从$$\mathcal{N}(\mu,\sigma^2)$$采样并把数值截断在$[a,b]$内（通常取$\pm 2\sigma$）。**BERT**、**ViT**等模型的官方实现都使用截尾正态分布。
+
+<details>
+  <summary>点击展开代码</summary>
 
 ```python
 torch.nn.init.trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0)
 ```
+</details>
 
 ### ⚪ 稀疏初始化 Sparse Initialization
 
@@ -155,16 +171,20 @@ $$
 
 其中$B$是与$W$同形状的二元掩码矩阵，其元素取$0$或$1$，且$1$的比例为$\rho$（实践中取$0.1$或$0.01$）。稀疏初始化最早用于**Hessian-free**优化与深层网络的预训练时代：当扇入很大时，随机初始化会让每个神经元接收成百上千个方向随机的小信号，其输出趋于“平均化”而缺乏区分度；只保留少量强连接反而能让每个神经元在初始时就具有清晰的特征选择性。它的缺点是被置零的连接在**ReLU**网络中可能长期得不到梯度。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.init.sparse_(tensor, sparsity, std=0.01)
 ```
+</details>
 
 ### ⚪ 偏置的初始化惯例
 
 偏置的默认选择是$0$，但在若干场景下有意设置一个非零偏置能显著改善训练初期的行为。这类技巧成本极低、收益明确，却经常被忽略：
 
 - **LSTM的遗忘门偏置**：初始化为$1$或$2$（而非$0$）。遗忘门经过**Sigmoid**后接近$1$，使记忆单元在初始时倾向于**保留**历史状态，时序上的梯度因而更容易传播到远处。这一技巧由[Learning to Forget](https://direct.mit.edu/neco/article/12/10/2451/6415)提出，并被[An Empirical Exploration of Recurrent Network Architectures](http://proceedings.mlr.press/v37/jozefowicz15.html)确认为最有效的**LSTM**改动之一。
-- **检测头的先验偏置**：在[Focal Loss](https://arxiv.org/abs/1708.02002)中，单阶段检测器的分类分支存在极端的正负样本不平衡。把分类层的偏置初始化为$b = -\log\frac{1-\pi}{\pi},\quad \pi = 0.01$，使模型在第一次前向时对每个**anchor**输出的前景概率就等于先验$\pi=0.01$，避免了训练最初若干次迭代中巨大的、由背景主导的损失把网络"炸掉"。同理，在类别不平衡的分类任务中，把输出层偏置初始化为各类别的对数先验$\log p_c$、在回归任务中把输出层偏置初始化为目标的均值，都是同一思想。
+- **检测头的先验偏置**：在[Focal Loss](https://arxiv.org/abs/1708.02002)中，单阶段检测器的分类分支存在极端的正负样本不平衡。把分类层的偏置初始化为$b = -\log\frac{1-\pi}{\pi},\quad \pi = 0.01$，使模型在第一次前向时对每个**anchor**输出的前景概率就等于先验$\pi=0.01$，避免了训练最初若干次迭代中巨大的、由背景主导的损失把网络“炸掉”。同理，在类别不平衡的分类任务中，把输出层偏置初始化为各类别的对数先验$\log p_c$、在回归任务中把输出层偏置初始化为目标的均值，都是同一思想。
 - **归一化层的$\gamma,\beta$**：默认$\gamma=1,\beta=0$；残差块中最后一个归一化层的$\gamma$初始化为$0$则是$2.4$节的**Zero-$\gamma$**技巧。
 
 ## 2.2 方差缩放初始化
@@ -274,10 +294,14 @@ $$
 
 其中$g$是补偿激活函数的增益值（见下方讨论），无激活函数时$g=1$。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.init.xavier_normal_(tensor, gain=1.0)
 torch.nn.init.xavier_uniform_(tensor, gain=1.0)
 ```
+</details>
 
 **Xavier**初始化适用于无激活函数、以及激活函数为**Sigmoid**、**Tanh**的场合（此时神经元的参数与输入绝对值较小，处于激活函数的线性区间）。例如**Sigmoid**在线性区的斜率约为$\frac{1}{4}$，为补偿这一衰减需要增益$g=4$，即方差调整为
 
@@ -305,6 +329,9 @@ $$
 
 使用[<font color=Blue>sympy</font>](https://0809zheng.github.io/2021/09/01/solve.html)库可以快速求解该方程：
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 import sympy
 from sympy import Symbol, nsolve, integrate
@@ -315,6 +342,7 @@ integal = integrate(sympy.exp(-x**2/2)*(f(x))**2, (x,-sympy.oo,sympy.oo))
 fn = l**2/sympy.sqrt(2*sympy.pi)*integal - 1
 ans = nsolve(fn, l, 1)
 ```
+</details>
 
 为激活函数引入增益值$\lambda$，等价于为权重引入增益值$g=1/\lambda$：
 
@@ -332,9 +360,13 @@ $$
 | Leaky ReLU（负斜率$\alpha$） | $$\sqrt{2/(1+\alpha^2)}$$ |
 | SELU | $$3/4$$ |
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 gain = nn.init.calculate_gain('leaky_relu', 0.2)  # leaky_relu with negative_slope=0.2
 ```
+</details>
 
 ### ⚪ Kaiming初始化 Kaiming Initialization
 
@@ -378,12 +410,16 @@ $$
 
 若采用正态分布，则$$\sigma = g\sqrt{2/n_{in}}$$；若采用均匀分布$U(-a,a)$，则$$a = g\sqrt{6/n_{in}}$$（推导同**Xavier**）。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.init.kaiming_normal_(tensor, a=0, mode='fan_in', nonlinearity='relu')
 torch.nn.init.kaiming_uniform_(tensor, a=0, mode='fan_in', nonlinearity='relu')
 # a：leaky ReLU的负斜率
 # mode：fan_in考虑前向传播，fan_out考虑反向传播
 ```
+</details>
 
 #### (2) fan_in还是fan_out
 
@@ -476,6 +512,9 @@ $$
 
 使用[<font color=Blue>sympy</font>](https://0809zheng.github.io/2021/09/01/solve.html)库求解：
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 import sympy
 from sympy import Symbol, nsolve, integrate
@@ -492,6 +531,7 @@ fn2 = a**2*l**2/sympy.sqrt(2*sympy.pi)*int3 + l**2/sympy.sqrt(2*sympy.pi)*int4 -
 z = nsolve([fn1,fn2], [a,l], [1,1])
 print(z) # Matrix([[1.67326324235438], [1.05070098735548]])
 ```
+</details>
 
 求解得到
 
@@ -506,7 +546,7 @@ $$
 
 ### ⭐ 讨论：卷积层与注意力层的扇入扇出
 
-方差缩放初始化的所有公式都依赖$n_{in},n_{out}$，而对于非全连接层，"扇入扇出"需要按**一个输出元素实际连接了多少个输入元素**来计算：
+方差缩放初始化的所有公式都依赖$n_{in},n_{out}$，而对于非全连接层，“扇入扇出”需要按**一个输出元素实际连接了多少个输入元素**来计算：
 
 - **卷积层**（核大小$k_h\times k_w$，输入输出通道$C_{in},C_{out}$）：$$n_{in}=k_hk_wC_{in}$$，$$n_{out}=k_hk_wC_{out}$$。文章开头代码中的`n = kernel_size[0]*kernel_size[1]*out_channels`就是`fan_out`模式；
 - **分组卷积**（$G$组）：$$n_{in}=k_hk_wC_{in}/G$$；深度可分离卷积是$G=C_{in}$的特例，其扇入只有$k_hk_w$，因此按公式算出的方差很大，实践中往往需要额外收敛；
@@ -546,9 +586,13 @@ $$
 
 实现过程为：$1)$用标准高斯分布$$\mathcal{N}(0,1)$$初始化一个矩阵；$2)$对其做奇异值分解（或**QR**分解），取得到的正交矩阵作为权重。非方阵情形取半正交矩阵（行或列正交）。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.init.orthogonal_(tensor, gain=1)
 ```
+</details>
 
 正交初始化使前向信号与反向误差项都具有严格的**范数保持性(norm-preserving)**。对于误差项$$\delta^{(l-1)} = {W^{(l)}}^\top \delta^{(l)}$$，有
 
@@ -564,14 +608,18 @@ $$
 
 正交矩阵中最特殊的一个就是单位矩阵。**恒等初始化**把权重层初始化为单位矩阵，使网络层的输出与输入完全相等，各层之间的方差自然不会发生变化。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.init.eye_(tensor)            # 二维参数（全连接层）
 torch.nn.init.dirac_(tensor, groups=1) # 高维参数（卷积层，Dirac-delta核）
 ```
+</details>
 
 恒等初始化具有**动力等距(dynamical isometry)**性质（所有奇异值严格为$1$），使网络具有稳定的信号传播与梯度下降行为。它在循环网络中还有一个专门的应用：[A Simple Way to Initialize Recurrent Networks of Rectified Linear Units](https://arxiv.org/abs/1504.00941)提出的**IRNN**把**ReLU**循环网络的循环矩阵初始化为单位矩阵、偏置初始化为$0$，使网络在初始时等价于一个“累加器”，从而在长序列任务上逼近**LSTM**的表现。
 
-然而恒等初始化建立在**各层维度相等**的假设上，这在实际中过强。当输入输出维度不等时，可以把参数矩阵初始化为**部分单位矩阵(partial identity matrix)** $$\hat I \in \mathbb{R}^{m\times n}$$，对"超出"的行列补零：
+然而恒等初始化建立在**各层维度相等**的假设上，这在实际中过强。当输入输出维度不等时，可以把参数矩阵初始化为**部分单位矩阵(partial identity matrix)** $$\hat I \in \mathbb{R}^{m\times n}$$，对“超出”的行列补零：
 
 $$
 \hat I = \begin{cases}
@@ -639,7 +687,7 @@ $$
 
 ### ⭐ 讨论：均场理论、边缘混沌与动力等距
 
-上述结论的理论基础是随机神经网络的**均场理论(mean field theory)**。考虑权重方差$$\text{Var}[W]=\sigma_w^2/n_{in}$$、偏置方差$\sigma_b^2$的随机网络，激活值的二阶矩（"长度"）满足递推
+上述结论的理论基础是随机神经网络的**均场理论(mean field theory)**。考虑权重方差$$\text{Var}[W]=\sigma_w^2/n_{in}$$、偏置方差$\sigma_b^2$的随机网络，激活值的二阶矩（“长度”）满足递推
 
 $$
 q^{(l)} = \sigma_w^2\int \mathcal{D}z\, f\left(\sqrt{q^{(l-1)}}z\right)^2 + \sigma_b^2
@@ -786,7 +834,7 @@ $$
 
 **GPT-2**确立了两条至今仍在使用的惯例：
 
-**(1) 统一的小标准差**。所有权重使用$$\mathcal{N}(0,0.02^2)$$初始化（**GPT-2**、**BERT**、**GPT-3**、**LLaMA**同源实现都沿用$0.02$）。注意$0.02$与宽度**无关**，因此对于$d=768$它接近$$\sqrt{1/d}=0.036$$的一半，属于偏小的初始化；对于$d=12288$的大模型则远小于$$\sqrt{1/d}$$。偏小的初始化会让模型在初始时更接近线性、更"温和"，代价是深宽比很大时表达能力受限，这也是**muP**要解决的问题。**Megatron / GPT-NeoX**采用的**small init**取
+**(1) 统一的小标准差**。所有权重使用$$\mathcal{N}(0,0.02^2)$$初始化（**GPT-2**、**BERT**、**GPT-3**、**LLaMA**同源实现都沿用$0.02$）。注意$0.02$与宽度**无关**，因此对于$d=768$它接近$$\sqrt{1/d}=0.036$$的一半，属于偏小的初始化；对于$d=12288$的大模型则远小于$$\sqrt{1/d}$$。偏小的初始化会让模型在初始时更接近线性、更“温和”，代价是深宽比很大时表达能力受限，这也是**muP**要解决的问题。**Megatron / GPT-NeoX**采用的**small init**取
 
 $$
 \sigma = \sqrt{\frac{2}{5d}}
@@ -1142,11 +1190,11 @@ $$
 
 ### ⚪ 预训练权重迁移与模型生长
 
-最强的初始化其实是**已经训练好的权重**：微调预训练模型本质上就是"用预训练权重初始化"。当目标模型比源模型更大时，还可以用**模型生长(model growth)**把小模型的权重"扩张"成大模型的初始化，从而省下大量预训练算力：
+最强的初始化其实是**已经训练好的权重**：微调预训练模型本质上就是“用预训练权重初始化”。当目标模型比源模型更大时，还可以用**模型生长(model growth)**把小模型的权重“扩张”成大模型的初始化，从而省下大量预训练算力：
 
 - **Net2Net**（[Net2Net: Accelerating Learning via Knowledge Transfer](https://arxiv.org/abs/1511.05641)）提出两种**保持函数不变**的扩张算子：**Net2WiderNet**复制神经元并把对应的输出权重除以复制份数（复制的通道需加入微小噪声以破坏对称性）；**Net2DeeperNet**插入恒等映射层。扩张后的网络与原网络函数完全相同，因此训练可以无缝继续。
 - **bert2BERT**（[bert2BERT: Towards Reusable Pretrained Language Models](https://arxiv.org/abs/2110.07143)）把这一思想用于**Transformer**的宽度与深度扩张，可节省约$45\%$的预训练算力。
-- **LiGO**（[Learning to Grow Pretrained Models for Efficient Transformer Training](https://arxiv.org/abs/2303.00980)）不再手工设计扩张算子，而是把"小模型权重到大模型权重"的映射参数化为一个线性算子并**学习**它，进一步降低了生长带来的性能损失。
+- **LiGO**（[Learning to Grow Pretrained Models for Efficient Transformer Training](https://arxiv.org/abs/2303.00980)）不再手工设计扩张算子，而是把“小模型权重到大模型权重”的映射参数化为一个线性算子并**学习**它，进一步降低了生长带来的性能损失。
 
 ### ⚪ LoRA的初始化
 
@@ -1161,6 +1209,9 @@ $$
 # 3. PyTorch中的初始化实践
 
 在**PyTorch**中，可以在定义网络时为每个模块（如卷积层、**BatchNorm**）指定初始化类型：
+
+<details>
+  <summary>点击展开代码</summary>
 
 ```python
 class Model(nn.Module):
@@ -1179,8 +1230,12 @@ class Model(nn.Module):
     def forward(self, x):
         # 前向传播
 ```
+</details>
 
 也可以在实例化网络后，对其中的模块统一进行初始化：
+
+<details>
+  <summary>点击展开代码</summary>
 
 ```python
 def weights_init(net, init_type='normal', init_gain = 0.02):
@@ -1206,8 +1261,12 @@ def weights_init(net, init_type='normal', init_gain = 0.02):
 model = Model()
 weights_init(model)
 ```
+</details>
 
 若需要实现残差分支的零初始化（**Zero-$\gamma$**）与**GPT-2**式的残差缩放，只需在遍历模块时按名称筛选：
+
+<details>
+  <summary>点击展开代码</summary>
 
 ```python
 for name, p in model.named_parameters():
@@ -1218,3 +1277,4 @@ for m in model.modules():              # Zero-gamma
     if isinstance(m, Bottleneck):
         torch.nn.init.zeros_(m.bn3.weight)
 ```
+</details>

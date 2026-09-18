@@ -245,6 +245,9 @@ y_{nd} &= \gamma \hat{x}_{nd} + \beta
 \end{aligned}
 $$
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.BatchNorm1d(
     num_features, eps=1e-05,
@@ -252,6 +255,7 @@ torch.nn.BatchNorm1d(
     track_running_stats=True,
     device=None, dtype=None)
 ```
+</details>
 
 此时**BN**沿着特征维度$D$进行归一化，沿着批量维度$N$计算统计量因此也被称为时序**BN**（**Temporal Batch Normalization**）。
 
@@ -268,6 +272,9 @@ y_{nchw} &= \gamma \hat{x}_{nchw} + \beta
 \end{aligned}
 $$
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.BatchNorm2d(
     num_features, eps=1e-05,
@@ -275,11 +282,15 @@ torch.nn.BatchNorm2d(
     track_running_stats=True,
     device=None, dtype=None)
 ```
+</details>
 
 #### ⚪ BatchNorm2d from sctratch
 
 如果要实现类似 **BN** 滑动平均的操作，在 **forward** 函数中要使用原地（**inplace**）操作给滑动平均赋值。
 
+
+<details>
+  <summary>点击展开代码</summary>
 
 ```python
 class BatchNorm2d(nn.Module):
@@ -306,6 +317,7 @@ class BatchNorm2d(nn.Module):
         x_norm = (x - mean[None, :, None, None]) / (var[None, :, None, None] + self.eps).sqrt()
         return x_norm * self.gamma + self.beta
 ```
+</details>
 
 #### ⚪ Synchronized-BatchNorm (SyncBN)
 - paper：[MegDet: A Large Mini-Batch Object Detector](https://arxiv.org/abs/1711.07240)
@@ -321,6 +333,9 @@ $$
 \end{aligned}
 $$
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.SyncBatchNorm(
     num_features, eps=1e-05,
@@ -330,6 +345,7 @@ torch.nn.SyncBatchNorm(
     device=None, dtype=None
     )
 ```
+</details>
 
 #### ⚪ Ghost Batch Normalization (Ghost BN)
 - paper：[Train longer, generalize better: closing the generalization gap in large batch training of neural networks](https://arxiv.org/abs/1705.08741)
@@ -463,9 +479,13 @@ $$
 
 超参数的取值：$k=1, \alpha=0.0001, \beta=0.75$。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.LocalResponseNorm(size, alpha=0.0001, beta=0.75, k=1.0)
 ```
+</details>
 
 **LRN**是**AlexNet**时代的产物，它只做**除法**（不减均值）、只在局部通道邻域内统计、且不含可学习参数，因此更像一种“竞争机制”而不是分布校正。**VGG**的论文已经报告**LRN**不带来提升只增加开销，**BN**出现后它就彻底退出了实践，但作为“归一化=局部竞争”的最早形态仍有历史价值。
 
@@ -495,6 +515,9 @@ $$
 2. **LN**对同一个样本的所有特征进行相同的转换，如果不同输入特征含义不同（比如颜色和大小），那么**LN**的处理可能会降低模型的表达能力；
 3. **LN**假设同一层的所有**channel**对结果具有相似的贡献，而**CNN**中每个通道提取不同模式的特征，因此**LN**不适用于**CNN**。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 class LayerNorm(nn.Module):
     def __init__(self, normalized_shape, eps = 1e-5):
@@ -515,6 +538,7 @@ torch.nn.LayerNorm(
     device=None, dtype=None
     )
 ```
+</details>
 
 值得强调的是，**Transformer**中的**LN**与上面视觉写法的**LN**统计维度并不相同：前者只沿最后一维$D$（即**每个token独立**）统计，因此一共有$N\times L$组统计量；这也是**ConvNeXt**等现代卷积网络里“对$$[N,H,W,C]$$的最后一维做**LN**”这种写法能奏效的原因；它其实等价于$G=1$以外的另一种切法（相当于$2.1$节表格中的**PONO**）。
 
@@ -536,6 +560,9 @@ $$
 
 **RMSNorm**如今是大语言模型中**事实上的标准归一化层**：[LLaMA](https://arxiv.org/abs/2302.13971)采用**Pre-RMSNorm**之后，**LLaMA 2/3**、**Mistral**、**Qwen**、**Gemma**、**DeepSeek**等主流开源模型几乎全部沿用。原因有三：省掉求均值这一趟归约后，访存量与**kernel**数量都减少（归一化是**memory-bound**算子，这个收益在推理时相当可观）；只做缩放使它天然与残差流的“方向语义”一致；实证上去掉**re-center**没有任何性能损失。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 class RMSNorm(nn.Module):
     def __init__(self, dim, eps=1e-6):
@@ -547,6 +574,7 @@ class RMSNorm(nn.Module):
         rms = x.pow(2).mean(-1, keepdim=True).add(self.eps).rsqrt()
         return x * rms * self.g
 ```
+</details>
 
 #### ⚪ 实例归一化 Instance Normalization
 - paper：[Instance Normalization: The Missing Ingredient for Fast Stylization](https://arxiv.org/abs/1607.08022)
@@ -568,6 +596,9 @@ $$
 **IN**通常不引入额外的仿射变换。**IN**应用于**CNN**时假设每个样本的每个通道是独立的，这可能会忽略部分通道之间的相关性。
 
 **IN**在风格迁移中格外有效的原因值得单独一提：单个样本单个通道的均值与方差恰好编码了图像的**风格**信息（而空间结构编码内容），因此把这组统计量抹掉就等于抹掉风格。这个观察直接催生了$2.4$节的**AdaIN**：既然$\mu,\sigma$携带风格，那么把它们替换成目标风格的统计量即可完成风格迁移。
+
+<details>
+  <summary>点击展开代码</summary>
 
 ```python
 class InstanceNorm2d(nn.Module):
@@ -593,6 +624,7 @@ torch.nn.InstanceNorm2d(
     device=None, dtype=None
     )
 ```
+</details>
 
 #### ⚪ 组归一化 Group Normalization
 - paper：[Group Normalization](https://arxiv.org/abs/1803.08494)
@@ -614,6 +646,9 @@ $$
 
 作者通过实验发现**GN**相比于**BN**更容易优化，但损失了一定的正则化能力。**GN**对不同**batch size**具有很好的鲁棒性，尤其适合**batch size**较小的计算机视觉任务中（如目标检测，分割）。**GN**的分组思想在传统视觉特征中早有先例：**SIFT**、**HOG**都是按**block**分组做直方图归一化的。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 torch.nn.GroupNorm(
     num_groups, num_channels,
@@ -621,6 +656,7 @@ torch.nn.GroupNorm(
     device=None, dtype=None
     )
 ```
+</details>
 
 #### ⚪ Filter Response Normalization (FRN)
 - paper：[Filter Response Normalization Layer: Eliminating Batch Dependence in the Training of Deep Neural Networks](https://arxiv.org/abs/1911.09737)
@@ -890,8 +926,10 @@ $$
 
 关键在于：语义**mask** $m$ 只经过仿射变换这条路径提供，**从未被归一化**，被归一化的只有前一层特征。因此**SPADE**能够更好地保留语义信息。它是**GauGAN**的核心模块，也是后来各类空间条件注入机制（**ControlNet**式的条件注入在精神上与之一致）的先驱。
 
+向网络中加入**SPADE**层的参考代码实现：
+
 <details>
-  <summary>向网络中加入**SPADE**层的参考代码实现</summary>
+  <summary>点击展开代码</summary>
 
 ```python
 #   SPADE module
@@ -950,7 +988,6 @@ class Model(nn.Module):
         out = self.model(main_input)
         return out
 ```
-
 </details>
 
 
@@ -1089,6 +1126,9 @@ $$ v \leftarrow \frac{W^Tu}{||W^Tu||},\quad u \leftarrow \frac{Wv}{||Wv||},\quad
 
 幂迭代收敛的原因是：把初值在$A=W^TW$的特征向量基下展开$u^{(0)}=\sum_i c_iv_i$，迭代$t$步后$A^tu^{(0)}=\sum_i c_i\lambda_i^tv_i$，除以$\lambda_1^t$后除主特征向量外的所有项都按$(\lambda_i/\lambda_1)^t\to 0$衰减，因此$A^tu^{(0)}$的方向趋于主特征向量。
 
+<details>
+  <summary>点击展开代码</summary>
+
 ```python
 model = Model()
 def add_sn(m):
@@ -1100,6 +1140,7 @@ def add_sn(m):
              return m
 model = add_sn(model)
 ```
+</details>
 
 值得一提的是，谱归一化是对模型的每一层权重都进行的操作，使得网络的每一层都满足**Lipschitz**约束；这种约束有时太过硬，通常只希望整个模型满足**Lipschitz**约束，而不必强求每一层都满足。
 
@@ -1189,7 +1230,7 @@ $$
 x_{t+1} = x_t + \text{LayerNorm}_2\left(F_t\left(\text{LayerNorm}_1(x_t)\right)\right)
 $$
 
-**CogView**最早以**Sandwich-LN**的名字提出这一结构，用于解决文本到图像生成训练中的数值溢出问题；**Peri-LN（"peripheral"**，即归一化层位于子层的**外围**）对同一结构做了系统的理论与实证分析，指出它能同时获得**Pre-LN**的梯度性质与有界的残差流方差，从而显著降低训练中出现**loss spike**与**massive activation**的概率。这一结构已被**Gemma 2**、**OLMo 2**等模型采用。
+**CogView**最早以**Sandwich-LN**的名字提出这一结构，用于解决文本到图像生成训练中的数值溢出问题；**Peri-LN（“peripheral”**，即归一化层位于子层的**外围**）对同一结构做了系统的理论与实证分析，指出它能同时获得**Pre-LN**的梯度性质与有界的残差流方差，从而显著降低训练中出现**loss spike**与**massive activation**的概率。这一结构已被**Gemma 2**、**OLMo 2**等模型采用。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-normalization-032-sandwishln.png)
 
