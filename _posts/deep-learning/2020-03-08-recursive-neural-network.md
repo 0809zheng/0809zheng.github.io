@@ -18,7 +18,7 @@ tags: 深度学习
 本文从基础递归组合、结构反向传播开始，依次介绍**Recursive Autoencoder、MV-RNN、RNTN、Tree-LSTM、SPINN**与潜在树学习，并讨论它们与循环网络、图神经网络和Transformer的关系。
 
 1. 什么是递归神经网络
-   - 1.1 在树与DAG上共享组合函数
+   - 1.1 在树与**DAG**上共享组合函数
    - 1.2 递归网络、循环网络与图神经网络
    - 1.3 常见树结构
 2. 基础TreeRNN的前向与训练
@@ -34,9 +34,9 @@ tags: 深度学习
    - 5.1 自然语言处理
    - 5.2 程序与抽象语法树
    - 5.3 图像、场景与3D结构
-6. 与GNN和Transformer的关系
-   - 6.1 TreeRNN是树上的有向消息传递
-   - 6.2 Transformer为什么取代了大量TreeRNN
+6. 与**GNN**和**Transformer**的关系
+   - 6.1 **TreeRNN**是树上的有向消息传递
+   - 6.2 **Transformer**为什么取代了大量**TreeRNN**
 7. 工程实现
    - 7.1 后序遍历与按深度批处理
    - 7.2 变长分支的处理
@@ -219,7 +219,7 @@ $$
 
 外部树具有可解释性，但解析错误会传递到下游模型；潜在树直接服务于任务，但学到的结构未必对应人类句法，也可能对随机种子敏感。
 
-![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-recnn-009-structure.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-recnn-009-tree-structure.png)
 
 # 3. 经典递归组合模型
 
