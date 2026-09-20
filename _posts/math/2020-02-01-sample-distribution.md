@@ -3,7 +3,7 @@ layout: post
 title: '抽样分布(Sampling Distribution)'
 date: 2020-02-01
 author: 郑之杰
-cover: 'https://pic.downk.cc/item/5e8c6999504f4bcb0428b777.jpg'
+cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/math-sample-distribution-000.jpg'
 tags: 数学
 ---
 
@@ -25,7 +25,7 @@ tags: 数学
 
 $$ f_k(x)= \begin{cases} \frac{1}{2^{\frac{k}{2}}Γ(\frac{k}{2})} x^{\frac{k}{2}-1}e^{-\frac{x}{2}}, & x > 0 \\ 0, & x ≤ 0  \end{cases} $$
 
-![](https://pic.downk.cc/item/5e8c7bac504f4bcb04378571.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/math-sample-distribution-001.png)
 
 $\chi^2$分布的性质：
 - $E(X) = k$
@@ -41,7 +41,7 @@ $t$分布是英国统计学家W.S.Gosset在1908年以笔名Student发表的论�
 
 $$ p(x) = \frac{Γ(\frac{v+1}{2})}{Γ(\frac{v}{2})\sqrt{v\pi}} (1+\frac{x^2}{v})^{-\frac{v+1}{2}} $$
 
-![](https://pic.downk.cc/item/5e8c80d0504f4bcb043bb35b.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/math-sample-distribution-002.png)
 
 $t$分布的性质：
 - $E(T) = 0, \quad v ≥ 2$
@@ -55,7 +55,7 @@ $t$分布的性质：
 
 $$ f_{d_1,d_2}(x)= \begin{cases} \frac{Γ(\frac{d_1+d_2}{2})}{Γ(\frac{d_1}{2})Γ(\frac{d_2}{2})} d_1^{\frac{d_1}{2}} d_2^{\frac{d_2}{2}} x^{\frac{d_1}{2}-1} (d_2+d_1x)^{-\frac{d_1+d_2}{2}}, & x > 0 \\ 0, & x ≤ 0  \end{cases} $$
 
-![](https://pic.downk.cc/item/5e8c829e504f4bcb043d234d.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/math-sample-distribution-003.png)
 
 $F$分布的性质：
 - $E(F) = \frac{d_1}{d_2-2}, \quad d_2 ≥ 3$

@@ -3,7 +3,7 @@ layout: post
 title: '对比学习的损失动力学(InfoNCE Loss Dynamics)'
 date: 2026-02-14
 author: 郑之杰
-cover: 'https://pic1.imgdb.cn/item/69902991b411fb96b92a7caa.png'
+cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/math-infonce_loss-000.png'
 tags: 数学
 ---
 
@@ -275,4 +275,4 @@ plt.tight_layout()
 plt.show()
 ```
 
-![](https://pic1.imgdb.cn/item/69902991b411fb96b92a7caa.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/math-infonce_loss-000.png)

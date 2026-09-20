@@ -3,7 +3,7 @@ layout: post
 title: '投影切片定理(Projection-Slice Theorem)'
 date: 2025-12-10
 author: 郑之杰
-cover: 'https://pic1.imgdb.cn/item/693959cf6166b8110136ecfc.png'
+cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/math-projection-slice-000.png'
 tags: 数学
 ---
 
@@ -60,7 +60,7 @@ $$
 S_\theta(\omega) = F(\omega\cos\theta, \omega\sin\theta)
 $$
 
-![](https://pic1.imgdb.cn/item/693959cf6166b8110136ecfc.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/math-projection-slice-000.png)
 
 ## 3. 定理证明
 
