@@ -3,191 +3,244 @@ layout: post
 title: '自注意力机制(Self-Attention Mechanism)'
 date: 2020-04-24
 author: 郑之杰
-cover: 'https://pic.downk.cc/item/5ea28825c2a9a83be5477d93.jpg'
+cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-000-cover.jpg'
 tags: 深度学习
 ---
 
 > Self-Attention Mechanism.
 
-**自注意力(Self-Attention)**机制也称为**内部注意力(Intra-Attention)**，是一种特殊的[注意力机制](https://0809zheng.github.io/2020/04/22/attention.html)。自注意力机制作为一种新型的网络结构被广泛应用于自然语言处理与计算机视觉等任务中。本文首先讨论注意力机制与自注意力机制的区别；其次对比卷积神经网络、循环神经网络和自注意力机制；最后介绍自注意力机制的实现细节。
+[注意力机制](https://0809zheng.github.io/2020/04/22/attention.html)最初是**Seq2Seq**中编码器与解码器之间的桥梁，用查询—键—值(**Query-Key-Value，QKV**)三元组把两条序列连接起来。**自注意力(Self-Attention)机制**——也称为**内部注意力(Intra-Attention)**——把这一模式收缩到**同一条序列内部**：每个位置既是查询也是键和值，用自身来查自身。它把序列建模的“递归传播”换成了“全局配对”，从而与卷积、循环并列成为处理序列的第三类基本算子。
+1. 从跨序列注意力到序列内注意力
+2. 卷积、循环与自注意力的对比
+3. 自注意力的**QKV**实现
+   - (1) 查询/键/值矩阵
+   - (2) 缩放点积注意力
+   - (3) 输出与残差
+4. 多头自注意力
+5. 位置编码
+   - (1) 为何自注意力需要位置信息
+   - (2) 学习式位置嵌入
+   - (3) **Sinusoidal**位置编码
+6. 受限自注意力与掩码
+7. 讨论：自注意力的能力与代价
 
-**本文目录**：
-1. Attention and Self-Attention
-2. CNN, RNN, and Self-Attention
-3. Self-Attention
-4. Multi-Head Self-Attention
-5. Position Encoding
+**符号约定**：输入序列$$X=[x_1,\dots,x_N]\in\mathbb{R}^{N\times d}$$；查询、键、值矩阵分别记为$$Q,K,V$$；$$d_k$$与$$d_v$$为键与值的维度；头数记为$$h$$，每个头的维度记为$$d_k/h$$。
 
-# 1. Attention and Self-Attention
-[注意力机制](https://0809zheng.github.io/2020/04/22/attention.html)(**attention mechanism**)最早是在序列到序列模型中提出的，用于解决机器翻译任务。在该任务中需要把输入序列$$\{x_1,x_2,...,x_j\}$$转换为输出序列$$\{y_1,y_2,...,y_i\}$$，因此序列到序列模型采用编码器-解码器结构，即引入可学习的权重参数$w_{ij}$，使得：
+# 1. 从跨序列注意力到序列内注意力
 
-$$ y_i = \sum_{j}^{}w_{ij}x_j $$
+**跨序列注意力**处理两条序列的映射，例如把源序列$$x_{1:T}$$翻译成目标序列$$y_{1:U}$$。它引入可学习权重$$\alpha_{u,t}$$，使得
 
-其中$w_{ij}$表示输入序列的第$i$个**token**对输出序列的第$j$个**token**的重要性程度。在实际中引入约束$\sum_{j}^{}w_{ij}=1$，这一步是通过**softmax**函数实现的。自注意力机制是一种特殊的注意力机制，其主要区别在于前者的权重参数$w_{ij}$并不是直接学习得到的，而是由输入计算得到的，如通过**点积**的方式计算两个输入**token**的相关性：
+$$
+y_u=\sum_{t=1}^{T}\alpha_{u,t}h_t.
+$$
 
-$$ w_{ij}=x_i^Tx_j $$
+$\alpha_{u,t}$由查询—键得分决定，反映“目标位置$$u$$应参考源位置$$t$$的哪些内容”。它是[注意力机制](https://0809zheng.github.io/2020/04/22/attention.html)一节的主题。
 
-注意力机制与自注意力机制的主要区别包括：
-1. 注意力机制的权重参数是一个全局可学习参数，对于模型来说是**固定**的；而自注意力机制的权重参数是由输入决定的，即使是同一个模型，对于不同的输入也会有**不同**的权重参数。
-2. 注意力机制的输出序列长度与输入序列长度可以是**不同**的；而自注意力机制的的输出序列长度与输入序列长度必须是**相同**的。
-3. 注意力机制在一个模型中通常只使用一次，作为编码器和解码器之间的**连接**部分；而自注意力机制在同一个模型中可以使用很多次，作为网络**结构**的一部分。
-4. 注意力机制擅长捕捉两个**序列之间**的关系，如机器翻译任务中将一个序列映射为另一个序列；而自注意力机制擅长捕捉单个**序列内部**的关系，如作为预训练语言模型的基本结构。
+**自注意力**把查询—键值全部来自同一条序列。对输入$$X=[x_1,\dots,x_N]$$，输出的每个位置是同一序列的加权和：
 
-# 2. CNN, RNN, and Self-Attention
-卷积神经网络、循环神经网络和自注意力机制都可以用于自然语言处理任务。在自然语言处理任务中，首先对输入序列(如句子)进行分词，将每个词转化成对应的词向量；即可将输入序列表示为$X=(x_1,x_2,...,x_n)\in \Bbb{R}^{n \times d}$，其中$x_i$表示第$i$个词的维度为$d$的词向量。因此对输入序列的处理等价于对该序列进行编码：
+$$
+b_i=\sum_{j=1}^{N}w_{ij}v_j,\qquad w_{ij}=\operatorname{softmax}_j(\operatorname{score}(q_i,k_j)).
+$$
 
-![](https://pic.imgdb.cn/item/60ebc1765132923bf88a64f9.jpg)
+其中$$q_i,k_j,v_j$$都是$$x$$的线性投影。跨注意力与自注意力的主要差异如下：
 
-### (a) 卷积神经网络
-可以用($1$维)**卷积神经网络**对该输入序列进行处理。即使用卷积核进行滑动窗口遍历，如长度为$3$的卷积核：
+- **权重来源**：注意力机制的权重由查询与键的相关性决定；跨注意力查询来自另一条序列，自注意力查询来自自己。
+- **序列长度**：跨注意力允许输入输出长度不同；自注意力必须等长。
+- **使用位置**：跨注意力作为编码器—解码器之间的桥梁；自注意力可以作为网络内部的基本层重复堆叠。
+- **建模目标**：跨注意力捕捉“两序列之间”的关系；自注意力捕捉“一条序列内部”的关系。
 
-$$ y_i = f(x_{i-1},x_{i},x_{i+1}) $$
+正因为自注意力可以像卷积一样重复堆叠，它才被视为一种“可以替代**RNN**/**CNN**的层”。
 
-![](https://pic.downk.cc/item/5ea28dafc2a9a83be54e9e5c.jpg)
+# 2. 卷积、循环与自注意力的对比
 
-卷积神经网络容易并行，可以捕捉一些全局的结构信息。但其**弊端**是每一个卷积核只能感受局部的信息，要获得更大的**receptive field**需要加深层数。
+自然语言序列$$X=[x_1,x_2,\dots,x_n]\in\mathbb{R}^{n\times d}$$的处理层可以分成三类：
 
-### (b) 循环神经网络
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-001-three-architectures.jpg)
 
-**循环神经网络**是自然语言处理任务中最常用的模型，其计算过程是通过递归实现的：
+**卷积神经网络**用固定宽度的滑动窗口聚合局部上下文，例如宽度为$$3$$的核
 
-$$ y_i = f(h_{i-1},x_{i}) $$
+$$
+y_i=f(x_{i-1},x_i,x_{i+1}).
+$$
 
-![](https://pic.downk.cc/item/5ea28d62c2a9a83be54e2d83.jpg)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-002-cnn.jpg)
 
-循环神经网络本身结构简单，适合序列建模。但其**弊端**是对于输入序列是顺序处理的，速度较慢，不能并行(**parallel**)实现；且循环神经网络无法很好的学习到全局结构信息(尽管上图的双向结构一定程度上缓解了这个问题)。
+它高度并行，感受野随层数线性扩大；但要覆盖长距离依赖必须堆很深。
 
-### (c) 自注意力
-**自注意力模型**的每个输出基于**全局信息**，并且可以**并行化**计算：
+**循环神经网络**按递推关系传播：
 
-$$ y_i = f(x_{1},x_{2},...,x_{n}) $$
+$$
+y_i=f(h_{i-1},x_i).
+$$
 
-![](https://pic.downk.cc/item/5ea28e2bc2a9a83be54f42d5.jpg)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-003-rnn.jpg)
 
+它天然对序列敏感，但每一步依赖前一步，无法并行化；且长距离依赖会被梯度消失削弱。
 
-### (d) 对不同网络结构的讨论
+**自注意力**让每个输出直接看到所有输入：
 
-1. 卷积神经网络事实上只能获得局部信息，需要通过**堆叠**更多层数来增大感受野；循环神经网络需要通过**递归**获得全局信息，因此一般采用双向形式；自注意力机制能够直接获得**全局信息**。
-1. 常用的神经网络模型(如多层感知机)，其每一层的权重参数经过训练后是**固定**的，与输入无关；而自注意力层的权重是由输入决定的，但其只能处理长度固定的输入序列。
-1. 循环神经网络是递归计算的，无法并行；卷积神经网络的不同卷积核之间可以并行计算；自注意力机制的计算是高度并行的，很容易被**GPU**等加速。
+$$
+y_i=f(x_1,x_2,\dots,x_n).
+$$
 
-若输入序列长度为$n$，特征维度为$d$。则上述模型每层的计算复杂度、序列操作数(越大表示可并行化程度越差)和最大路径长度分别为：
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-004-self-attention.jpg)
+
+它一次前向就能把任意两个位置连起来，且计算高度并行。三者的复杂度、序列操作数与最大路径长度对比如下：
 
 $$
 \begin{array}{c|ccc}
-    \text{Layer Type} & \text{Complexity per Layer} & \text{Sequential Operations} & \text{Maximum Path Length} \\
-    \hline
-    \text{Convolutional} & O(k \cdot n \cdot d^2) & O(1) & O(\log_k(n)) \\
-    \text{Recurrent} & O(n \cdot d^2) & O(n) & O(n) \\
-    \text{Self-Attention} & O(n^2 \cdot d) & O(1) & O(1) \\ 
+\text{Layer Type} & \text{Complexity per Layer} & \text{Sequential Operations} & \text{Maximum Path Length} \\
+\hline
+\text{Convolutional} & O(k\cdot n\cdot d^2) & O(1) & O(\log_k n) \\
+\text{Recurrent} & O(n\cdot d^2) & O(n) & O(n) \\
+\text{Self-Attention} & O(n^2\cdot d) & O(1) & O(1) \\
 \end{array}
 $$
 
-# 3. Self-Attention
-本小节介绍自注意力机制的运算过程。自注意力模型采用**查询-键-值(Query-Key-Value,QKV)**模式。
+三点结论值得记住：
+- 卷积与循环获取全局依赖的路径长度分别是$$O(\log n)$$与$$O(n)$$；自注意力是$$O(1)$$。
+- 循环网络在序列维度上不能并行，卷积在核之间可以并行，自注意力则完全并行。
+- 自注意力的每层计算量随$$n^2$$增长；对长序列这是主要开销来源。降低这一复杂度是后续注意力研究的核心方向，参见[降低**Transformer**的计算复杂度](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)。
 
-### (1) 计算查询矩阵Q,键矩阵K,值矩阵V
-假设输入序列为$$X=[x_1,...,x_N] \in \Bbb{R}^{D_x×N}$$,经过**词嵌入**得到$$A=[a_1,...,a_N] \in \Bbb{R}^{D_a×N}$$;
-将词嵌入矩阵线性映射到三个不同的空间，得到
-1. **查询矩阵**$$Q=[q_1,...,q_N] \in \Bbb{R}^{D_k×N}$$
-2. **键矩阵**$$K=[k_1,...,k_N] \in \Bbb{R}^{D_k×N}$$
-3. **值矩阵**$$V=[v_1,...,v_N] \in \Bbb{R}^{D_v×N}$$;
+# 3. 自注意力的QKV实现
 
-![](https://pic.downk.cc/item/5ea2912ec2a9a83be5531a8a.jpg)
+自注意力的实现遵循**查询—键—值(Query-Key-Value，QKV)**模式：把输入映射到三个线性子空间，用查询与键计算相似度，再用相似度加权求和值向量。
 
-矩阵运算如下：
+## (1) 查询/键/值矩阵
 
-$$ Q = W^qA, \quad W^q \in \Bbb{R}^{D_k×D_a} $$
+设输入为$$X=[x_1,\dots,x_N]^\top\in\mathbb{R}^{N\times d}$$（这里按行存放，便于矩阵表述），经过词嵌入或前一层输出得到$$A\in\mathbb{R}^{N\times d_a}$$。三个可学习矩阵$$W^Q,W^K\in\mathbb{R}^{d_a\times d_k}$$与$$W^V\in\mathbb{R}^{d_a\times d_v}$$将其投影到
 
-$$ K = W^kA, \quad W^k \in \Bbb{R}^{D_k×D_a} $$
+$$
+Q=AW^Q,\quad K=AW^K,\quad V=AW^V.
+$$
 
-$$ V = W^vA, \quad W^v \in \Bbb{R}^{D_v×D_a} $$
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-005-qkv.jpg)
 
-![](https://pic.downk.cc/item/5ea2928ac2a9a83be554b900.jpg)
+$Q,K$共享维度$$d_k$$以便做点积，$$V$$的维度$$d_v$$独立，用来控制输出通道数。三个矩阵是自注意力的全部可学习参数，与序列长度无关。
 
-### (2) 计算注意力分布
-对于每个查询向量$q_i$使用**键值对注意力机制**,得到注意力分布$$\hat{a}_{1,1},...,\hat{a}_{1,N}$$：
+## (2) 缩放点积注意力
 
-![](https://pic.downk.cc/item/5ea29327c2a9a83be5558220.jpg)
+用点积衡量查询与键的相关性，并除以$$\sqrt{d_k}$$进行**缩放**，防止较大内积把**softmax**推向饱和：
 
-矩阵运算如下：
+$$
+S=\frac{QK^\top}{\sqrt{d_k}}\in\mathbb{R}^{N\times N}.
+$$
 
-$$ A = \frac{K^TQ}{\sqrt{D_k}} $$
+对$$S$$的每一行做**softmax**得到注意力权重矩阵：
 
-$$ \hat{A} = softmax(A) $$
+$$
+\hat{A}=\operatorname{softmax}(S).
+$$
 
-![](https://pic.downk.cc/item/5ea29480c2a9a83be557541f.jpg)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-006-attention-distribution.jpg)
 
-其中注意力得分选用**缩放点积Scaled Dot-Product**，其原因是后续的**Softmax**函数对较大或较小的输入非常敏感(容易映射到$1$或$0$)，因此通过因子$\sqrt{D_k}$进行缩放；**Softmax**函数按**列**运算。
+其中$$\hat{A}_{ij}$$表示第$$i$$个位置对第$$j$$个位置的注意力权重。**softmax**是按行归一化的，因此每个查询的权重和为$$1$$。
 
-### (3) 加权求和
-根据注意力分布$\hat{A}$，**加权求和**得到输出：
+## (3) 输出与残差
 
-![](https://pic.downk.cc/item/5ea29582c2a9a83be558a1c7.jpg)
+注意力权重加权求和值向量得到输出：
 
-矩阵运算如下：
+$$
+B=\hat{A}V\in\mathbb{R}^{N\times d_v}.
+$$
 
-$$ B = V\hat{A} $$
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-007-weighted-sum.jpg)
 
-![](https://pic.downk.cc/item/5ea295c1c2a9a83be558eecd.jpg)
+$B$的每一行仍然对应输入的一个位置，因此自注意力保持序列长度不变。工程上通常再加一层线性变换$$W^O$$与残差连接，把$$B$$映射回$$d_a$$维空间，便于堆叠。
 
-自注意力模型的**优点**：
-1. 提高并行计算效率;
-2. 捕捉长距离的依赖关系。
+整套流程可以浓缩成一行公式：
 
-自注意力模型可以看作在一个线性投影空间中建立$X$中不同向量之间的交互关系。上述自注意力运算的计算复杂度为$O(N^2)$。实践中有些问题并不需要捕捉全局结构，只依赖于局部信息，此时可以使用**restricted**自注意力机制，即假设当前词只与前后$r$个词发生联系(类似于卷积中的滑动窗口)，此时计算复杂度为$O(rN)$。
+$$
+\operatorname{Attention}(Q,K,V)=\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
+$$
+
+它就是缩放点积自注意力(**scaled dot-product self-attention**)。整个计算只有三次矩阵乘法与一次**softmax**，非常适合**GPU**并行。
 
 
-# 4. Multi-Head Self-Attention
-为了提取更多的交互信息，可以使用**多头自注意力(Multi-Head Self-Attention)**，即在多个不同的投影空间中捕捉不同的交互信息。不妨类比于卷积神经网络，其一个卷积核通常用于捕捉某一类**pattern**的信息，故采用多个卷积核。自注意力机制采用多个**head**，便可以捕捉不同的相关性。在实践中，首先通过$M$个**head**生成$M$个不同的输出$B_1,B_2,...,B_M$，将其合并后再通过一层全连接层进行线性变换：
+# 4. 多头自注意力
 
-![](https://pic.downk.cc/item/5ea296f0c2a9a83be55a5633.jpg)
+一次自注意力只能学到**一种**位置间关系。类比卷积网络里“不同卷积核捕捉不同**pattern**”，我们希望模型能同时关注多种关系，例如句法依赖、语义共指、指代等。做法是把注意力沿子空间维度切成$$h$$份：
 
-假设使用$M$个**head**，矩阵运算如下：
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-008-multi-head.jpg)
 
-$$ A_m = \frac{K_m^TQ_m}{\sqrt{D_k}} $$
+**多头自注意力(Multi-Head Self-Attention)**为每个头$$m=1,\dots,h$$独立学习一组投影矩阵$$W^Q_m,W^K_m,W^V_m$$，各自计算缩放点积注意力：
 
-$$ B_m = V_msoftmax(A_m) $$
+$$
+B_m=\operatorname{Attention}(AW^Q_m,AW^K_m,AW^V_m).
+$$
 
-$$ B = W^o \begin{bmatrix} B_1 \\ ... \\ B_M \\ \end{bmatrix} $$
+再把所有头的输出拼接并通过一层线性变换合并：
 
-在实现多头自注意力时，有两种常用的形式：
-1. **Narrow Self-Attention**：把输入词向量切割成$h$块，每一块使用一次自注意力运算；这种方法速度快，节省内存，但是效果不好；
-2. **Wide Self-Attention**：对输入词向量独立地使用$h$次自注意力运算；这种方法效果更好，但花费更多时间和内存
+$$
+B=[B_1;B_2;\dots;B_h]W^O.
+$$
 
-# 5. Position Encoding
-自注意力模型忽略了序列$$[x_1,...,x_N]$$中每个$x$的位置信息，即将该序列打乱后并不影响输出结果。因此在模型中显式的引入**位置编码(position encoding)**$e$：
+工程实现有两种常见形式：
+- **切分式(narrow)**：把输入按通道切成$$h$$块，每块单独做注意力。计算量与参数量都与单头相同，但每个头的通道数只有$$d/h$$。
+- **重复式(wide)**：每个头独立投影到完整的$$d_k$$维空间，参数量与计算量按$$h$$倍增加。表达能力更强但更贵。
 
-![](https://pic.downk.cc/item/5ea29902c2a9a83be55cdc7b.jpg)
+主流实现默认使用第一种“切分式”形式：设$$d=d_k$$，每个头的键值维度为$$d/h$$，$$h$$个头的总计算量与单头相同。可以证明当$$W^O$$允许任意混合时，切分式实际能覆盖重复式的所有效果（在参数共享意义下）。
 
-位置编码$e$是自注意力机制中获取序列**位置**信息的唯一来源，是模型重要的组成部分。位置编码既可以从数据中学习得到，也可以人为定义并加到词嵌入向量上。对位置编码的一些**解释**：
+# 5. 位置编码
 
-### (1)为什么是add而不是concatenate ?
-假设位置编码为**one-hot**形式，**concatenate**到输入向量上进行词嵌入：
+## (1) 为何自注意力需要位置信息
 
-![](https://pic.downk.cc/item/5ea29a5ac2a9a83be55e6d0f.jpg)
+自注意力对输入序列具有**置换等变性(permutation equivariance)**：如果把$$X$$的行随机重排列，$$\operatorname{Attention}(Q,K,V)$$的输出也会按同一置换重排，注意力权重矩阵关于两个下标同步置换。换言之，仅凭自注意力算子，模型无法区分“我吃苹果”与“苹果吃我”。语言、语音、时序信号都强烈依赖顺序，因此必须显式地把位置信息注入到输入向量里。
 
-结果等价于先对位置索引和输入序列分别进行词嵌入，再相加。此时的位置编码是一种**位置嵌入(position embedding)**
+## (2) 学习式位置嵌入
 
-### (2)设置位置编码
-位置编码通过下面方式进行预定义：
+最直接的做法是把位置索引$$t\in\{1,\dots,N\}$$当成一个离散**token**，学习一个嵌入表$$E\in\mathbb{R}^{N_{\max}\times d}$$，与词嵌入相加：
 
-$$ e_{t,2i} = sin(\frac{t}{10000^{\frac{2i}{D}}}) $$
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-009-position-add.jpg)
 
-$$ e_{t,2i+1} = cos(\frac{t}{10000^{\frac{2i}{D}}}) $$
+从形式上看，把位置嵌入拼到词嵌入上，再乘一个线性层，等价于把位置嵌入与词嵌入分别投影后再相加。因此文献上通常直接**相加**位置嵌入。学习式位置嵌入的优势是灵活，缺点是不能泛化到训练时未见过的更长位置。
 
-其中$e_{t,2i}$表示第$t$个位置的编码向量的第$2i$维，$D$是编码向量的维度。
+## (3) **Sinusoidal**位置编码
 
-选用该形式的位置编码的思路是，由于有:
+**Sinusoidal**位置编码把位置$$t$$写成一族不同频率的正余弦：
 
-$$ sin(\alpha+\beta)=sin(\alpha)cos(\beta)+cos(\alpha)sin(\beta) $$
+$$
+\begin{aligned}
+e_{t,2i}&=\sin\left(\dfrac{t}{10000^{2i/d}}\right),\\
+e_{t,2i+1}&=\cos\left(\dfrac{t}{10000^{2i/d}}\right).
+\end{aligned}
+$$
 
-$$ cos(\alpha+\beta)=cos(\alpha)cos(\beta)-sin(\alpha)sin(\beta) $$
+其中$$e_{t,k}$$表示位置$$t$$对应向量的第$$k$$维，$$d$$是嵌入维度。该形式的一个良好性质是：对任意偏移$$\Delta$$，$$e_{t+\Delta}$$可以写成$$e_t$$的线性变换——由正余弦的加法定理
 
-因此位置$\alpha+\beta$处的编码很容易被位置$\alpha$和位置$\beta$处的编码表示。通过实验发现位置嵌入和上述位置编码效果是接近的，因此直接选用后者。
+$$
+\begin{aligned}
+\sin(\alpha+\beta)&=\sin\alpha\cos\beta+\cos\alpha\sin\beta,\\
+\cos(\alpha+\beta)&=\cos\alpha\cos\beta-\sin\alpha\sin\beta
+\end{aligned}
+$$
 
-上述位置编码也被称为**Sinusoidal**位置编码，其编码矩阵可视化如下：
+即可推出。因此模型可以在权重里学到与相对位置相关的模式。**Sinusoidal**位置编码不需要额外参数，也可以外推到训练时没见过的更长序列。可视化后如下：
 
-![](https://pic.downk.cc/item/5ea29a8ac2a9a83be55ea47e.jpg)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-selfattn-010-sinusoidal.jpg)
 
-更多的位置编码形式可以参考[<font color=Blue>自注意力机制中的位置编码 (Position Encoding)</font>](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)。
+学习式与**Sinusoidal**在**Transformer**原始论文里效果接近，但两者只是位置信息的最基础版本。更丰富的相对位置编码、**RoPE**等方案见[自注意力机制中的位置编码](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)。
+
+# 6. 受限自注意力与掩码
+
+原始自注意力关注序列内所有位置，对长序列不够高效，且在自回归生成中会“看到未来”。两类修改被广泛使用：
+
+- **受限自注意力(Restricted Self-Attention)**：每个查询只关注前后各$$r$$个位置，把复杂度从$$O(N^2)$$降至$$O(rN)$$。窗口约束把自注意力局部化，形式上接近$$1$$维卷积。
+- **掩码自注意力(Masked Self-Attention)**：在$$S=QK^\top/\sqrt{d_k}$$上加一个$$-\infty$$掩码，把不允许查询的位置屏蔽。典型掩码包括：**因果掩码**只允许查询左侧位置，用于自回归解码；**填充掩码**忽略**padding**位置；**双向掩码**允许全部位置，用于编码器。
+
+这两种修改本质上都是修改注意力矩阵的**支撑集**——即把哪些$$(i,j)$$对参与计算的问题——它们与后续的**稀疏注意力**、**局部注意力**属于同一族思路。
+
+# 7. 讨论：自注意力的能力与代价
+
+自注意力给序列建模带来了两项显著的能力：
+
+- **高度并行**：所有位置的$$QK^\top$$都可以一次矩阵乘法完成，非常适合**GPU**加速。
+- **长距离依赖**：任意两个位置之间的路径长度是$$O(1)$$，不需要通过多层递归才能相连。
+
+代价则来自其结构：
+
+- **$$O(N^2)$$复杂度**：每层的计算量和显存都随序列长度平方增长。对长文档、高分辨率图像等场景需要专门的降低复杂度方案。
+- **位置无关**：算子本身不知道顺序，必须通过位置编码把顺序信息补进来；错误的位置编码会严重影响模型能力。
+- **建模选择而非学习结构**：自注意力权重由数据决定，但$$W^Q,W^K,W^V$$的容量与位置编码的形式仍然是人为的设计选择。
+
+回到本文开头的定位：自注意力是一种基本算子。它可以像卷积那样重复堆叠，加上残差、归一化和前馈子层就变成完整的**Transformer**编码器/解码器——这一步是[**Transformer**](https://0809zheng.github.io/2020/04/25/transformer.html)的主题；把自注意力做得更快、更长的一系列改进则汇总在[降低**Transformer**的计算复杂度](https://0809zheng.github.io/2021/07/12/efficienttransformer.html)。
