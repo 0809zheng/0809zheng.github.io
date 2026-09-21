@@ -13,7 +13,7 @@ pinned: true
 - 提示：持续更新中...请点击任意[<font color=Blue>高亮位置</font>](https://0809zheng.github.io/2020/01/02/DL-outline.html)以发现更多细节！
 
 **深度学习**(**Deep Learning**)是一种以深度神经网络为工具的机器学习方法。
-本文首先介绍深度学习的**基本组件**和**方法技巧**，其次介绍深度神经网络的**类型**，最后介绍深度学习在计算机视觉、自然语言处理与自然科学等领域的**应用**。
+本文首先介绍深度学习的**基本组件**和**方法技巧**，其次介绍深度神经网络的**类型**，最后介绍深度学习在计算机视觉、自然语言处理等领域的**应用**。
 
 本文目录：
 - **深度学习的基本组件和方法技巧**
@@ -33,8 +33,6 @@ pinned: true
   - **Human-Centric感知**：人体姿态估计、人脸检测, 识别与验证、行人检测与属性识别、时空动作检测、射频人体感知
   - **自然语言处理**：预训练语言模型、
   - **多模态**：文本检测与识别、视觉-语言预训练
-- **AI for Science**
-  - **AI for Math**
 
 
 # 1. 深度学习的基本组件和方法技巧
@@ -106,7 +104,6 @@ $$ \begin{aligned} g_t&=\frac{1}{|\mathcal{B}|}\sum_{x \in \mathcal{B}}^{}\nabla
 - **Transformer**与大模型的初始化：兼顾深度、宽度与超参数的可迁移性。包括小标准差初始化, 残差缩放$1/\sqrt{2L}$, 嵌入层初始化与权重绑定, **muP**, 谱条件(**Spectral Condition**), **Depth-muP**, **CompleteP**
 - **数据驱动与学习式**初始化：用数据或优化过程本身决定初始值。包括**LSUV**, 数据依赖初始化, **MetaInit**, **GradInit**, 模仿初始化, 预训练权重迁移与模型生长, **LoRA**的初始化
 
-其中，**Spectral Condition**用统一的算子范数条件$$\lVert W\rVert_2,\lVert\Delta W\rVert_2=\Theta\left(\sqrt{n_{out}/n_{in}}\right)$$描述特征学习；**muP**的输入层、隐藏层与输出层缩放规则可以看成这一条件在不同矩阵形状下的逐元素表达。
 
 ## (2) 深度学习的方法
 
@@ -258,11 +255,11 @@ $$
 
 **卷积神经网络**是由卷积层、激活函数和池化层堆叠构成的深度神经网络，可以从图像数据中自适应的提取特征。
 
-卷积层是一种局部的互相关操作，使用卷积核在输入图像或特征上按照光栅扫描顺序滑动，并通过局部仿射变换构造输出特征。它引入了三条针对自然图像的**归纳偏置**：稀疏连接、权值共享和平移等变性；这既是卷积高效的原因，也是后续各种改进试图放松的对象。卷积层的基准形式为$y(p_0)=\sum_{p_n \in \mathcal{R}} w(p_n)\cdot x(p_0+p_n)+b$，几乎所有改进都可以看作对它某一部分的修改。
+卷积层是一种局部的互相关操作，使用卷积核在输入图像或特征上按照光栅扫描顺序滑动，并通过局部仿射变换构造输出特征。它引入了三条针对自然图像的**归纳偏置**：稀疏连接、权值共享和平移等变性；这既是卷积高效的原因，也是后续各种改进试图放松的对象。
 
 卷积层的**基本超参数与形态**：$1\times 1$卷积, 扩张卷积(**Dilated Conv**, **HDC**, **IC-Conv**), 转置卷积（及棋盘效应）, 子像素卷积(**PixelShuffle**, **ICNR**), 组卷积, 深度卷积。
 
-卷积算子的改进可以按“改动了基准公式的哪一部分”分为六族：
+卷积层的基准形式为$y(p_0)=\sum_{p_n \in \mathcal{R}} w(p_n)\cdot x(p_0+p_n)+b$，改进可以按“改动了基准公式的哪一部分”分为六族：
 - **采样位置自适应**（$p_0+p_n \to p_0+p_n+\Delta p_n$）：主动卷积**ACU**, 可变形卷积**Deformable Conv v1,v2**, **DCNv3**(**InternImage**), **DCNv4**, **LDConv**, 圆形卷积
 - **卷积核权重动态化**（$w(p_n) \to w(p_n \mid x)$）：**CondConv**, **DynamicConv**, **DyNet**, **ODConv**, **DRConv**, **Involution**, **LR-Net**, **Conv2Former**
 - 改变**聚合方式**（$\sum w \cdot x \to \sum w \cdot g(x)$）：差分卷积(中心差分卷积**CDC**, 交叉中心差分卷积, 像素差分卷积**PDC**), 部分卷积**Partial Conv**, 门控卷积**Gated Conv**, 稀疏卷积(空间稀疏卷积, 子流形稀疏卷积)
@@ -350,28 +347,41 @@ $$ h_t = f(h_{t-1},x_t), \quad y_t = g(h_t) $$
 
 也可以通过增加循环层的深度增强**RNN**的特征提取能力，包括**Stacked RNN**, **Bidirectional RNN**, 残差与高速连接；循环网络**专用的正则化**包括**Variational**/**Recurrent Dropout**（跨时间步共享掩码）与**Zoneout**（随机保持上一时刻的状态）。
 
-### ⚪ [<font color=Blue>序列到序列模型 (Sequence to Sequence)</font>](https://0809zheng.github.io/2020/04/21/sequence-2-sequence.html)
+### ⚪ [**<font color=Blue>序列到序列模型 (Sequence to Sequence)</font>**](https://0809zheng.github.io/2020/04/21/sequence-2-sequence.html)
 
-**序列到序列(Seq2Seq)模型**是一种序列生成模型，能够根据一个随机长度的输入序列生成另一个随机长度的序列。**Seq2Seq**模型通常采用编码器-解码器结构：
+**序列到序列(Sequence to Sequence，Seq2Seq)模型**用编码器把变长源序列压成上下文向量，再用解码器以自回归方式生成变长目标序列。它把序列建模与条件语言模型合并到同一张计算图上，是**Transformer**出现之前神经机器翻译、摘要、对话等任务的通用框架。
 
-![](https://pic.imgdb.cn/item/63b431e6be43e0d30e71b68d.jpg)
+本文主要内容包括：
+- **编码器—解码器结构**：**Cho**的**RNN Encoder-Decoder**、**Sutskever**的多层**LSTM**加反向输入、双向与深层扩展。
+- **训练与解码**：教师强制、贪婪搜索、束搜索与长度归一化。
+- **训练—推理错配**：**Scheduled Sampling**、**MIXER**与**Self-Critical Sequence Training**等序列级方法。
+- **输出词表扩展**：条件**Seq2Seq**、**Pointer Network**、**CopyNet**、**Pointer-Generator**。
+- **覆盖度与结构化输出**：**Coverage Mechanism**及其损失约束。
 
-**Seq2Seq**模型在生成序列时可以通过贪婪搜索或束搜索实现。序列生成时存在曝光偏差问题，可以通过计划采样缓解。
+### ⚪ [**<font color=Blue>序列到序列模型中的注意力机制 (Attention Mechanism)</font>**](https://0809zheng.github.io/2020/04/22/attention.html)
 
-典型的**Seq2Seq**模型包括条件**Seq2Seq**模型、指针网络。
+**注意力机制(Attention Mechanism)**让解码器每一步都在编码器所有隐状态上重新查询，取代固定的上下文向量，从而突破**Seq2Seq**的信息瓶颈。
 
-### ⚪ [<font color=Blue>序列到序列模型中的注意力机制 (Attention Mechanism)</font>](https://0809zheng.github.io/2020/04/22/attention.html)
-
-在**Seq2Seq**模型中，将输入序列通过编码器转换为一个上下文向量$c$，再喂入解码器。注意力机制是指在解码器的每一步中，通过输入序列的所有隐状态$h_{1:T}$构造注意力分布$(\alpha_1,...,\alpha_t,...,\alpha_T)$，然后构造当前步的上下文向量$c= \sum_{t=1}^{T} {\alpha_th_t}$。
-
+本文主要内容包括：
+- **两种打分家族**：**Bahdanau**加性注意力与**Luong**乘性注意力，以及得分函数的通用形式（**dot**、**general**、**scaled dot-product**、**location-based**、**cosine**）。
+- **注意力的作用范围**：全局注意力对整段源序列打分，局部注意力用单调或预测式对齐把窗口收窄。
+- **硬性与软性**：软性注意力可微稳定，硬性注意力配合**REINFORCE**或**Straight-Through**用于**Show, Attend and Tell**等任务，**sparsemax**是二者之间的稀疏折中。
+- **结构化约束**：**Coverage Mechanism**避免重复关注、**Monotonic Attention/MoChA**支持流式解码、**HAN**用层次化注意力聚合长文档。
 
 ## (3) 自注意力网络
 
-### ⚪ [<font color=Blue>自注意力机制 (Self-Attention Mechanism)</font>](https://0809zheng.github.io/2020/04/24/self-attention.html)
+### ⚪ [**<font color=Blue>自注意力机制 (Self-Attention Mechanism)</font>**](https://0809zheng.github.io/2020/04/24/self-attention.html)
 
-**自注意力机制**用于捕捉单个序列$X$的内部关系。把输入序列$X$映射为查询矩阵$Q$, 键矩阵$K$和值矩阵$V$；根据查询矩阵$Q$和键矩阵$K$生成注意力图，并作用于值矩阵$V$获得自注意力的输出$H$。
+**自注意力(Self-Attention)机制**把[注意力机制](https://0809zheng.github.io/2020/04/22/attention.html)收缩到同一条序列内部，用于捕捉单个序列$X$的内部关系。把输入序列$X$映射为查询矩阵$Q$, 键矩阵$K$和值矩阵$V$；根据查询矩阵$Q$和键矩阵$K$生成注意力图，并作用于值矩阵$V$获得自注意力的输出$H$。
 
-![](https://pic.downk.cc/item/5ea28825c2a9a83be5477d93.jpg)
+$$ H = \operatorname{softmax}(QK^\top/\sqrt{d_k})V $$
+
+本文主要内容包括：
+- **算子对比**：卷积、循环与自注意力在每层复杂度、序列操作数与最大路径长度上的差异。
+- **QKV**实现：查询/键/值投影、缩放点积注意力、以及输出与残差。
+- **多头自注意力**：**narrow**与**wide**两种切分方式，以及$$W^O$$的合并作用。
+- **位置编码**：置换等变性、学习式位置嵌入、**Sinusoidal**位置编码。
+- **受限与掩码**：**restricted**局部窗口、因果/填充/双向掩码，作为通向长序列注意力的第一步。
 
 ### ⚪ [<font color=Blue>Transformer</font>](https://0809zheng.github.io/2020/04/25/transformer.html)
 
@@ -482,30 +492,47 @@ $$ \begin{aligned} \mathcal{L}_{CFM}(\theta) = \mathbb{E}_{t, q(z), p_t(x|z)} \|
 
 ### ⚪ [<font color=Blue>递归神经网络 (Recursive Neural Network)</font>](https://0809zheng.github.io/2020/03/08/recursive-neural-network.html)
 
-**递归神经网络**在树或有向无环图上递归地共享组合函数：先编码叶节点，再根据子节点表示计算父节点，直至得到根节点表示。循环神经网络是其链式特例，而TreeRNN也可以看成树上的单次有向消息传递。它适合句法树、程序抽象语法树、场景层级和3D部件树等具有可靠层级结构的数据。
+**递归神经网络**在树或有向无环图上递归地共享组合函数：先编码叶节点，再根据子节点表示计算父节点，直至得到根节点表示。循环神经网络是其链式特例，而**TreeRNN**也可以看成树上的单次有向消息传递。它适合句法树、程序抽象语法树、场景层级和**3D**部件树等具有可靠层级结构的数据。
 
 递归网络的方法可以分为四族：
-- **基础组合与结构训练**：二叉TreeRNN, 节点级监督, 结构反向传播(**BPTS**), 成分树与依存树
+- **基础组合与结构训练**：二叉**TreeRNN**, 节点级监督, 结构反向传播(**BPTS**), 成分树与依存树
 - **增强组合函数**：递归自编码器(**RAE**), 矩阵-向量递归网络(**MV-RNN**), 递归神经张量网络(**RNTN**)
 - **门控与高效树计算**：**Child-Sum Tree-LSTM**, **N-ary Tree-LSTM**, **SPINN**
-- **潜在结构与现代混合模型**：**RL-SPINN**, **Gumbel Tree-LSTM**, 可微chart parser, **Tree Transformer**
+- **潜在结构与现代混合模型**：**RL-SPINN**, **Gumbel Tree-LSTM**, 可微**chart parser**, **Tree Transformer**
 
 显式树结构能缩短句法相关成分之间的路径并提供可解释的组合过程，但依赖解析质量、难以批量并行。对一般自然语言任务，预训练Transformer通常是默认选择；对AST、XML和部件树等原生层级输入，递归网络仍具有直接而有效的结构归纳偏置。
 
-### ⚪ [<font color=Blue>记忆增强神经网络 (Memory Augmented Neural Network)</font>](https://0809zheng.github.io/2020/04/23/memory-network.html)
+### ⚪ [**<font color=Blue>图神经网络 (Graph Neural Network)</font>**](https://0809zheng.github.io/2020/03/09/graph-neural-network.html)
 
-**记忆增强神经网络**在神经网络中引入外部记忆单元来提高网络容量。记忆网络的模块包括：主网络$C$负责信息处理以及与外界的交互；外部记忆单元$M$用来存储信息；读取模块$R$根据主网络生成的查询向量从外部记忆单元读取信息；写入模块$W$根据主网络生成的查询向量和要写入的信息更新外部记忆单元。读取或写入操作通常使用注意力机制实现。
+**图神经网络(Graph Neural Network，GNN)**通过共享的局部函数在节点之间传递消息，并用排列不敏感的聚合与读出函数学习节点、边和整张图的表示。谱图卷积与空间邻域聚合可以统一到“传播、聚合、更新、读出”的视角下理解。
 
-典型的记忆增强神经网络包括端到端记忆网络、神经图灵机。
+本文主要内容包括：
+- **统一框架**：**消息传递神经网络(Message Passing Neural Network，MPNN)**、排列等变性与不变性、感受野、归纳学习与直推学习。
+- **经典模型**：**Spectral CNN、ChebNet、GCN、SGC、APPNP、GraphSAGE、GAT、GATv2、GIN、PNA、DiffPool**。
+- **理论与优化**：**Weisfeiler-Lehman(1-WL)**表达上界、高阶图网络、位置编码，以及过平滑、过压缩和异配性问题。
+- **扩展方向**：异构图、时空图、连续时间动态图、几何等变网络与图**Transformer**，包括**R-GCN、HGT、TGN、EGNN、Graphormer、GraphGPS、Exphormer**。
+- **训练与评测**：**FastGCN、Cluster-GCN、GraphSAINT、SIGN**等扩展方法，图对比学习与掩码建模，以及**OGB**数据划分和信息泄漏问题。
 
-### ⚪ [<font color=Blue>图神经网络 (Graph Neural Network)</font>](https://0809zheng.github.io/2020/03/09/graph-neural-network.html)
+### ⚪ [**<font color=Blue>胶囊网络 (Capsule Network)</font>**](https://0809zheng.github.io/2020/04/20/Capsule-Network.html)
 
+**胶囊网络(Capsule Network，CapsNet)**用向量或矩阵同时表示实体的存在性与姿态：激活强度回答“是否存在”，实例化参数描述位置、尺度和朝向；子胶囊通过姿态变换向候选父胶囊投票，再由路由机制按预测一致性组合部件与整体。
 
-**图神经网络**是用于处理图结构的神经网络，其核心思想是学习一个函数映射$f(\cdot)$，图中的节点$v_i$通过该映射可以聚合它自己的特征$x_i$与它的邻居特征$x_{j \in N(v_i)}$来生成节点$v_i$的新表示。
+本文主要内容包括：
+- **表示基础**：不变性与等变性、部件—整体关系、**Transforming Auto-Encoder**、向量胶囊、**Squash**非线性与投票张量。
+- **经典模型**：**Dynamic Routing、CapsNet、Matrix Capsules、EM Routing**，以及边际损失、重构正则和**Spread Loss**。
+- **后续路线**：面向分割的**SegCaps**、具有严格变换保证的**Group Equivariant Capsule Network**、非迭代的**Self-Routing**与**Efficient-CapsNet**、无监督对象分解的**Stacked Capsule Autoencoder**。
+- **实证边界**：区分“姿态等变、对象分组、样本效率和鲁棒性”的设计目标与实验事实，并分析投票张量、迭代路由、训练饥饿和深层扩展问题。
 
-**GNN**可以分为两大类，基于空间（**spatial-based**）和基于谱（**spectral-based**）。
-- 基于空间的**GNN**直接根据邻域聚合特征信息，把图粗化为高级子结构，可用于提取图的各级表示和执行下游任务。如**NN4G**, **DCNN**, **DGC**, **MoNET**, **GraphSAGE**, **GAT**, **GIN**。
-- 基于谱的**GNN**把图网络通过傅里叶变换转换到谱域，引入滤波器处理图谱后通过逆变换还原到顶点域。如**ChebNet**, **GCN**, **DropEdge**。
+### ⚪ [**<font color=Blue>记忆增强神经网络 (Memory Augmented Neural Network)</font>**](https://0809zheng.github.io/2020/04/23/memory-network.html)
+
+**记忆增强神经网络(Memory Augmented Neural Network，MANN)**在控制器之外增加显式、可寻址的外部记忆，把“计算状态”与“信息存储”分离。不同架构的关键差异在于记忆中存什么、如何寻址，以及推理期间是否允许写回。
+
+本文主要内容包括：
+- **统一接口**：控制器、记忆矩阵、内容寻址、位置寻址、加权读取与擦除—增加写入。
+- **只读记忆**：**Memory Networks、bAbI、MemN2N、KV-MemNN**与**DMN**，以及多跳问答和键值分离。
+- **可读写记忆**：**NTM**的内容—位置联合寻址，以及**DNC**的动态分配、使用率和时间链接。
+- **任务化结构**：少样本学习中的**MANN/LRUA**，以及可微栈、队列和双端队列。
+- **训练与边界**：控制器捷径、地址弥散、槽位干扰、长度外推、记忆消融，以及外部记忆与注意力的关系。
 
 ### ⚪ [<font color=Blue>状态空间模型 (State Space Model)</font>](https://0809zheng.github.io/2024/07/01/ssm.html)
 
@@ -528,13 +555,6 @@ $$
 - 线性注意力与门控线性**RNN**：**Linear Transformer**, **Fast Weight Programmer**, **LRU**, **RetNet**, **HGRN**, **GLA**, **RWKV**, **xLSTM**, **Griffin**, **DeltaNet**, **Gated DeltaNet**。
 - 混合架构（**SSM/线性注意力 + 局部注意力**）：**Jamba**, **Samba**, **Zamba**, **Falcon Mamba**。
 - 处理图像的**SSM**：**Vim**, **VMamba**, **MambaOut**, **MambaR**。
-
-
-### ⚪ [胶囊网络](https://0809zheng.github.io/2020/04/20/Capsule-Network.html)
-
-
-
-
 
 # 3. 深度学习的应用
 
@@ -776,88 +796,6 @@ $$
 - 对比学习模型：通过使匹配的图像和文本在嵌入空间中彼此靠近来提取图像和文本的共享表示；如**ALIGN**, **CLIP**, **SLIP**, **GLIP**, **GLIPv2**, **BLIP**, **BLIP-2**, **MaskCLIP**, **Chinese CLIP**, **FLIP**, **A-CLIP**, **SigLIP**, **SigLIP 2**, **LaCLIP**。
 
 
-
-
-# 4. AI for Science
-
-## （1）AI for Math
-- [Fourier Neural Operator for Parametric Partial Differential Equations](https://0809zheng.github.io/2021/06/28/fno.html)：(arXiv2010)为偏微分方程设计的傅里叶神经算子。
-- [Advancing mathematics by guiding human intuition with AI](https://0809zheng.github.io/2022/01/08/mathai.html)：(Nature 2021.12)用人工智能引导人类直觉推进数学发展。
-- [Discovering faster matrix multiplication algorithms with reinforcement learning](https://0809zheng.github.io/2022/11/21/alphatensor.html)：(Nature 2022.10)AlphaTensor：通过强化学习发现更快的矩阵乘法算法。
-
-## （2）AI for Physics
-- [Noether Networks: Meta-Learning Useful Conserved Quantities](https://0809zheng.github.io/2022/06/19/noether.html)：(arXiv2112)Noether网络：通过元学习学习有用的守恒量。
-
-## （3）AI for Computer Science
-- [Competition-Level Code Generation with AlphaCode](https://0809zheng.github.io/2022/03/13/alphacode.html)：(arXiv2203)AlphaCode: 竞赛级别的代码生成。
-- [Faster sorting algorithms discovered using deep reinforcement learning](https://0809zheng.github.io/2023/06/07/alphadev.html)：(Nature 2023.06)AlphaDev：通过深度强化学习发现更快的排序算法。
-
-
-## （4）AI for Life Science
-
-**组学 omics** 通常指生物学中对各类研究对象（生物分子）的集合所进行的系统性研究（这些研究对象的集合被称为**组 ome**），旨在对转化为有机体的结构、功能和动力学的生物分子池（**pools of biological molecules**）进行集体表征和量化。
-
-## ⭐ 基因组学（Genomics）
-
-**基因组学**系统性研究生物体基因组（**genome**）中各种基因（**gene**）以及它们之间的相互关系。
-
-### 基因组变异检测
-
-- [A universal SNP and small-indel variant caller using deep neural networks](https://0809zheng.github.io/2024/08/29/deepvariant.html)：(Nature Biotechnology 2018)使用深度神经网络的通用单核苷酸多态性和插入/缺失变异比对器。
-
-### 基因组基础模型
-
-
-**序列到功能（Sequence-to-function）**模型能够从**DNA**序列数据中预测基因表达，这对于理解调控过程及其对复杂表型的影响至关重要。**基因组语言模型（Genomic language models）**通过在海量**DNA**序列上进行预训练，能够生成蕴含基因组上下文信息的、鲁棒的序列表示。然而，目前很少有研究能够评估基因表达水平的可预测性，并将这两类模型结合起来，以探索**个性化**的基因表达预测。
-
-EPInformer
-
-enformer
-performer
-
-### ⚪ [<font color=blue>片段组学模型 (Fragmentomics Model)</font>](https://0809zheng.github.io/2026/01/01/fragmentomics.html)
-
-**片段组学**专注于分析细胞游离**DNA**（**cfDNA**）的片段化特征（如长度分布、末端基序、分布模式等），该模式与核小体结构以及细胞死亡过程中的**DNA**片段化现象有关。
-
-
-
-## ⭐ 转录组学（Transcriptomics）
-
-**转录组学**研究在单个细胞或特定类型的细胞、组织、器官或发育阶段的细胞群内所生产的各类**RNA**（通常是**mRNA**）分子的类型和数量。
-
-## ⭐ 蛋白质组学（Proteomics）
-
-**蛋白质组学**是对蛋白质结构和功能的大规模研究，蛋白质组是由有机体或系统产生或修饰的整套蛋白质。
-
-
-
-
-## ⭐ 表观基因组学（Epigenomics）
-
-**表观基因组学**是对细胞遗传物质（称为表观基因组）上所有表观遗传修饰的研究。表观遗传修饰是细胞**DNA**或组蛋白的可逆修饰，它会影响基因表达，而不会改变**DNA**序列。
-
-### ⚪ [<font color=blue>DNA甲基化组模型 (DNA Methylome Model)</font>](https://0809zheng.github.io/2026/02/01/methylome.html)
-
-**DNA甲基化**是指**DNA**分子在**DNA**甲基转移酶(**DNMT**)的作用下将甲基基团选择性地添加到特定碱基上的过程。
-
-甲基化位点预测的目标是发现新位点。输入通常是围绕待预测碱基的一段固定长度的序列，输出是判断该序列中心某个特定的碱基（如**C**或**A**）是否是一个甲基化位点。这是一个二元分类 问题。常用的甲基化位点预测模型包括：
-- 预测**4mc**位点（甲基基团被添加到胞嘧啶的第4位氮原子上）：**4mCCNN**, **4mcDeep-CBI**, **Deep4mcPred**, **DNC4mC-Deep**, **i4mC-Deep**, **4mCPred-CNN**, **iRG-4mC**, **4mCNLP-Deep**, **DeepTorrent**, **Deep4mC**, **4mC-w2vec**, **DCNN-4mC**, **4mCPred-MTL**, **DeepDNA4mC**, **MSNet-4mC**, **MultiScale-CNN-4mCPred**, **i4mC-GRU**, **4mC-CGRU**, **4mCPred-GSIMP**, **DeepSF-4mC**
-- 预测**5mc**位点（甲基基团被添加到胞嘧啶的第5位碳原子上）：**iPromoter-5mC**, **BiLSTM-5mC**, **DeepSignal-plant**, **FRAGMA**, **DeepMethylation**, **BERT-5mC**, **DGA-5mC**, **DeepMod2**, **Deep5mC**, **TCN-5mC**
-- 预测**6mA**位点（甲基基团被添加到腺嘌呤的第6位氮原子上）：**SNNRice6mA**, **DNA6mA-MINT**, **SpineNet-6mA**, **SICD6mA**, **6mA-Pred**, **i6mA-CNN**, **Deep6mA**, **BERT6mA**, **CNN6mA**, **PSATF-6mA**, **HD-6mAPred**
-- 预测多种位点：**DeepSignal**, **iDNA-ABT**, **iDNA-ABF**, **StableDNAm**, **iDNA-EBT**, **iDNA-ITLM**, **iDNA-OpenPrompt**, **Methyl-GP**, **MuLan-Methyl**, **iDNA-DAPHA**
-
-甲基化数据插补 (**Imputation**) 的目标是填补缺失值。输入通常是稀疏的甲基化矩阵：包含大量细胞/样本（行）和 **CpG** 位点（列），但矩阵中有很多缺失值。输出是补全后的完整的甲基化水平矩阵。这是一个回归问题。常用的甲基化数据插补模型包括：**DeepCpG**, **CpG Transformer**, **GraphCpG**, **MethylProphet**, **DMRU**, **scMeFormer**, **DiffuCpG**。
-
-**DNA**甲基化应用模型是指利用标记好的甲基化数据集，通过监督学习等方法训练，以解决特定下游临床任务（如疾病诊断、分型或预后预测）的专用预测工具。包括**HNSC or LUSC**, **MethylNet**, **DISMIR**, **AltumAge**, **Alzheimer Detector**, **MT-CAE & MT-LSTMAE**, **HiTAIC**, **CHCT**, **NCAE**, **Sturgeon**, **Decoding Depression**, **MethPriorGCN**, **cfMethylPre**。
-
-**DNA**甲基化基础模型是指在海量的、通常是无标签的**DNA**甲基化数据上进行预训练的大规模深度学习模型，旨在学习通用的、富含上下文信息的特征表示（如**CpG**嵌入），并能通过微调快速适应多种不同的下游任务。包括**CpGPT**, **MethylGPT**, **MethylQUEEN**, **scWGBS-GPT**, **MethylBERT**。
-
-## ⭐ 单细胞多学组（Single-Cell Multiomics）
-
-### ⚪ 单细胞多组学整合模型
-
-### ⚪ 单细胞多组学翻译模型
-
 # 5. 参考文献与扩展阅读
 
 ### ⚪ Life-Long Deep Learning
@@ -884,7 +822,3 @@ performer
 ### ⚪ 深度学习的相关博客
 - 企业博客：[OpenAI](https://openai.com/blog/)、[DeepMind](https://www.deepmind.com/blog)、[DeepLearning.AI](https://www.deepmind.com/blog)
 - 个人博客：[Lil’Log](https://lilianweng.github.io/)、[科学空间](https://spaces.ac.cn/)
-
-
-
-<!-- 为这篇论文写一篇markdown格式的中文技术博客。首先给出TLDR（参考摘要和总结）；第一章进行背景介绍；第二章全面地介绍方法，结合公式进行说明；第三章介绍实验分析，详细地给出所有实验的结论和分析。要求对文中所有英文词进行加粗（** **），不要加粗中文。行内公式用$ $给出且不要加粗。背景介绍章节中不要出现口语化。不要用“我们”而是用“作者”。如果一个实验结果图有多个子图，则结论需要对应到每一个子图。 -->
