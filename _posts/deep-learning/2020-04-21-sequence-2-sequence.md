@@ -3,7 +3,7 @@ layout: post
 title: '序列到序列模型(Sequence to sequence)'
 date: 2020-04-21
 author: 郑之杰
-cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-seq2seq-002-lstm-seq2seq.jpg'
+cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-seq2seq-000-cover.jpg'
 tags: 深度学习
 ---
 
@@ -13,7 +13,7 @@ tags: 深度学习
 
 **序列到序列(Sequence to Sequence，Seq2Seq)模型**正是为这一类问题设计的：先用一个**编码器(encoder)**把整个源序列压成向量表示，再用一个**解码器(decoder)**以自回归方式逐位生成目标序列，直至输出终止符。它把“序列建模”和“条件语言模型”拼在同一张计算图上，成为神经机器翻译、图像描述、语音识别等任务在**Transformer**出现之前的主流框架。
 
-![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-seq2seq-001-encoder-decoder.jpg)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-seq2seq-002-lstm-seq2seq.jpg)
 
 本文目录：
 1. 编码器—解码器结构
@@ -64,7 +64,7 @@ $$
 
 **Sutskever**等人给出了机器翻译上第一个纯神经网络的强基线。他们用四层**LSTM**做编码器，另一层**LSTM**做解码器；两者不共享参数，编码器最后时刻的隐状态与细胞状态一起传给解码器：
 
-![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-seq2seq-000-cover.jpg)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-seq2seq-001-encoder-decoder.jpg)
 
 论文里有几项工程结论：
 - **反向输入**：把源句子颠倒顺序再喂给编码器，在英法翻译上把**BLEU**大幅提升。原因是源句子的前几个词离目标句子的前几个词更“近”，缓解了**LSTM**跨越长时间步的优化难度。
