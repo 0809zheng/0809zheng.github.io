@@ -11,7 +11,7 @@ tags: 深度学习
 
 循环神经网络沿时间步串行传播状态，卷积神经网络则依靠固定局部窗口逐层扩大感受野。**Transformer**把序列建模改写为全局的信息路由：任意位置都可以在一层内直接读取其他位置，再用逐位置的非线性变换更新表示。它由此获得更短的信息路径和更高的训练并行度，也付出了注意力复杂度随序列长度平方增长、缺少固有顺序归纳偏置等代价。
 
-最初的**Transformer**是用于机器翻译的编码器—解码器模型，随后演化出编码器、解码器与编码器—解码器三种主干。围绕这套骨架的结构改进主要回答五个问题：注意力内部怎样形成并组合路由；残差支路如何在深层网络中稳定传播；前馈网络如何提高参数利用率；注意力与前馈网络应如何排列、共享和裁剪；以及现代解码器为何普遍采用**Pre-RMSNorm、RoPE、GQA**与**SwiGLU**。
+最初的**Transformer**是用于机器翻译的编码器—解码器模型，随后演化出编码器、解码器与编码器—解码器三种主干。围绕这套骨架的结构改进主要回答五个问题：注意力内部怎样形成并组合路由；残差支路如何在深层网络中稳定传播；前馈网络如何提高参数利用率；注意力与前馈网络应如何排列、共享和裁剪；以及哪些改进真正改变了**Transformer**。
 
 本文目录：
 1. 原始**Transformer**：网络结构、实验设置与结果分析
@@ -28,7 +28,7 @@ tags: 深度学习
 **Transformer**的基本结构如下图所示。
 网络结构可以分成**编码器Encoder**和**解码器Decoder**两部分。根据不同的任务，有时候会用到不同的部分，如**编码器**部分常用于文本编码分类，**解码器**部分用于语言模型生成，完整的**编码器-解码器**结构用于机器翻译。
 
-![](pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-001-transformer.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-001-transformer.png)
 
 
 <details markdown="1">
@@ -137,7 +137,7 @@ $$ \text{Attention}(Q,K,V) = \text{softmax}(\frac{QK^T}{\sqrt{d_k}})V $$
 多头自注意力机制后还应用了残差连接和[Layer Norm](https://0809zheng.github.io/2020/03/04/normalization.html#9-layer-normalization)。使用**LayerNorm**而不是**BatchNorm**的原因是，序列数据通常具有不同的长度，通过补$0$进行长度对齐。若在所有样本的某一个特征维度上进行标准化(**BatchNorm**)，其计算得到的均值和方差变化较大，不利于存储滑动平均值。而对每个样本的所有特征维度进行标准化(**LayerNorm**)则比较稳定。
 
 
-![](pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-002-mha.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-002-mha.png)
 
 <details markdown="1">
   <summary>点击展开代码</summary>
@@ -318,7 +318,7 @@ class PositionalEncoding(nn.Module):
 
 ### ④ 模型比较
 
-![](pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-003-compare.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-003-compare.png)
 
 上表展示了自注意力机制、循环网络、卷据网络以及一种受限的自注意力机制的计算性能对比。其中$n$是序列长度，$d$是序列每个**token**的特征维度(词嵌入维度)，$k$是(1d)卷积核尺寸，$r$表示对每个位置只计算其附近$r$个位置的注意力。
 - **Complexity per Layer**：即每层的计算复杂度。循环网络和卷积网络的复杂度接近，与自注意力的复杂度比较主要取决于$n$和$d$的大小。
@@ -342,11 +342,11 @@ $$ lrate=d_{model}^{-0.5}\cdot \min (step\_num^{-0.5}, step\_num \cdot warmup\_s
 ### 3. 实验结果
 作者给出了在机器翻译任务上的模型表现：
 
-![](pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-005-result.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-005-result.png)
 
 使用**multi-head**机制，既可以捕捉到近距离依赖关系，又可以捕捉到远距离依赖关系；且模型具有较好的可解释性。由于计算得到每一个**token**与其他所有**token**的自注意力，因此可以定量衡量不同**token**之间的相关性程度。下图展示了两个句子，其每个句子的每个**token**（此处为单词）与句子中其他单词之间的相关性：
 
-![](pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-004-attn-vis.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-transformer-004-attn-vis.png)
 
 # 2. Transformer的结构优化
 
