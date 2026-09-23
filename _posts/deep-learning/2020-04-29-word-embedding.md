@@ -21,7 +21,7 @@ tags: 深度学习
 5. 从词元到句子与检索嵌入
 6. 如何评估与理解嵌入空间
 
-**符号约定**：用$\mathcal{V}$表示词表，$|\mathcal{V}|$表示词表大小，$d$表示嵌入维度，$E\in\mathbb{R}^{|\mathcal{V}|\times d}$表示嵌入矩阵；$w_i$表示词或词元，$e_i\in\mathbb{R}^d$表示对应嵌入，$f_\theta(\cdot)$表示文本编码器，$s(\cdot,\cdot)$表示相似度函数。
+**符号约定**：用$\mathcal{V}$表示词表，$\|\mathcal{V}\|$表示词表大小，$d$表示嵌入维度，$E\in\mathbb{R}^{\|\mathcal{V}\|\times d}$表示嵌入矩阵；$w_i$表示词或词元，$e_i\in\mathbb{R}^d$表示对应嵌入，$f_\theta(\cdot)$表示文本编码器，$s(\cdot,\cdot)$表示相似度函数。
 
 # 1. 从离散符号到连续表示
 
@@ -178,7 +178,7 @@ p(o\mid w)=
 {\sum_{w'\in\mathcal V}\exp(u_{w'}^\top v_w)}.
 $$
 
-分母需要遍历整个词表，代价随$|\mathcal V|$增长。原始工作使用**层次 softmax（hierarchical softmax）**把词表组织成二叉树，将一次预测降为沿根到叶路径的一系列二分类。
+分母需要遍历整个词表，代价随$\|\mathcal V\|$增长。原始工作使用**层次 softmax（hierarchical softmax）**把词表组织成二叉树，将一次预测降为沿根到叶路径的一系列二分类。
 
 ## (2) 负采样与子词信息
 
