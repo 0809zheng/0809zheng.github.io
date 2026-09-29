@@ -217,7 +217,7 @@ $$
 
 其中$x_{\setminus S}$表示区域$S$被遮挡后的输入。方法不需要访问梯度，能够用于黑盒模型；但窗口大小决定解释分辨率，逐区域查询的开销高，纯色遮挡还可能构造训练分布之外的输入。
 
-![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-custom-013-occlusion.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-explainable-013-occlusion.png)
 
 - **paper**：[**RISE: Randomized Input Sampling for Explanation of Black-box Models**](https://arxiv.org/abs/1806.07421)
 
@@ -229,7 +229,7 @@ $$
 
 随机掩码能够减少规则窗口带来的边界偏差，也能适配任意黑盒分类器；代价是需要大量查询，并且掩码分辨率、保留概率和上采样方式会改变结果。扰动方法比纯梯度更接近有限干预，但如果扰动样本严重偏离数据分布，输出变化仍可能来自模型对异常输入的反应。
 
-![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-custom-014-rise.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-explainable-014-rise.png)
 
 ### (3) 基于局部代理和博弈分配的归因
 
@@ -397,7 +397,7 @@ $$
 
 其中$g$预测一组人类定义的概念，$h$只根据概念预测最终标签。用户可以检查中间概念，甚至在推理时纠正$\hat{c}$并观察结果是否改变。这种“可干预接口”比事后热力图提供更强证据。
 
-![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-explainable-018-cbn.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-explainable-019-cbn.png)
 
 代价是需要概念标注，并假设概念集合足以支持任务。若遗漏关键概念，模型性能会下降；若联合训练允许概念表示携带标签相关的额外连续信息，就会出现概念泄漏：表面上经过了具名概念，实际决策仍可能依赖人类未定义的信息。因此概念准确率、任务准确率和概念干预效果应分别评估。
 
@@ -514,7 +514,7 @@ $$
 
 - **TRAK**：[**TRAK: Attributing Model Behavior at Scale**](https://proceedings.mlr.press/v202/park23c.html)
 
-**TracIn**虽然避开了**Hessian**，但仍需要在多个检查点上存储和计算高维度的梯度，对于超大模型（如**LLMs）**，这依然是巨大的负担。**TRAK (Tracing with the Randomly-projected Hessian And Kernelization) **的目标是*将数据归因的成本进一步降低几个数量级*，使其在万亿参数模型和亿级数据集上成为可能。
+**TracIn**虽然避开了**Hessian**，但仍需要在多个检查点上存储和计算高维度的梯度，对于超大模型（如**LLMs**），这依然是巨大的负担。**TRAK (Tracing with the Randomly-projected Hessian And Kernelization)**的目标是*将数据归因的成本进一步降低几个数量级*，使其在万亿参数模型和亿级数据集上成为可能。
 
 **TRAK**的最终分数形式非常简洁，它将归因问题转化为了一个**核函数（Kernel）**的计算：
 
@@ -530,7 +530,7 @@ $$
 
 其中 $\nabla_\theta f(z, \theta_m)$ 是**模型输出**对参数的梯度，也称为**雅可比矩阵**。它描述了如果参数微调，模型的**logit**会如何变化。**随机投影矩阵**$\mathbf{P}$将数据点 $z$ 的高维输出梯度，投影（压缩）成一个低维向量，称之为 $z$ 的**TRAK特征**。核函数 $K$ 是两个数据点 $z_j$ 和 $z$ 的**TRAK特征的点积**，衡量输出梯度（经过投影后）的相似性。
 
-TRAK的工作流程使得“查询”一个样本的影响源头的成本，从遍历整个数据集降低为一次快速的向量检索：
+**TRAK**的工作流程使得“查询”一个样本的影响源头的成本，从遍历整个数据集降低为一次快速的向量检索：
 1.  **索引阶段**: 对于训练集中的所有样本 $z_j$，以及一小部分模型检查点 $\theta_m$，预先计算并存储它们的低维**TRAK**特征 $\mathbf{P} \cdot \nabla_\theta f(z_j, \theta_m)$。
 2.  **查询阶段**: 当需要解释一个测试样本 $z$ 时，我们只计算 $z$ 的**TRAK**特征，然后进行高效的**近似最近邻搜索**。这会立刻返回与 $z$ 的**TRAK**特征最相似（点积最大）的那些训练样本 $z_j$。
 
