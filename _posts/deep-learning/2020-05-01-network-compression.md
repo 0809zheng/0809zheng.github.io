@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '网络压缩'
+title: '网络压缩(Network Compression)'
 date: 2020-05-01
 author: 郑之杰
 cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-compression-000-5eaab825.jpg'
@@ -95,8 +95,6 @@ $$
 
 早期的**Optimal Brain Damage/Surgeon**进一步利用二阶曲率估计损失变化；现代一次性大模型剪枝也重新采用局部二阶近似。
 
-结构化剪枝删除整个神经元、卷积滤波器或通道，因而可以重建较小的规则张量：
-
 删除卷积层的输出通道时，还必须同步删除下一层对应的输入通道，并处理残差分支、归一化层和分组约束。结构化结果更容易在通用硬件上兑现加速，但同样稀疏率下通常比非结构化剪枝损失更多自由度。
 
 - **paper**：[**Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding**](https://arxiv.org/abs/1510.00149)
@@ -115,7 +113,7 @@ $$
 \lambda\sum_c|\gamma_c|.
 $$
 
-训练后删除$|\gamma_c|$较小的通道，再进行微调。这个方法把通道选择嵌入训练过程，得到可直接转成较窄稠密网络的结构。
+训练后删除$|\gamma_c\|$较小的通道，再进行微调。这个方法把通道选择嵌入训练过程，得到可直接转成较窄稠密网络的结构。
 
 ![按通道重要性进行结构化剪枝](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-compression-003-5ee9dbbf.png)
 
@@ -213,7 +211,7 @@ $$
 \end{aligned}
 $$
 
-该公式表明，对剩余权重 $S$ 的最优补偿更新 $\Delta w_S^{\*}$，可以直接通过被剪枝的权重值 $w_F$ 和**Hessian**矩阵 $\mathbf{H} = XX^\top$ 的相应子块（$\mathbf{H}_{FS}$ 和 $\mathbf{H}_{SS}^{-1}$）一次性计算出来。这避免了任何迭代优化，是其“一次性”高效更新的核心。
+该公式表明，对剩余权重 $S$ 的最优补偿更新 $\Delta w_S^{\*}$，可以直接通过被剪枝的权重值 $w_F$ 和**Hessian**矩阵 $\mathbf{H} = XX^\top$ 的相应子块（$$\mathbf{H}_{FS}$$ 和 $$\mathbf{H}_{SS}^{-1}$$）一次性计算出来。这避免了任何迭代优化，是其“一次性”高效更新的核心。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-compression-029-sparseGPT.png)
 
