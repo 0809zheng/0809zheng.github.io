@@ -309,7 +309,7 @@ $$
 ### ⚪ **PSANet**：为每个像素学习全图信息传播权重
 - **paper**：[**PSANet: Point-wise Spatial Attention Network for Scene Parsing**](https://hszhao.github.io/projects/psanet/)
 
-**PSANet**用卷积为每个位置预测长度为$H\!W$的注意力向量，显式描述该位置与所有位置的关系。**Collect**分支回答“当前像素应从哪些位置收集信息”，**Distribute**分支回答“当前像素应把信息发送到哪些位置”；两条路径分别聚合后拼接，形成双向全局上下文。
+**PSANet**用卷积为每个位置预测长度为$HW$的注意力向量，显式描述该位置与所有位置的关系。**Collect**分支回答“当前像素应从哪些位置收集信息”，**Distribute**分支回答“当前像素应把信息发送到哪些位置”；两条路径分别聚合后拼接，形成双向全局上下文。
 
 与固定网格池化相比，**Point-wise Spatial Attention（PSA）**可按图像内容选择远距离区域；代价是注意力张量随空间位置数近似平方增长，因此通常在低分辨率特征上使用。
 
@@ -2007,7 +2007,7 @@ class HausdorffDTLoss(nn.Module):
 
 ## (4) 基于集合匹配的损失 Set-based Loss
 
-**MaskFormer**一类模型输出无序掩码集合，训练前必须决定哪个查询对应哪个真实区域。设预测集合为$\{(p_i,m_i)\}_{i=1}^{N}$，真实集合为$\{(c_j,y_j)\}_{j=1}^{M}$，二分图匹配寻找总代价最小的注入映射：
+**MaskFormer**一类模型输出无序掩码集合，训练前必须决定哪个查询对应哪个真实区域。设预测集合为$$\{(p_i,m_i)\}_{i=1}^{N}$$，真实集合为$$\{(c_j,y_j)\}_{j=1}^{M}$$，二分图匹配寻找总代价最小的注入映射：
 
 $$
 \hat\sigma=\arg\min_{\sigma}\sum_{j=1}^{M}\mathcal C\big((c_j,y_j),(p_{\sigma(j)},m_{\sigma(j)})\big)
