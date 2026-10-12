@@ -306,7 +306,7 @@ x_{nd}&\leftarrow \frac{x_{nd}-\mu_d}{\sigma_d}
 \end{aligned}
 $$
 
-在训练集上保存$\mu_d,\sigma_d^2$，再统一计算$x'_{nd}=(x_{nd}-\mu_d)/\sqrt{\sigma_d^2+\epsilon}$；$\epsilon$是关键超参数，验证与测试阶段不重新估计统计量。
+在训练集上保存$\mu_d,\sigma_d^2$，再统一计算$$x'_{nd}=(x_{nd}-\mu_d)/\sqrt{\sigma_d^2+\epsilon}$$；$\epsilon$是关键超参数，验证与测试阶段不重新估计统计量。
 
 数据量很大或以流式到达时，均值与方差可以用**Welford**在线算法单遍计算，避免先求和再求平方和带来的数值抵消：
 
@@ -1032,7 +1032,7 @@ $$
 
 其中$p$为季节周期（如日数据中的周周期$p=7$）。$d$阶差分$\nabla^dx_t$可以消除$d$次多项式趋势：例如线性趋势$x_t=a+bt+\varepsilon_t$满足$\nabla x_t=b+\varepsilon_t-\varepsilon_{t-1}$，均值不再随时间变化；随机游走$x_t=x_{t-1}+\varepsilon_t$含有**单位根**，其方差$\text{Var}(x_t)=t\sigma^2$随时间增长，而$\nabla x_t=\varepsilon_t$是平稳的白噪声。季节差分以同样的方式消除周期为$p$的确定性季节模式。
 
-差分在保留初值时可逆：模型预测差分序列$\nabla\hat{x}_{t+1:t+S}$后，用累加还原$\hat{x}_{t+h}=x_t+\sum_{i=1}^{h}\nabla\hat{x}_{t+i}$。对乘性增长的序列，常先取对数再差分，此时$\nabla\log x_t\approx(x_t-x_{t-1})/x_{t-1}$近似为增长率。
+差分在保留初值时可逆：模型预测差分序列$$\nabla\hat{x}_{t+1:t+S}$$后，用累加还原$$\hat{x}_{t+h}=x_t+\sum_{i=1}^{h}\nabla\hat{x}_{t+i}$$。对乘性增长的序列，常先取对数再差分，此时$$\nabla\log x_t\approx(x_t-x_{t-1})/x_{t-1}$$近似为增长率。
 
 ### ⚪ STL分解：基于局部加权回归的季节-趋势分解
 
