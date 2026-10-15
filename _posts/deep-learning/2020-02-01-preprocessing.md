@@ -5,6 +5,7 @@ date: 2020-02-01
 author: 郑之杰
 cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-preprocess-000-cover.png'
 tags: 深度学习
+pinned: false
 ---
 
 > Data Preprocessing in Deep Learning.
@@ -13,13 +14,13 @@ tags: 深度学习
 
 **数据预处理（data preprocessing）**是指在原始数据进入模型之前，对其进行清洗、变换、编码、划分与组织的一系列操作。预处理决定了模型实际看到的输入分布，因此它既是工程问题，也是统计问题。
 
-本文首先讨论预处理的基本原则；然后介绍通用的数据清洗方法；接着介绍数值特征的缩放与分布变换、类别特征的编码；再按模态介绍图像、音频、文本、时间序列的预处理；最后讨论数据集的划分、采样与加载。
+本文首先讨论预处理的基本原则；然后介绍通用的数据清洗方法；接着介绍数值特征与离散特征的预处理；再按模态介绍图像、音频、文本、时间序列的预处理；最后讨论数据集的划分与加载。
 1. [数据预处理的意义与原则](#preprocessing-principles)
 2. [数据清洗](#data-cleaning)：缺失值处理、异常值处理、重复样本处理
-3. [数值特征缩放与分布变换](#numerical-scaling)：线性缩放、白化、幂变换、基于秩的变换、离散化与数值嵌入
-4. [类别与离散特征编码](#categorical-encoding)：无监督编码、目标编码、哈希与嵌入
-5. [不同模态数据的预处理](#image-preprocessing)：图像预处理、音频与语音预处理、文本预处理、时间序列预处理
-6. [数据集划分、采样与加载](#split-and-loading)：数据集划分、交叉验证与数据泄露、打乱, 批处理与加载
+3. [数值特征的预处理](#numerical-scaling)：线性缩放、白化、幂变换、基于秩的变换、离散化与数值嵌入
+4. [离散特征的预处理](#categorical-encoding)：无监督编码、目标编码、哈希与嵌入
+5. [不同模态数据的预处理](#modal-preprocessing)：图像预处理、音频与语音预处理、文本预处理、时间序列预处理
+6. [数据集划分与加载](#split-and-loading)：数据集划分、交叉验证与数据泄露、打乱, 批处理与加载
 
 
 <a id="preprocessing-principles"></a>
@@ -165,9 +166,9 @@ $$
 
 $$
 \begin{aligned}
-\bar{Q}&=\frac{1}{M}\sum_{m=1}^{M}\hat{Q}_m, \bar{U}=\frac{1}{M}\sum_{m=1}^{M}U_m \\
-B&=\frac{1}{M-1}\sum_{m=1}^{M}\left(\hat{Q}_m-\bar{Q}\right)^2 \\
-V_{\text{total}}&=\bar{U}+\left(1+\frac{1}{M}\right)B
+&\bar{Q}=\frac{1}{M}\sum_{m=1}^{M}\hat{Q}_m, \bar{U}=\frac{1}{M}\sum_{m=1}^{M}U_m \\
+&B=\frac{1}{M-1}\sum_{m=1}^{M}\left(\hat{Q}_m-\bar{Q}\right)^2 \\
+&V_{\text{total}}=\bar{U}+\left(1+\frac{1}{M}\right)B
 \end{aligned}
 $$
 
@@ -270,7 +271,7 @@ $$
 
 <a id="numerical-scaling"></a>
 
-# 3. 数值特征缩放与分布变换
+# 3. 数值特征的预处理
 
 本节的方法都作用于数值特征。不同的数值特性具有不同的取值范围与量纲，需要进行数值缩放与分布变换。
 
@@ -374,7 +375,7 @@ $ Cov(X)^ {-\frac{1}{2}} \hat{X} $
 
 **对数变换**$x'=\log(x+c)$（常用$c=1$，即`log1p`）把乘性关系变为加性关系，并压缩右尾。对含负值的特征，可以用**对称对数（symlog）**$x'=\text{sign}(x)\log(1+\lvert x\rvert)$。
 
-这类变换的统计动机是**方差稳定化（variance stabilization）**。若随机变量$X$的标准差随均值变化，$\text{sd}(X)=g(\mu)$，由**delta方法**，对光滑函数$f$有
+这类变换的统计动机是**方差稳定化（variance stabilization）**。若随机变量$X$的标准差随均值变化，$\text{sd}(X)=g(\mu)$，由[**delta方法**](https://0809zheng.github.io/2026/10/14/delta.html)，对光滑函数$f$有
 
 $$
 \text{Var}[f(X)]\approx f'(\mu)^2\,\text{Var}[X]=f'(\mu)^2g(\mu)^2
@@ -512,7 +513,7 @@ $$
 
 <a id="categorical-encoding"></a>
 
-# 4. 类别与离散特征编码
+# 4. 离散特征的预处理
 
 类别特征（如城市、商品编号、用户编号）取值于一个有限集合$\{1,\dots,K\}$，取值之间没有天然的数值关系。在输入网络前需要进行特征编码。
 
