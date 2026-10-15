@@ -24,3 +24,6 @@
   background-size: 50px 50px; /* 确保背景图片在50x50的区域内缩放 */
   display: inline-block;
 }
+
+/* MathJax 公式在窄屏（移动端）超宽时在自身容器内横向滚动，避免撑破页面 */
+.MathJax_Display,.MJXc-display{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
