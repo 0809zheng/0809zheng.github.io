@@ -21,7 +21,17 @@ $$
 
 本文首先从对称性破坏、方差传播、梯度消失与爆炸的角度讨论初始化为什么重要，然后按设计思路把主流初始化方法组织成不同族系统梳理，并在最后给出**PyTorch**中的初始化实践。
 1. [为什么初始化重要](#initialization-importance)
-2. [常见的初始化方法](#initialization-methods)：固定分布初始化、方差缩放初始化、正交, 恒等与等距初始化、残差网络的初始化、大模型的初始化、数据驱动与学习式初始化
+   - 1.1 对称性破坏
+   - 1.2 前向激活值与反向梯度的方差传播
+   - 1.3 梯度消失与梯度爆炸的初始化视角
+   - 1.4 初始化与激活函数、归一化、学习率的相互作用
+2. [常见的初始化方法](#initialization-methods)：
+   - 2.1 固定分布初始化
+   - 2.2 方差缩放初始化
+   - 2.3 正交, 恒等与等距初始化
+   - 2.4 残差网络的初始化
+   - 2.5 大模型的初始化
+   - 2.6 数据驱动与学习式初始化
 3. [PyTorch中的初始化实践](#pytorch-initialization)
 
 <a id="initialization-importance"></a>
@@ -728,7 +738,7 @@ $$
 
 现在要决定三个权重矩阵的初始化标准差（即每个元素的量级）：
 * **对于 $W_{in}$ 和 $W_{hid}$**：为了保证初始激活值 $Z_{in}$ 和 $Z_{hid}$ 的每个元素都是 $\Theta(1)$，应设置：
-  * $(W_{in})_{ij} = \Theta(1/\sqrt{n_{in}})$ （即方差为 $\Theta(1/n_{in})$）
+  * $$(W_{in})_{ij} = \Theta(1/\sqrt{n_{in}})$$ （即方差为 $$\Theta(1/n_{in})$$）
   * $(W_{hid})_{ij} = \Theta(1/\sqrt{n})$ （即方差为 $\Theta(1/n)$）
 * **对于输出层 $W_{out}$**：先假设它的元素量级是未知的 **$s_{out}$**。
 
@@ -737,18 +747,22 @@ $$
 现在的核心目标是：**训练更新一步之后，隐藏层特征的变化量 $\Delta Z_{hid}$ 必须恰好是 $\Theta(1)$**，而且此时隐藏层用的是不随宽度变化的标准学习率 $\eta_{hid} = \Theta(1)$。
 1. **先看反向传播到隐藏层的梯度 $\frac{\partial \mathcal{L}}{\partial Z_{hid}}$**：
    因为 $\frac{\partial \mathcal{L}}{\partial Z_{hid}} = \frac{\partial \mathcal{L}}{\partial Z_{out}} W_{out}^\top$（求和维度是固定的 $n_{out}=\Theta(1)$），损失对输出的梯度 $\frac{\partial \mathcal{L}}{\partial Z_{out}}$ 是 $\Theta(1)$，而 $W_{out}$ 的量级是 $s_{out}$，所以：
+
    $$ \frac{\partial \mathcal{L}}{\partial Z_{hid}} = \Theta(1) \cdot \Theta(s_{out}) = \Theta(s_{out}) $$
 
 2. **再看隐藏层权重 $W_{hid}$ 的梯度**：
+
    $$ \frac{\partial \mathcal{L}}{\partial W_{hid}} = Z_{in}^\top \frac{\partial \mathcal{L}}{\partial Z_{hid}} = \Theta(1) \cdot \Theta(s_{out}) = \Theta(s_{out}) $$
 
 3. **最后看隐藏层特征的一步变化量 $\Delta Z_{hid}$**：
    用 SGD 更新权重：$\Delta W_{hid} = -\eta_{hid} \frac{\partial \mathcal{L}}{\partial W_{hid}} = \Theta(\eta_{hid} \cdot s_{out})$。
    那么更新权重后，特征的变化量是（$n$个相关项相加，量级放大$n$倍）：
+
    $$ \Delta Z_{hid} = Z_{in} \Delta W_{hid} = n \cdot \underbrace{\Theta(1)}_{Z_{in}} \cdot \underbrace{\Theta(\eta_{hid} s_{out})}_{\Delta W_{hid}} = \Theta(n \cdot \eta_{hid} \cdot s_{out}) $$
 
 4. **解方程求 $s_{out}$**：
    我们要求学习率 $\eta_{hid} = \Theta(1)$，且特征变化量 $\Delta Z_{hid} = \Theta(1)$。代入上式：
+
    $$ n \cdot 1 \cdot s_{out} = 1 \implies \mathbf{s_{out} = \Theta(1/n)} $$
 
 因此输出层权重 $W_{out}$ 的初始化标准差必须设为 $\Theta(1/n)$（即初始化方差为 **$\Theta(1/n^2)$**）。
@@ -771,7 +785,6 @@ $$
    * 权重梯度：$\frac{\partial \mathcal{L}}{\partial W_{out}} = Z_{hid}^\top \frac{\partial \mathcal{L}}{\partial Z_{out}} = \Theta(1) \cdot \Theta(1) = \mathbf{\Theta(1)}$。
    * **理想更新量 $\Delta W_{out}$ 需要是多少？** 因为 $\Delta Z_{out} = Z_{hid} \Delta W_{out}$（$n$ 项相关求和，放大 $n$ 倍），要让 $\Delta Z_{out} = \Theta(1)$，就必须让 **$\Delta W_{out} = \Theta(1/n)$**。
 
----
 
 ### Step4：算出 SGD 和 Adam 的学习率
 
