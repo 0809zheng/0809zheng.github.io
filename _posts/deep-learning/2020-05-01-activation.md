@@ -1,23 +1,23 @@
 ---
 layout: post
-title: '深度学习中的激活函数(Activation Function)'
-date: 2020-03-01
+title: '激活函数(Activation Function)'
+date: 2020-05-01
 author: 郑之杰
-cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-001-neuron.png'
+cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-cover.png'
 tags: 深度学习
 ---
 
 > Activation Functions in Deep Learning.
 
-**激活函数(activation function)**是神经网络中重要的非线性来源。它的形式看起来微不足道（通常只是一个作用在标量上的一元函数），但它决定了网络能否被优化、梯度能否传播、表示能力有多强，甚至决定了模型能否部署到低精度硬件上。
+**激活函数（activation function）**是神经网络中重要的非线性来源。它的形式简单（通常只是一个作用在标量上的一元函数），但决定了网络能否被优化、梯度能否传播、表示能力有多强，或者模型能否部署到低精度硬件上。
 
-本文首先讨论激活函数的意义与设计准则，然后按设计思路把主流激活函数组织成不同族系统梳理，并在最后给出一份实践选型建议。
-1. 激活函数的意义
-   - (1) 从生物学的角度理解激活函数
-   - (2) 从非线性的角度理解激活函数
-   - (3) 从通用近似的角度理解激活函数
-2. 激活函数的设计准则
-3. 常见的激活函数
+本文首先讨论激活函数的意义与设计准则，然后按设计思路把主流激活函数组织成不同族进行梳理。
+1. [激活函数的意义](#activation-meaning)
+   - 1.1 从生物学的角度理解激活函数
+   - 1.2 从非线性的角度理解激活函数
+   - 1.3 从通用近似的角度理解激活函数
+2. [激活函数的设计准则](#design-criteria)
+3. [常见的激活函数](#activation-functions)
    - 3.1 S型激活函数
    - 3.2 ReLU族激活函数
    - 3.3 自动搜索的激活函数
@@ -25,23 +25,19 @@ tags: 深度学习
    - 3.5 通用近似激活函数
    - 3.6 上下文相关的激活函数
    - 3.7 门控激活函数
-4. 选型建议
 
-**符号约定**：全文用$\sigma(\cdot)$专门表示**Sigmoid**函数$\sigma(x)=1/(1+e^{-x})$；用$s$表示光滑化核的宽度；用$\mathbb{E}[\cdot]$与$\text{Var}[\cdot]$表示期望与方差。
 
-📕 综述可参考：
-- [Three Decades of Activations: A Comprehensive Survey of 400 Activation Functions for Neural Networks](https://arxiv.org/abs/2402.09092)
-- [Activation Functions: Comparison of trends in Practice and Research for Deep Learning](https://arxiv.org/abs/1811.03378)
+<a id="activation-meaning"></a>
 
 # 1. 激活函数的意义
 
-## (1) 从生物学的角度理解激活函数
+## 1.1 从生物学的角度理解激活函数
 
 早期激活函数的设计受到生物神经网络中**神经元**的启发，即对神经元进行简单的建模。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-001-neuron.png)
 
-大脑中的**神经元(neuron)**通过**树突(dendrites)**接收其他神经元的输入信号，在胞体中进行信号的处理，通过**轴突(axon)**分发信号。当神经元中的信号累积达到一定阈值时产生电脉冲将信号输出，这个阈值称为**点火率(firing rate)**。
+大脑中的**神经元（neuron）**通过**树突（dendrites）**接收其他神经元的输入信号，在胞体中进行信号的处理，通过**轴突（axon）**分发信号。当神经元中的信号累积达到一定阈值时产生电脉冲将信号输出，这个阈值称为**点火率（firing rate）**。
 
 - 其他神经元的输入信号建模为$x_i$；
 - 树突的信号接收过程建模为$w_ix_i$；
@@ -53,32 +49,33 @@ tags: 深度学习
 
 因此激活函数最初的作用是模拟“**信号累积达到阈值并产生电脉冲**”这一过程。
 
-值得一提的是，这种对神经元的建模是非常粗糙(**coarse**)的：真实神经元有很多不同的种类；突触是一个复杂的非线性动态系统；树突进行的是复杂的非线性运算；轴突的输出时刻(而非仅仅输出强度)也携带信息。因此近些年来神经网络中神经元的**生物可解释性(biological plausibility)**被逐渐弱化，激活函数的设计更多地由优化性质、表示能力和计算效率驱动。
+值得一提的是，这种对神经元的建模是非常粗糙(**coarse**)的：真实神经元有很多不同的种类；突触是一个复杂的非线性动态系统；树突进行的是复杂的非线性运算；轴突的输出时刻也携带信息。因此近些年来神经网络中神经元的**生物可解释性（biological plausibility）**被逐渐弱化，激活函数的设计更多地由优化性质、表示能力和计算效率驱动。
 
-## (2) 从非线性的角度理解激活函数
+## 1.2 从非线性的角度理解激活函数
 
 在神经网络中，使用激活函数能够为网络引入非线性，增强网络的表示能力。当不使用激活函数时（或激活函数为**恒等函数 identity function**），多层神经网络会退化为单层网络：
 
 $$
 \begin{aligned}
-W_2\left(W_1x+b_1\right)+b_2 &= W_2W_1x+W_2b_1+b_2 \\
-&= \left(W_2W_1\right)x+\left(W_2b_1+b_2\right) \\
+W_2\left(W_1x+b_1\right)+b_2 &= \left(W_2W_1\right)x+\left(W_2b_1+b_2\right) \\
 &= W'x+b'
 \end{aligned}
 $$
 
-即无论堆叠多少层，整个网络仍然只能表达输入的仿射变换。通过引入非线性的激活函数，能够为神经网络带来非线性表示能力。
+即无论堆叠多少层，整个网络仍然只能表达输入的仿射变换。通过引入非线性的激活函数，则能够为神经网络带来非线性表示能力。
 
-## (3) 从通用近似的角度理解激活函数
+## 1.3 从通用近似的角度理解激活函数
 
-[**通用近似定理(universal approximation theorem)**](https://en.wikipedia.org/wiki/Universal_approximation_theorem)指出：只要激活函数是非常数、有界、单调递增的连续函数（后续工作把条件放宽到非多项式函数），具有一个隐藏层的前馈网络就可以在紧集上以任意精度逼近任意连续函数。
+[**通用近似定理（universal approximation theorem）**](https://en.wikipedia.org/wiki/Universal_approximation_theorem)指出：一个具有至少一个隐藏层、包含足够多神经元、并使用非线性激活函数的前馈神经网络，能够以任意高的精度去近似欧几里得空间中的任意连续函数。
 
 这个定理说明了两件事：其一，激活函数的“非线性”本身就是网络表示能力的来源；其二，几乎任何非线性函数都可以作为激活函数，因此激活函数的设计空间极大。这也解释了为什么激活函数的研究会分化出如此多的路线：真正的约束不来自表示能力，而来自**可优化性**与**计算效率**。
 
 
+<a id="design-criteria"></a>
+
 # 2. 激活函数的设计准则
 
-既然理论上任何非线性函数都可以作为激活函数，那么在实践中选择或设计激活函数时，需要考虑以下性质。这七条准则也构成了后文各族激活函数的设计动机。
+既然理论上任何非线性函数都可以作为激活函数，那么在实践中选择或设计激活函数时，需要相应的设计准则。这些准则也构成了后文各族激活函数的设计动机。
 
 ### ⚪ 准则1：连续可导
 
@@ -100,15 +97,15 @@ $$
 
 ### ⚪ 准则3：没有饱和区
 
-**饱和**是指导数很接近$0$。若激活函数存在饱和区，则会使反向传播的梯度接近$0$，从而导致**梯度消失(gradient vanishing)**现象。
+**饱和**是指导数很接近$0$。若激活函数存在饱和区，则会使反向传播的梯度接近$0$，后续参数无法更新，从而导致**梯度消失（gradient vanishing）**现象。
 
-早期的激活函数通常使用**S**型函数，如**Sigmoid**、**Tanh**；这类函数会把输出挤压到一个有界区域内，两端不可避免地产生饱和区，因此也被称为**squashing function**。
+早期的激活函数通常使用**S**型函数，如**Sigmoid**、**Tanh**；这类函数会把输出挤压到一个有界区域内，两端不可避免地产生饱和区；这类函数也被称为挤压函数**squashing function**。
 
 **ReLU**等无上界、有下界的激活函数，在正半轴没有饱和区，显著减缓了梯度消失现象；但在负半轴会置零（产生**dead ReLU**现象，即梯度恒为$0$阻断了反向传播）或趋于饱和。后续的**LeakyReLU**、**PReLU**、**ELU**等改进都是围绕负半轴展开的。
 
 ### ⚪ 准则4：没有偏置偏移
 
-若激活函数的输出不是**zero-centered**的，会使得后一层神经元的输入产生**偏置偏移(bias shift)**，从而减慢梯度下降的收敛速度。
+若激活函数的输出不是同时有正有负的，会使得后一层神经元的输入产生**偏置偏移（bias shift）**，从而减慢梯度下降的收敛速度。
 
 对于某一层神经元的计算，假设具有两个参数$w_1,w_2$，则$y=f(w_1x_1+w_2x_2+b)$，反向传播时两个参数的梯度为：
 
@@ -144,6 +141,8 @@ $$
 - 寻找现有激活函数的**光滑逼近**，如手工设计近似（**ACON**、**SMU**）、使用**Dirac**函数构造近似（**SAU**）。
 
 
+<a id="activation-functions"></a>
+
 # 3. 常见的激活函数
 
 本节把主流激活函数分成七个族。前两族（**S**型、**ReLU**族）是手工设计的固定形状函数，构成了深度学习早期实践中的主流；后五族分别代表五条不同的改进思路：用搜索代替手工设计、换用周期性的函数基、让激活曲线可学习、让激活函数看到上下文、以及把激活函数升级为一种网络结构。
@@ -158,7 +157,7 @@ $$
 | :---: | :---: |
 | $$\text{Step}(x) = \begin{cases} 1, & x\geq 0 \\ 0, & x<0 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-002-step.png) |
 
-阶跃函数（**Heaviside**函数）直接对应生物神经元“达到阈值即点火”的建模，是[**感知机(perceptron)**](https://0809zheng.github.io/2020/03/11/perceptron.html)使用的激活函数。但它在$x=0$处不连续、其余各处导数恒为$0$，无法用于反向传播，因此只有历史意义。后续的**S**型函数都可以看作阶跃函数的光滑近似。
+阶跃函数（**Heaviside**函数）直接对应生物神经元“达到阈值即点火”的建模，是[**感知机（perceptron）**](https://0809zheng.github.io/2020/03/11/perceptron.html)使用的激活函数。它在$x=0$处不连续、其余各处导数恒为$0$；后续的**S**型函数通过光滑近似提供可用于反向传播的非零导数。
 
 ### ⚪ Sigmoid
 
@@ -168,11 +167,7 @@ $$
 
 **Sigmoid**（**logistic**函数）把实数域压缩到$(0,1)$，因此可以解释为概率，至今仍是二分类输出层和门控单元的标准选择。它的导数具有优美的自表达形式，这也是它在早期被广泛使用的原因之一。
 
-**Sigmoid**的主要缺点：
-- **两端饱和**：$\|x\|$较大时导数趋于$0$；
-- **导数上界过小**：$\sigma'(x)\leq \sigma'(0)=1/4$，即使在非饱和区，每经过一层梯度也至少衰减$4$倍，这是深层网络中梯度消失的直接原因；
-- **非zero-centered**：输出恒为正，产生偏置偏移（准则4）；
-- **计算量大**：包含指数运算。
+由表达式可知，**Sigmoid**的值域为$(0,1)$，$\|x\|$增大时导数趋于$0$，且$\sigma'(x)\leq\sigma'(0)=1/4$；输出恒为正并包含指数运算。这些解析性质对应了后继方法的改进方向为零中心变换、非饱和分支与代数近似。
 
 ### ⚪ Tanh
 
@@ -180,7 +175,7 @@ $$
 | :---: | :---: |
 | $$\begin{aligned} \tanh(x)&=\frac{e^{x}-e^{-x}}{e^{x}+e^{-x}} = 2\sigma(2x)-1 \\ \tanh'(x)&=1-\tanh^2(x) \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-004-tanh.png) |
 
-**Tanh**是**Sigmoid**的缩放平移版本，值域为$(-1,1)$，因此是**zero-centered**的，缓解了偏置偏移；其导数在原点处取到$1$，梯度衰减问题也弱于**Sigmoid**。但它仍然两端饱和、仍然包含指数运算。在**LSTM/GRU**中，**Tanh**用于生成候选状态，**Sigmoid**用于生成门控信号。
+**Tanh**是**Sigmoid**的缩放平移版本，值域为$(-1,1)$，因此是**zero-centered**的；其导数在原点处取到$1$，两端趋于$0$，计算包含指数运算。在**LSTM/GRU**中，**Tanh**用于生成候选状态，**Sigmoid**用于生成门控信号。
 
 ### ⚪ HardSigmoid 与 HardTanh：分段线性近似
 
@@ -189,17 +184,17 @@ $$
 | $$\text{HardSigmoid}(x)=\begin{cases} 1, & x\geq 1 \\ (x+1)/2, & -1<x<1 \\ 0, & x\leq -1 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-005-hardsigmoid-hardtanh.png) |
 | $$\text{HardTanh}(x)=\begin{cases} 1, & x>1 \\ x, & -1\leq x\leq 1 \\ -1, & x<-1 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-006-hardsigmoid-hardtanh.png) |
 
-对**Sigmoid**和**Tanh**在原点处作一阶[<font color=Blue>Taylor展开</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh)并把结果截断到值域内，即可得到分段线性的**HardSigmoid**与**HardTanh**。它们只需加法、乘法和截断，完全避免了指数运算，是移动端和量化部署的常见替代品；代价是在$x=\pm 1$处不可导，且在$\|x\|>1$时梯度严格为$0$（饱和区比原函数更“硬”）。
+对**Sigmoid**和**Tanh**在原点处作一阶[<font color=Blue>Taylor展开</font>](https://0809zheng.github.io/2021/08/20/taylor.html#3-%E6%B3%B0%E5%8B%92%E5%85%AC%E5%BC%8F%E7%9A%84%E5%BA%94%E7%94%A8hard-sigmoid%E4%B8%8Ehard-tanh)并把结果截断到值域内，即可得到分段线性的**HardSigmoid**与**HardTanh**。它们只需加法、乘法和截断，完全避免了指数运算，是移动端和量化部署的常见替代品。其分段导数在中间区间为常数、区间外为$0$，框架在$x=\pm1$处指定次梯度。
 
 ### ⚪ ISRU：逆平方根单元
 
-- paper：[Improving Deep Learning by Inverse Square Root Linear Units (ISRLUs)](https://arxiv.org/abs/1710.09967)
+- **paper**：[**Improving Deep Learning by Inverse Square Root Linear Units (ISRLUs)**](https://arxiv.org/abs/1710.09967)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
 | $$\begin{aligned} \text{ISRU}(x)&= \frac{x}{\sqrt{1 + \alpha x^2}} \\ \text{ISRU}'(x)&=\left(\frac{1}{\sqrt{1 + \alpha x^2}}\right)^3 \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-007-isru.png) |
 
-**ISRU(inverse square root unit)**用**代数运算**近似**Tanh**：它的曲线形状与**Tanh**、**Sigmoid**相似，但只需一次逆平方根运算。相比**HardTanh**这种分段线性近似，**ISRU**保持了处处光滑；相比**Tanh**，它的计算显著更快。作者建议在**LSTM/GRU**中用**ISRU**替换**Tanh**与**Sigmoid**以加速循环网络。超参数$\alpha$控制曲线的饱和速度。
+**ISRU(inverse square root unit)**用**代数运算**近似**Tanh**：它的曲线形状与**Tanh**、**Sigmoid**相似，但只需一次逆平方根运算。相比**HardTanh**这种分段线性近似，**ISRU**保持了处处光滑；相比**Tanh**，它的计算显著更快。作者建议在**LSTM/GRU**中用**ISRU**替换**Tanh**与**Sigmoid**以加速循环网络。超参数$\alpha>0$控制饱和速度与值域$(-1/\sqrt{\alpha},1/\sqrt{\alpha})$。
 
 ### ⚪ Softsign：多项式饱和的Tanh替代
 
@@ -209,7 +204,7 @@ $$
 
 **Softsign**是一个更早的代数型**S**型函数。它与**ISRU**属于同一思路：用有理式代替指数式。
 
-**Softsign**与**Tanh**最本质的差别在**饱和速度**：**Tanh**的尾部以$e^{-2x}$**指数**衰减，而**Softsign**以$1/x$**多项式**衰减，因此其导数在远处按$1/x^2$而非指数级衰减：尾部“更肥”，梯度消失来得更晚。两者在原点处的导数都等于$1$，但**Softsign**因含$\|x\|$而在原点处二阶不可导（一阶导数连续，二阶导数有跳变）。它在现代网络中很少使用，主要作为**Tanh**的廉价替代出现在早期工作和一些序列模型中。
+**Softsign**与**Tanh**最本质的差别在**饱和速度**：**Tanh**的尾部以$e^{-2x}$**指数**衰减，而**Softsign**以$1/x$**多项式**衰减，因此其导数在远处按$1/x^2$。两者在原点处的导数都等于$1$；**Softsign**的一阶导数连续，二阶导数在原点处有跳变。该函数主要作为**Tanh**的代数替代用于序列模型。
 
 ## 3.2 ReLU族激活函数
 
@@ -219,7 +214,7 @@ $$
 
 #### ⚪ ReLU
 
-- paper：[Rectified Linear Units Improve Restricted Boltzmann Machines](http://www.cs.toronto.edu/~fritz/absps/reluICML.pdf)
+- **paper**：[**Rectified Linear Units Improve Restricted Boltzmann Machines**](http://www.cs.toronto.edu/~fritz/absps/reluICML.pdf)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -230,24 +225,21 @@ $$
 - **正半轴无饱和**：导数恒为$1$，梯度可以无衰减地穿过任意多层，这是深层网络得以训练的关键；
 - **生物可解释性好**：同时具有单侧抑制、宽兴奋边界和稀疏激活。
 
-它的缺点集中在负半轴与原点：
-- **dead ReLU**：若某个神经元的输入长期为负，其梯度恒为$0$，参数将永久停止更新，该神经元“死亡”；
-- **非zero-centered**：输出恒非负，产生偏置偏移；
-- **$x=0$处不可导**。
+其导数为$\text{ReLU}'(x)=1$（$x>0$）和$0$（$x<0$），工程实现通常在$x=0$处指定次梯度$0$。
 
 #### ⚪ Softplus：ReLU的光滑近似
 
-- paper：[Incorporating Second-Order Functional Knowledge for Better Option Pricing](https://www.researchgate.net/publication/4933639_Incorporating_Second-Order_Functional_Knowledge_for_Better_Option_Pricing)
+- **paper**：[**Incorporating Second-Order Functional Knowledge for Better Option Pricing**](https://www.researchgate.net/publication/4933639_Incorporating_Second-Order_Functional_Knowledge_for_Better_Option_Pricing)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{Softplus}(x)=\ln\left(1+e^x\right) = \int_{-\infty}^{x}\sigma(t)dt$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-009-softplus.png) |
+| $$\begin{aligned}\text{Softplus}(x)&=\ln\left(1+e^x\right)\\ \text{Softplus}^\prime(x)&=\frac{1}{1+e^{-x}}\end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-009-softplus.png) |
 
-**Softplus**是**ReLU**处处可导的光滑上界，其导数恰为**Sigmoid**。但它牺牲了**ReLU**的两大优势：输出恒大于$0$（失去了稀疏性），且引入了指数与对数运算（计算量大）。因此实践中**Softplus**很少直接用作激活函数，更多用于**约束参数为正**（如输出方差）。
+**Softplus**是**ReLU**处处可导的光滑上界，其导数恰为**Sigmoid**，输出值域为$(0,+\infty)$。工程上用$\log(1+e^{-|x|})+\max(x,0)$稳定计算；它既可作激活函数，也常用于把方差、尺度等模型参数约束为正。
 
 #### ⚪ Squareplus：Softplus的代数近似
 
-- paper：[Squareplus: A Softplus-Like Algebraic Rectifier](https://arxiv.org/abs/2112.11687)
+- **paper**：[**Squareplus: A Softplus-Like Algebraic Rectifier**](https://arxiv.org/abs/2112.11687)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -309,19 +301,19 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 #### ⚪ ReLU6：为低精度部署设计
 
-- paper：[MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications](https://arxiv.org/abs/1704.04861)
+- **paper**：[**MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications**](https://arxiv.org/abs/1704.04861)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
 | $$\text{ReLU6}(x)=\min\left(\max(x,0),6\right) =\begin{cases} 6, & x\geq 6 \\ x, & 0\leq x<6 \\ 0, & x<0 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-012-relu6.png) |
 
-**ReLU6**（由**MobileNet**引入）把**ReLU**的最大输出限制为$6$。这样做并非为了优化性质，而是为了**量化**：在移动端使用低精度数据类型(**float16/int8**)时，无上界的激活值可能分布在一个很大的动态范围内，导致量化时精度损失严重；限定上界后可以获得更好的数值分辨率。上界取$6$是经验选择，它足够大以至于不损害表示能力，又足够小以适配定点表示。
+**ReLU6**（由**MobileNet**引入）把**ReLU**的最大输出限制为$6$。这样做是为了**量化**：在移动端使用低精度数据类型(**float16/int8**)时，无上界的激活值可能分布在一个很大的动态范围内，导致量化时精度损失严重；限定上界后可以获得更好的数值分辨率。上界取$6$是经验选择，它足够大以至于不损害表示能力，又足够小以适配定点表示。
 
 ### (2) 修正负半轴斜率
 
 #### ⚪ LeakyReLU
 
-- paper：[Rectifier Nonlinearities Improve Neural Network Acoustic Models](https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf)
+- **paper**：[**Rectifier Nonlinearities Improve Neural Network Acoustic Models**](https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -329,11 +321,11 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 **LeakyReLU**为负半轴引入一个很小的固定斜率，使得负输入的梯度不再为$0$，从而**根治了dead ReLU问题**：即使神经元当前输出为负，它仍能继续接收梯度并有机会“复活”。
 
-**LeakyReLU**的论文还给出了一组有价值的分析：作者定义激活的**稀疏性(sparsity)**为激活值为$0$的比例，**离散性(disperseness)**为不同神经元激活概率的差异程度。实验发现，使用**ReLU**或**LeakyReLU**时神经元激活概率的标准差约为$0.04$，而使用**Tanh**时约为$0.14$。也就是说，**ReLU**族激活函数使得各个神经元的激活频率更加**均匀**，避免了少数神经元长期主导表示，这被认为是**ReLU**族激活函数优于**S**型函数的一个重要原因。
+**LeakyReLU**的论文还给出了一组有价值的分析：作者定义激活的**稀疏性（sparsity）**为激活值为$0$的比例，**离散性（disperseness）**为不同神经元激活概率的差异程度。实验发现，使用**ReLU**或**LeakyReLU**时神经元激活概率的标准差约为$0.04$，而使用**Tanh**时约为$0.14$。也就是说，**ReLU**族激活函数使得各个神经元的激活频率更加**均匀**，避免了少数神经元长期主导表示，这被认为是**ReLU**族激活函数优于**S**型函数的一个重要原因。
 
 #### ⚪ PReLU：可学习的负半轴斜率
 
-- paper：[Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification](https://arxiv.org/abs/1502.01852)
+- **paper**：[**Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification**](https://arxiv.org/abs/1502.01852)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -343,37 +335,37 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 从几何上看，**PReLU**可以写成$y=\max\left(\alpha(Wx+b),Wx+b\right)$的形式：网络学到的超平面把空间分成两半，$\alpha$控制了负侧空间被**压缩**的程度。$\alpha=0$对应**ReLU**（负侧完全压扁到$0$），$\alpha=1$对应线性映射（不压缩），因此$\alpha$实际上在“非线性强度”这一维度上给了网络自由度。
 
-需要注意，**PReLU**的论文同时提出了配套的**Kaiming初始化**，两者是一起工作的：使用整流类激活函数时，为保持前向传播中激活值方差不变，第$l$层的权重方差应取$\text{Var}\left[w^{(l)}\right]=2/d_{l-1}$（$d_{l-1}$为输入神经元个数）；若使用**PReLU/LeakyReLU**，则应修正为$\text{Var}\left[w^{(l)}\right]=2/\left[\left(\alpha^2+1\right)d_{l-1}\right]$。推导详见[<font color=Blue>参数初始化</font>](https://0809zheng.github.io/2020/03/05/initialization.html)部分。
+需要注意，**PReLU**的论文同时提出了配套的**Kaiming初始化**，两者是一起工作的：使用整流类激活函数时，为保持前向传播中激活值方差不变，第$l$层的权重方差应取$\text{Var}\left[w^{(l)}\right]=2/d_{l-1}$（$d_{l-1}$为输入神经元个数）；若使用**PReLU/LeakyReLU**，则应修正为$\text{Var}\left[w^{(l)}\right]=2/\left[\left(\alpha^2+1\right)d_{l-1}\right]$。推导详见[<font color=Blue>参数初始化</font>](https://0809zheng.github.io/2020/04/01/initialization.html)部分。
 
 #### ⚪ RReLU：随机采样的负半轴斜率
 
-- paper：[Empirical Evaluation of Rectified Activations in Convolutional Network](https://arxiv.org/abs/1505.00853)
+- **paper**：[**Empirical Evaluation of Rectified Activations in Convolutional Network**](https://arxiv.org/abs/1505.00853)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{RReLU}(x)=\max(x,\alpha x), \quad \begin{cases} \alpha \sim U(l,u), & \text{during training} \\ \alpha = \dfrac{l+u}{2}, & \text{during test} \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-015-rrelu.jpg) |
+| $$\text{RReLU}(x)=\max(x,\alpha x), \quad \begin{cases} \alpha \sim U(l,u), & \text{training} \\ \alpha = \dfrac{l+u}{2}, & \text{test} \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-015-rrelu.jpg) |
 
-**RReLU(randomized ReLU)**在训练阶段从均匀分布中随机采样负半轴斜率，测试阶段则使用其期望。这与**Dropout**的“训练加噪、测试取期望”思想完全一致，因此**RReLU**本质上是一种**正则化**手段，在小数据集上尤其有效。
+**RReLU(randomized ReLU)**在训练阶段从均匀分布中随机采样负半轴斜率，测试阶段则使用其期望。这种“训练加噪、测试取期望”思想本质上是一种**正则化**手段，在小数据集上尤其有效。
 
 这篇论文的另一项贡献是通过系统的对比实验说明：**LeakyReLU/PReLU/RReLU**普遍优于**ReLU**，因此*稀疏性并不是整流类激活函数性能的关键因素*；恰恰相反，允许负值通过反而更好。这一结论直接推动了后续**ELU**、**GELU**、**Swish**等允许负输出的激活函数。
 
 #### ⚪ CReLU：拼接正负两路整流
 
-- paper：[Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units](https://arxiv.org/abs/1603.05201)
+- **paper**：[**Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units**](https://arxiv.org/abs/1603.05201)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{CReLU}(x)= \left[\text{ReLU}(x), \text{ReLU}(-x)\right]$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-053-crelu.png) |
+| $$\text{CReLU}(x)= \text{Concat}\left[\text{ReLU}(x), \text{ReLU}(-x)\right]$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-053-crelu.png) |
 
 前面几种方法都试图给负半轴一个“小一点”的输出，**CReLU**则换了一个角度：既然负半轴的信息有用，为什么不干脆把它**完整保留**？
 
 作者的出发点是一个实验观察：卷积网络（尤其是**低层**）的滤波器往往**成对出现且方向近似相反**——同一组卷积核中存在大量负相关的“相位对”$w$与$-w$。这意味着网络实际上在用两个滤波器学习同一个模式的正负两个相位，而**ReLU**又把其中一半的响应抹成$0$，造成了双重浪费。
 
-**CReLU**把$\text{ReLU}(x)$与$\text{ReLU}(-x)$在通道维**拼接**输出。这一变换是**信息保持**的：由两路输出可以完整恢复$x$（也可以恢复$\|x\|$），没有任何信息损失，同时输出仍然是稀疏的（每个位置恰有一路为$0$）。代价是输出通道数翻倍，因此实践中通常把滤波器数量减半以保持计算量不变；这样反而用一半的参数达到了更好的效果。
+**CReLU**把$\text{ReLU}(x)$与$\text{ReLU}(-x)$在通道维**拼接**输出。这一变换是**信息保持**的：由两路输出可以完整恢复$x$（也可以恢复$\|x\|$），没有任何信息损失，同时输出仍然是稀疏的（每个位置恰有一路为$0$）。输出通道数会翻倍，因此实践中通常把滤波器数量减半以保持计算量不变；这样可用一半的卷积核保留正负相位。
 
 #### ⚪ SReLU：双侧可学习阈值
 
-- paper：[Deep Learning with S-shaped Rectified Linear Activation Units](https://arxiv.org/abs/1512.07030)
+- **paper**：[**Deep Learning with S-shaped Rectified Linear Activation Units**](https://arxiv.org/abs/1512.07030)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -381,11 +373,11 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 **SReLU(S-shaped ReLU)**由**三段**线性函数拼接而成，四个参数$t^r,a^r,t^l,a^l$全部可学习（$t^l,t^r$为左右转折点，$a^l,a^r$为两端斜率）。
 
-**SReLU**的意义在于突破了**凸性**限制：**ReLU/LeakyReLU/PReLU**无论参数取何值都是**凸函数**（准确地说是两段线性的凸组合），而**SReLU**通过三段的不同斜率可以表示**非凸**的**S**型映射，从而能拟合诸如**Webber**定律、**Stevens**幂律这类心理物理学中的非凸响应曲线。它是手工设计走向**可学习分段线性激活函数**（3.5节的**APL**、**PWLU**）的一个前身。
+**SReLU**的意义在于突破了**凸性**限制：**ReLU/LeakyReLU/PReLU**无论参数取何值都是**凸函数**（准确地说是两段线性的凸组合），而**SReLU**通过三段的不同斜率可以表示**非凸**的**S**型映射，从而能拟合非凸响应曲线。它是手工设计走向**可学习分段线性激活函数**（3.5节的**APL**、**PWLU**）的一个前身。
 
 #### ⚪ SUGAR：只替换反向梯度
 
-- paper：[The Resurrection of the ReLU](https://arxiv.org/abs/2505.22074)
+- **paper**：[**The Resurrection of the ReLU**](https://arxiv.org/abs/2505.22074)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -393,13 +385,13 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 前面所有方法为了修好负半轴的梯度，都**改变了前向输出**，因而牺牲了**ReLU**的稀疏性与低廉的推理成本。**SUGAR(surrogate gradient)**指出这两件事其实可以**解耦**：激活函数同时承担了“前向的函数形状”和“反向的梯度形状”两个角色，而它们不必由同一个函数提供。
 
-具体做法是：**前向传播完全保留ReLU**，反向传播时把负半轴恒为$0$的梯度替换为某个光滑替代函数（作者提出的**B-SiLU**是其中效果最好的一个）的导数。这样既保住了**ReLU**的稀疏激活与硬件友好性，又消除了**dead ReLU**。这种“前向硬、反向软”的思路来自**脉冲神经网络(SNN)**中处理不可导脉冲函数的标准技巧。
+具体做法是：**前向传播完全保留ReLU**，反向传播时把负半轴恒为$0$的梯度替换为某个光滑替代函数（作者提出的**B-SiLU**是其中效果最好的一个）的导数。这样既保住了**ReLU**的稀疏激活与硬件友好性，又消除了**dead ReLU**。
 
 ### (3) 负半轴指数饱和
 
 #### ⚪ ELU
 
-- paper：[Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)](https://arxiv.org/abs/1511.07289)
+- **paper**：[**Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)**](https://arxiv.org/abs/1511.07289)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -407,13 +399,13 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 **ELU(exponential linear unit)**的设计目标是准则4：使激活函数的输出**均值接近$0$**，从而消除偏置偏移。它在负半轴取负值，且饱和到$-\alpha$。
 
-这里的“饱和”是刻意设计的：**ELU**认为负半轴的饱和是一个优点而非缺点。当输入是较大的负值（通常意味着该特征“不存在”）时，函数输出趋于常数$-\alpha$，导数趋于$0$，因此**对输入噪声不敏感**；这被称为对噪声的**鲁棒性**。相比之下，**LeakyReLU/PReLU**在负半轴无界，噪声会被线性地传递下去。
+这里的“饱和”是刻意设计的：**ELU**认为负半轴的饱和是一个优点。当输入是较大的负值（通常意味着该特征“不存在”）时，函数输出趋于常数$-\alpha$，导数趋于$0$，因此**对输入噪声不敏感**，带来了**鲁棒性**。相比之下，**LeakyReLU/PReLU**在负半轴无界，噪声会被线性地传递下去。
 
 注意**ELU**的一阶导数仅在$\alpha=1$时于$x=0$处连续（函数值的左极限$\alpha\left(e^0-1\right)=0$恰好等于右极限$0$，但导数的左极限为$\alpha$、右极限为$1$），因此$\alpha=1$是默认取值。
 
 #### ⚪ CELU：连续可微的ELU
 
-- paper：[Continuously Differentiable Exponential Linear Units](https://arxiv.org/abs/1704.07483)
+- **paper**：[**Continuously Differentiable Exponential Linear Units**](https://arxiv.org/abs/1704.07483)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -422,14 +414,14 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 **ELU**的一阶导数在$x=0$处的左右极限分别是$\alpha$和$1$，只有$\alpha=1$时才连续，这限制了$\alpha$的取值。**CELU(continuously differentiable ELU)**把指数项的自变量缩放为$x/\alpha$，使得负半轴导数为$e^{x/\alpha}$，在$x=0$处恒为$1$，从而对**任意$\alpha>0$都连续可微**。这带来了三个良好性质：
 
 - **导数有界**：$0<\text{CELU}'(x)\leq 1$，避免了梯度放大；
-- **尺度相似性(scale-similar)**：$\text{CELU}(x;\alpha)=\frac{1}{c}\text{CELU}(cx;c\alpha)$，即对输入的缩放可以被$\alpha$吸收；
+- **尺度相似性（scale-similar）**：$\text{CELU}(x;\alpha)=\frac{1}{c}\text{CELU}(cx;c\alpha)$，即对输入的缩放可以被$\alpha$吸收；
 - **良好的极限行为**：$\alpha \to 0^+$时$\text{CELU}\to\text{ReLU}$，$\alpha \to +\infty$时$\text{CELU}\to$恒等映射。
 
 因此$\alpha$在**CELU**中扮演了“从**ReLU**平滑过渡到线性函数”的插值参数。
 
 #### ⚪ SELU：自标准化的ELU
 
-- paper：[Self-Normalizing Neural Networks](https://arxiv.org/abs/1706.02515)
+- **paper**：[**Self-Normalizing Neural Networks**](https://arxiv.org/abs/1706.02515)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -439,9 +431,9 @@ b \geq 4\ln\left(1+e^x\right)\left[\ln\left(1+e^x\right)-x\right] $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-019-selu.jpg)
 
-激活函数处的数据流如上图所示。记$a_1,\cdots,a_K$为网络上一层的输出，假设它们是独立同分布的随机变量（不必服从**Gaussian**），求和后得到$z=\sum_{k=1}^{K}a_kw_k$；由中心极限定理$z$近似服从**Gaussian**。若能通过设计激活函数的参数使得本层输出$a=f(z)$仍然服从$\mathcal{N}(0,1)$，则该性质会逐层自动传递下去，网络具有**自标准化(self-normalizing)**性质。
+激活函数处的数据流如上图所示。记$a_1,\cdots,a_K$为网络上一层的输出，假设它们是独立同分布的随机变量，求和后得到$z=\sum_{k=1}^{K}a_kw_k$；由中心极限定理$z$近似服从**Gaussian**。若能通过设计激活函数的参数使得本层输出$a=f(z)$仍然服从$\mathcal{N}(0,1)$，则该性质会逐层自动传递下去，网络具有**自标准化（self-normalizing）**性质。
 
-**① 让输出服从$\mathcal{N}(0,1)$**。写出一阶统计量（均值$=0$）和二阶统计量（方差$=1$）对应的积分方程：
+**① 让输出服从$\mathcal{N}（0,1）$**。写出一阶统计量（均值$=0$）和二阶统计量（方差$=1$）对应的积分方程：
 
 $$
 \begin{aligned}
@@ -475,7 +467,7 @@ print(z) # Matrix([[1.67326324235438], [1.05070098735548]])
 
 即$\alpha=1.6732632423543772$，$\lambda=1.0507009873554805$。
 
-**② 让输入服从$\mathcal{N}(0,1)$**。激活函数的输入为$z=\sum_{k=1}^{K}a_kw_k$。假设上一层输出独立同分布且$\mathbb{E}[a_k]=0$、$\mathbb{E}\left[a_k^2\right]=1$，则：
+**② 让输入服从$\mathcal{N}（0,1）$**。激活函数的输入为$z=\sum_{k=1}^{K}a_kw_k$。假设上一层输出独立同分布且$\mathbb{E}[a_k]=0$、$\mathbb{E}\left[a_k^2\right]=1$，则：
 
 $$
 \begin{aligned}
@@ -486,11 +478,11 @@ $$
 
 因此只需取$\mathbb{E}[w]=0$、$\text{Var}[w]=1/K$（即**LeCun**初始化），就有$\text{Var}[z]=1$。
 
-综上，若所有隐藏层都使用**SELU**，则隐藏层的输入自动近似服从$\mathcal{N}(0,1)$；对输入层只需对数据做标准化；每一层的参数从$\mathcal{N}(0,1/K)$中采样即可。实验表明**SELU**具有类似**BatchNorm**的效果，能在**不使用任何归一化层**的情况下训练很深的全连接网络。这也是**SELU**最主要的应用场景。注意它对初始化方式和网络结构的要求较严格，在卷积网络中通常不如**ReLU**族$+$**BatchNorm**的组合。
+综上，若所有隐藏层都使用**SELU**，则隐藏层的输入自动近似服从$\mathcal{N}(0,1)$；输入数据先标准化，每层参数从$\mathcal{N}(0,1/K)$采样。这套结构在不插入归一化层的深层全连接网络中实现自标准化。
 
 #### ⚪ ISRLU：ELU的代数近似
 
-- paper：[Improving Deep Learning by Inverse Square Root Linear Units (ISRLUs)](https://arxiv.org/abs/1710.09967)
+- **paper**：[**Improving Deep Learning by Inverse Square Root Linear Units (ISRLUs)**](https://arxiv.org/abs/1710.09967)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -505,7 +497,7 @@ $$
 
 #### ⚪ PELU：参数化的ELU
 
-- paper：[Parametric Exponential Linear Unit for Deep Convolutional Neural Networks](https://arxiv.org/abs/1605.09332)
+- **paper**：[**Parametric Exponential Linear Unit for Deep Convolutional Neural Networks**](https://arxiv.org/abs/1605.09332)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -513,7 +505,7 @@ $$
 
 **PReLU**对**ReLU**做的事情（把固定超参数变成可学习参数）同样可以对**ELU**做。但**PELU(parametric ELU)**比**PReLU**更彻底：它不只参数化负半轴，而是同时控制三件事：**正半轴的斜率**$a/b$、**负半轴的饱和值**$-a$、以及**负半轴的衰减速率**$1/b$。
 
-正半轴的斜率之所以被写成$a/b$这个看似别扭的耦合形式，是为了保证函数在原点处**可导**：负半轴导数在$x\to 0^-$时为$(a/b)e^{0}=a/b$，与正半轴斜率恰好相等。若正半轴直接取$x$（斜率$1$），则只有$a=b$时才可导，参数就失去了自由度。
+正半轴的斜率之所以被写成$a/b$的耦合形式，是为了保证函数在原点处**可导**：负半轴导数在$x\to 0^-$时为$(a/b)e^{0}=a/b$，与正半轴斜率恰好相等。若正半轴直接取$x$（斜率$1$），则只有$a=b$时才可导，参数就失去了自由度。
 
 训练时需要保证$a,b>0$（原论文通过重参数化或截断实现）。其效果是把**ELU**中“偏置偏移修正的强度”从固定的$\alpha=1$交给网络自己决定，不同层可以学到差别很大的曲线形状。
 
@@ -521,11 +513,11 @@ $$
 
 #### ⚪ GELU
 
-- paper：[Gaussian Error Linear Units (GELUs)](https://arxiv.org/abs/1606.08415)
+- **paper**：[**Gaussian Error Linear Units (GELUs)**](https://arxiv.org/abs/1606.08415)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{GELU}(x)= x\Phi(x)=x\int_{-\infty}^{x} \frac{1}{\sqrt{2\pi}}e^{-\frac{t^2}{2}}dt = \frac{x}{2}\left(1+\text{erf}\left(\frac{x}{\sqrt{2}}\right)\right)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-021-gelu.png) |
+| $$\begin{aligned}\text{GELU}(x)&= x\Phi(x)=x\int_{-\infty}^{x} \frac{1}{\sqrt{2\pi}}e^{-\frac{t^2}{2}}dt \\&= \frac{x}{2}\left(1+\text{erf}\left(\frac{x}{\sqrt{2}}\right)\right)\end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-021-gelu.png) |
 
 **GELU(Gaussian error linear unit)**是**Transformer**时代最重要的激活函数，其设计动机来自一个全新的视角：**把激活函数与随机正则化统一起来**。
 
@@ -535,7 +527,7 @@ $$ \mathbb{E}\left[x\cdot \text{Bernoulli}(\Phi(x))\right] = x\Phi(x) $$
 
 从这个视角看，**ReLU**是$x\mathbb{1}[x>0]$，即把$\Phi$替换成阶跃函数的极限情形；**GELU**则是它的“概率化”推广，因此天然带有正则化效果。**GELU**的曲线是非单调的（在负半轴有一个极小值），这与后文**Swish**、**Mish**的形状一致。
 
-由于$\text{erf}$函数计算代价较高，实践中常用两种近似：
+工程实现通常使用以下两种近似式：
 
 $$
 \begin{aligned}
@@ -548,25 +540,25 @@ $$
 
 ### (5) 幂与多项式
 
-到目前为止，所有整流类变体都在**负半轴**上做文章，而正半轴一律保持恒等映射。$2021$年之后，随着大语言模型的兴起，一条相反的路线浮现出来：**修改正半轴，让它比线性增长得更快**。这类激活函数几乎构成了近年大模型前馈层的全部进展。
+到目前为止，所有整流类变体都在**负半轴**上做文章，而正半轴一律保持恒等映射。随着大语言模型的兴起，一条相反的路线浮现出来：**修改正半轴，让它比线性增长得更快**。
 
 #### ⚪ Squared ReLU：搜索出来的平方整流
 
-- paper：[Primer: Searching for Efficient Transformers for Language Modeling](https://arxiv.org/abs/2109.08668)
+- **paper**：[**Primer: Searching for Efficient Transformers for Language Modeling**](https://arxiv.org/abs/2109.08668)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{ReLU}^2(x)= \left(\text{ReLU}(x)\right)^2 = \max(x,0)^2$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-057-squaredrelu.png) |
+| $$\begin{aligned}\text{ReLU}^2(x)&=\left(\text{ReLU}(x)\right)^2=\max(x,0)^2 \\ \frac{d\,\text{ReLU}^2(x)}{dx}&=2\max(x,0)\end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-057-squaredrelu.png) |
 
 **Primer**用**进化式结构搜索**在**TensorFlow**原语组成的空间中搜索更高效的**Transformer**，搜出的若干改动中，**把前馈层的ReLU换成它的平方**是单项收益最大、也最容易迁移的一个。
 
-从传统设计准则看，**ReLU**$^2$是相当反常的：它上无界，且导数$2\text{ReLU}(x)$随输入**线性增长**而非趋于常数或饱和，理论上有梯度爆炸的风险。但它在**Transformer**前馈层中表现稳定，且比**GELU**便宜得多（一次乘法，不含$\exp$或$\text{erf}$）。
+**ReLU**$^2$上无界，导数$2\text{ReLU}(x)$随正输入线性增长，因此它会放大较大的正激活。在**Transformer**前馈层中，该运算只增加一次乘法。
 
 它的另一个性质在大模型时代变得格外重要：平方放大了大激活值、压低了小激活值，使得前馈层的激活分布**远比GELU稀疏且集中**。[ReLU$^2$ Wins: Discovering Efficient Activation Functions for Sparse LLMs](https://arxiv.org/abs/2402.03804) 据此论证**ReLU**$^2$是稀疏化推理的最佳选择：可以只计算少数被激活的神经元。目前**Nemotron-H**等生产级模型即使用**ReLU**$^2$作为前馈层激活。
 
 #### ⚪ StarReLU：把平方整流标准化
 
-- paper：[MetaFormer Baselines for Vision](https://arxiv.org/abs/2210.13452)
+- **paper**：[**MetaFormer Baselines for Vision**](https://arxiv.org/abs/2210.13452)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -594,20 +586,18 @@ $s$与$b$也可以设为**可学习**参数（按层或按通道），此时上�
 
 #### ⚪ xIELU：正半轴二次、负半轴指数
 
-- paper：[Deriving Activation Functions Using Integration](https://arxiv.org/abs/2411.13010)
+- **paper**：[**Deriving Activation Functions Using Integration**](https://arxiv.org/abs/2411.13010)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
 | $$\text{xIELU}(x) =\begin{cases} \alpha_p x^2 + 0.5x, & x> 0 \\ \alpha_n\left(e^x-1\right)-\alpha_n x + 0.5x, & x\leq 0 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-059-xielu.png) |
 
-**xIELU**的推导方式本身就很有启发性：与其直接设计激活函数$f$，不如**设计它的导数**$f'$，因为我们真正关心的性质（梯度是否消失、是否饱和、是否有界）全都是关于导数的；然后对$f'$**积分**得到$f$。这样所需的梯度行为是构造性地保证的，而不是事后验证的。
+**xIELU**的推导方式本身就很有启发性：与其直接设计激活函数$f$，不如**设计它的导数**$f'$，因为我们真正关心的性质（梯度是否消失、是否饱和、是否有界）全都是关于导数的；然后对$f'$**积分**得到$f$。这样所需的梯度行为是构造性地保证的。
 
 作者取$f'$为**ELU**的可训练仿射变换，积分后即得到上式：
 
 $$
-\begin{aligned}
-\text{xIELU}^\prime(x) &= \begin{cases} x, & x> 0 \\ \alpha_n\left(e^x-1\right), & x\leq 0 \end{cases}
-\end{aligned}
+\text{xIELU}'(x)=\begin{cases}2\alpha_p x+0.5, & x>0 \\ \alpha_n\left(e^x-1\right)+0.5, & x\leq0\end{cases}
 $$
 
 式中的$0.5x$项与$-\alpha_n x$修正项不是随意添加的，它们的作用恰好是保证原点处的**连续可导**：$x\to 0^+$与$x\to 0^-$的函数值都是$0$；导数方面，右导数为$2\alpha_p\cdot 0+0.5=0.5$，左导数为$\alpha_n e^0-\alpha_n+0.5=0.5$，两者相等。因此无论$\alpha_p,\alpha_n$学成什么值，**xIELU**始终是$C^1$的。
@@ -616,13 +606,13 @@ $$
 
 #### ⚪ PolyCom：多项式组合
 
-- paper：[Polynomial Composition Activations: Unleashing the Dynamics of Large Language Models](https://arxiv.org/abs/2411.03884)
+- **paper**：[**Polynomial Composition Activations: Unleashing the Dynamics of Large Language Models**](https://arxiv.org/abs/2411.03884)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
 | $$\begin{aligned} \text{PolyReLU}(x) &= \sum_{i=0}^{r} a_i \left(\text{ReLU}(x)\right)^i \\ \text{PolyNorm}(x) &= \sum_{i=0}^{r} a_i \frac{x^i}{\left\Vert x^i \right\Vert_2} \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-060-polycom.png) |
 
-既然二次项有效，为什么不用**任意阶多项式**？**PolyCom**给出上述两个变体，其中系数$a_i$可学习，实践中取$r=3$。
+既然二次项有效，为什么不用**任意阶多项式**？**PolyCom**给出上述两个变体，其中$r$是最高多项式阶数，$a_i$是与网络权重共同更新的系数，$x^i$表示逐元素$i$次幂，$\|x^i\|_2$是当前激活张量对应幂次的**L2**范数；实践中取$r=3$。
 
 **表达能力**是这项工作的核心论证：$r$阶多项式组合可以达到**Sobolev**空间中的最优逼近速率$O\left(\epsilon^{-d/n}\right)$，而纯**ReLU**网络要达到同样的速率需要多得多的层数。也就是说，把非线性做得“更强”可以换取深度。
 
@@ -636,11 +626,11 @@ $$
 
 ## 3.3 自动搜索的激活函数
 
-手工设计激活函数依赖直觉和经验。一个自然的想法是：既然网络结构可以用**神经结构搜索(NAS)**自动设计，激活函数为什么不能？这条路线产生了目前实际效果最好的几个激活函数。
+手工设计激活函数依赖直觉和经验。一个自然的想法是：能否用类似**神经结构搜索（NAS）**的技术自动设计激活函数？
 
 ### ⚪ Swish：强化学习搜索
 
-- paper：[Searching for Activation Functions](https://arxiv.org/abs/1710.05941)
+- **paper**：[**Searching for Activation Functions**](https://arxiv.org/abs/1710.05941)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -650,11 +640,11 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-022-swish.jpg)
 
-该搜索空间由**core unit**递归地构造而成。**core unit**接收两个输入（其中一个可以是上一个**core unit**的输出），分别经过两次**一元(unary)**操作后使用一个**二元(binary)**操作进行组合，并得到输出。作者选用的一元操作和二元操作如下：
+该搜索空间由**core unit**递归地构造而成。**core unit**接收两个输入（其中一个可以是上一个**core unit**的输出），分别经过两次**一元（unary）**操作后使用一个**二元（binary）**操作进行组合，并得到输出。作者选用的一元操作和二元操作如下：
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-023-swish.jpg)
 
-搜索使用一个**RNN**控制器，在每个时间步预测激活函数的一个组成部分。当搜索出一个完整的激活函数后，构造对应的**ResNet-20**子网络，在**CIFAR-10**上训练$10K$步并记录验证准确率；该准确率作为**reward**通过强化学习更新控制器。
+搜索使用一个**RNN**控制器，在每个时间步预测激活函数的一个组成部分。当搜索出一个完整的激活函数后，构造对应的**ResNet-20**子网络，在**CIFAR-10**上训练$10k$步并记录验证准确率；该准确率作为**reward**通过强化学习更新控制器。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-024-swish.jpg)
 
@@ -664,9 +654,7 @@ $$
 - 一些表现较好的激活函数使用了**周期函数**（如$\sin,\cos$），且以加减的形式出现，这类函数此前研究较少；
 - **使用除法的激活函数通常表现较差**，因为分母接近$0$时数值爆炸；只有当分子分母同时接近$0$时才有较好的表现（如$\cosh$）。
 
-搜索得到的最好的激活函数被命名为**Swish**（在**PyTorch**中称为**SiLU**），即本节开头的$x\cdot\sigma(\beta x)$。
-
-**Swish**具有一系列良好性质。首先它是**ReLU**与线性函数之间的光滑插值：当$\beta=0$时退化为线性函数$x/2$；当$\beta\to +\infty$时$\sigma(\beta x)$趋于阶跃函数，**Swish**退化为**ReLU**。因此$\beta$控制了函数的非线性程度。
+搜索得到的最好的激活函数被命名为**Swish**（在**PyTorch**中称为**SiLU**）。**Swish**$=x\cdot\sigma(\beta x)$具有一系列良好性质。首先它是**ReLU**与线性函数之间的光滑插值：当$\beta=0$时退化为线性函数$x/2$；当$\beta\to +\infty$时$\sigma(\beta x)$趋于阶跃函数，**Swish**退化为**ReLU**。因此$\beta$控制了函数的非线性程度。
 
 与**ReLU**相同，**Swish**无上界、有下界；不同于**ReLU**，**Swish**是**处处光滑**且**非单调**的（负半轴存在一个极小值）。其导数为：
 
@@ -679,7 +667,7 @@ $$
 
 不同于**ReLU**在$x>0$时导数恒为$1$，**Swish**的导数是随输入连续变化的。
 
-受**LSTM**中**门控(gating)**机制的启发，**Swish**可以理解为一种**自门控(self-gating)**机制：使用自身的值作为门控信号，当$\sigma(\beta x)$接近$1$时门“开”，接近$0$时门“关”。
+受**LSTM**中**门控（gating）**机制的启发，**Swish**可以理解为一种**自门控（self-gating）**机制：使用自身的值作为门控信号，当$\sigma(\beta x)$接近$1$时门“开”，接近$0$时门“关”。
 
 参数$\beta$也可以通过学习得到，此时网络中每个神经元的激活函数形状都可以不同。作者统计了训练后$\beta$的取值分布，大多数集中在$1$附近，因此实践中通常直接固定$\beta=1$：
 
@@ -687,21 +675,21 @@ $$
 
 ### ⚪ HardSwish：Swish的分段线性近似
 
-- paper：[Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
+- **paper**：[**Searching for MobileNetV3**](https://arxiv.org/abs/1905.02244)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{HardSwish}(x) = x \cdot \frac{\text{ReLU6}(x+3)}{6} = \begin{cases} x, & x \geq 3 \\ \dfrac{x(x+3)}{6}, & -3 \leq x <3 \\ 0, & x < -3 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-027-hardswish.jpg) |
+| $$\begin{aligned}\text{HardSwish}(x) &= x \cdot \frac{\text{ReLU6}(x+3)}{6}\\ &= \begin{cases} x, & x \geq 3 \\ \dfrac{x(x+3)}{6}, & -3 \leq x <3 \\ 0, & x < -3 \end{cases}\end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-027-hardswish.jpg) |
 
 **Swish**中的指数运算在嵌入式环境中成本较高，**MobileNet V3**因此提出用$\text{ReLU6}(x+3)/6$（即**HardSigmoid**的一种形式）替代**Sigmoid**，得到只含加法、乘法和截断的**HardSwish**。由于**Swish**在深层网络中收益更明显，而深层特征图的分辨率更低、激活函数调用次数更少，**MobileNet V3**只在网络的**深层**使用**HardSwish**，浅层仍使用**ReLU**。
 
 ### ⚪ Mish
 
-- paper：[Mish: A Self Regularized Non-Monotonic Activation Function](https://arxiv.org/abs/1908.08681)
+- **paper**：[**Mish: A Self Regularized Non-Monotonic Activation Function**](https://arxiv.org/abs/1908.08681)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{Mish}(x) = x\cdot \tanh\left(\text{Softplus}(x)\right) =x\cdot \tanh\left(\ln\left(1+e^x\right)\right)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-028-mish.png) |
+| $$\begin{aligned}\text{Mish}(x) &= x\cdot \tanh\left(\text{Softplus}(x)\right) \\&=x\cdot \tanh\left(\ln\left(1+e^x\right)\right)\end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-028-mish.png) |
 
 **Mish**是在**Swish**周边的函数空间中进一步手工搜索得到的：作者设计了一批与**Swish**形式相似的候选函数并逐一实验，最终选出表现最好、训练最稳定的一个。**Mish**具有四个特点：
 - **连续可微**：避免了梯度优化时由于奇点引入的副作用；
@@ -709,7 +697,7 @@ $$
 - **有下界**：下界约为$-0.30884$，具有隐式正则化的作用；
 - **非单调**：保留了一定程度的负值信息，增强了表现力和信息流动。
 
-**Mish**最有说服力的证据来自**损失平面(loss landscape)**的可视化。所谓**输出平面(output landscape)**是指随机初始化一个网络，将可视化空间的坐标输入网络并输出相应标量；**Mish**对应的输出平面比**ReLU**更加平滑，而更平滑的输出平面会产生更平滑的损失平面：
+**Mish**最有说服力的证据来自**损失平面（loss landscape）**的可视化。所谓**输出平面（output landscape）**是指随机初始化一个网络，将可视化空间的坐标输入网络并输出相应标量；**Mish**对应的输出平面比**ReLU**更加平滑，而更平滑的输出平面会产生更平滑的损失平面：
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-029-mish.jpg)
 
@@ -725,11 +713,11 @@ $$
 \end{aligned}
 $$
 
-其中$\Delta(x)=\text{sech}^2\left(\text{Softplus}(x)\right)$相当于一个**预条件算子(preconditioner)**，使得梯度更加平滑并提供更强的正则化效果。这被认为是**Mish**在更深、更复杂的网络中表现优于**Swish**的原因。
+其中$\Delta(x)=\text{sech}^2\left(\text{Softplus}(x)\right)$相当于一个**预条件算子（preconditioner）**，使得梯度更加平滑并提供更强的正则化效果。
 
 ### ⚪ ELiSH 与 HardELiSH：遗传算法搜索
 
-- paper：[The Quest for the Golden Activation Function](https://arxiv.org/abs/1808.00783)
+- **paper**：[**The Quest for the Golden Activation Function**](https://arxiv.org/abs/1808.00783)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -737,18 +725,18 @@ $$
 
 **ELiSH(exponential linear sigmoid squashing)**沿用了**Swish**的“自门控”结构，但把被门控的对象从$x$换成$\text{ELU}(x)$：当$x>0$时它与**Swish**完全相同；当$x<0$时它继承了**ELU**减少偏置偏移、对噪声鲁棒的特点。**HardELiSH**则进一步把**Sigmoid**替换为**HardSigmoid**以降低计算量。
 
-这篇论文更重要的贡献是提出用**遗传算法(genetic algorithm)**为特定任务搜索激活函数。遗传算法维护一个**个体(individual)**总体，每个个体由若干**基因(gene)**描述，通过迭代执行以下操作进化：
-- **选择(selection)**：选出**适应度(fitness)**最高的两个个体作为父代；
-- **交叉(crossover)**：组合两个父代生成子代；
-- **变异(mutation)**：随机修改子代的若干基因。
+这篇论文提出用**遗传算法（genetic algorithm）**为特定任务搜索激活函数。遗传算法维护一个**个体（individual）**总体，每个个体由若干**基因（gene）**描述，通过迭代执行以下操作进化：
+- **选择（selection）**：选出**适应度（fitness）**最高的两个个体作为父代；
+- **交叉（crossover）**：组合两个父代生成子代；
+- **变异（mutation）**：随机修改子代的若干基因。
 
-关键在于如何把激活函数编码为基因。作者观察到常用的激活函数大多是**分段(piece-wise)**的，即可以拆分为左右两部分（或两个因子的乘积），于是把每一部分指定为一个基因，并设计了两种交叉方式：**遗传(inheritance)**（随机取一个个体的左半与另一个体的右半）和**杂交(hybrid)**（对两个个体的左右部分分别做某种运算再组合）；**变异**则是随机替换其中一个部分。相比**Swish**使用的强化学习搜索，遗传算法的搜索成本更低，代价是搜索空间受编码方式的限制更强。
+关键在于如何把激活函数编码为基因。作者观察到常用的激活函数大多是**分段（piece-wise）**的，即可以拆分为左右两部分（或两个因子的乘积），于是把每一部分指定为一个基因，并设计了两种交叉方式：**遗传（inheritance）**（随机取一个个体的左半与另一个体的右半）和**杂交（hybrid）**（对两个个体的左右部分分别做某种运算再组合）；**变异**则是随机替换其中一个部分。相比**Swish**使用的强化学习搜索，遗传算法的搜索成本更低，搜索空间则由基因编码方式显式确定。
 
 ### ⚪ 手工设计的自门控变体：E-Swish、LiSHT、TanhExp
 
-- paper：[E-swish: Adjusting Activations to Different Network Depths](https://arxiv.org/abs/1801.07145)
-- paper：[LiSHT: Non-Parametric Linearly Scaled Hyperbolic Tangent Activation Function for Neural Networks](https://arxiv.org/abs/1901.05894)
-- paper：[TanhExp: A Smooth Activation Function with High Convergence Speed for Lightweight Neural Networks](https://arxiv.org/abs/2003.09855)
+- **paper**：[**E-swish: Adjusting Activations to Different Network Depths**](https://arxiv.org/abs/1801.07145)
+- **paper**：[**LiSHT: Non-Parametric Linearly Scaled Hyperbolic Tangent Activation Function for Neural Networks**](https://arxiv.org/abs/1901.05894)
+- **paper**：[**TanhExp: A Smooth Activation Function with High Convergence Speed for Lightweight Neural Networks**](https://arxiv.org/abs/2003.09855)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -760,13 +748,13 @@ $$
 
 **E-Swish**只是给**Swish**乘上一个常数$\beta$（推荐$\beta=1.75$），看起来微不足道，但它改变的是函数的**最大导数**：$\beta>1$使正半轴的梯度整体放大，等价于把该层的有效学习率调高。作者据此建议按网络深度选取不同的$\beta$：浅层用较大的$\beta$，深层用较小的$\beta$。
 
-**LiSHT**是这一组中最特殊的：$x\tanh(x)$是一个**偶函数**且**恒非负**（可以写成$\|x\|\tanh \|x\|$），形状是一条**V**型曲线。它完全丢弃了输入的符号而只保留幅值，这与前面所有激活函数都不同。它以一种独特的方式满足准则4：输出虽然全为正，但函数关于$y$轴对称，正负输入被同等对待，因此不存在方向性的偏置偏移。代价是符号信息的丢失必须由后续层从其他通道恢复。
+**LiSHT**是这一组中最特殊的：$x\tanh(x)$是一个**偶函数**且**恒非负**（可以写成$\|x\|\tanh \|x\|$），形状是一条**V**型曲线。它完全丢弃了输入的符号而只保留幅值，这与前面所有激活函数都不同。它以一种独特的方式满足准则4：输出虽然全为正，但函数关于$y$轴对称，正负输入被同等对待，因此不存在方向性的偏置偏移。后续层通过其他通道组合幅值特征。
 
 **TanhExp**面向**轻量级网络**设计。它在原点附近的过渡比**Swish**和**Mish**都更陡（因为$e^x$在$0$附近变化快，使$\tanh$迅速接近饱和），从而在小模型上收敛更快；同时它只需一次$\exp$和一次$\tanh$。
 
 ### ⚪ GELUSine：LLM搜索出来的激活函数
 
-- paper：[Mining Generalizable Activation Functions](https://arxiv.org/abs/2602.05688)
+- **paper**：[**Mining Generalizable Activation Functions**](https://arxiv.org/abs/2602.05688)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -774,24 +762,24 @@ $$
 
 激活函数搜索的第三代工具是**大语言模型驱动的进化式搜索智能体**：不再由人设计搜索空间或基因编码，而是让模型直接提出、评估并改写候选程序（该工作使用的是**AlphaEvolve**）。**GELUSine**是这类方法给出的结果之一。
 
-有意思的是它恰好闭合了一个从$2017$年打开的循环：**Swish**的原始论文在报告搜索结果时就注意到，*含周期性成分的候选函数表现出乎意料地好*，但作者没有深究。**GELUSine**几乎就是这一观察的兑现：在标准激活函数上叠加一个**幅度很小的周期扰动**。周期性为什么有帮助，见下一节3.4。
+有意思的是它恰好闭合了一个从$2017$年打开的循环：**Swish**的原始论文在报告搜索结果时就注意到，*含周期性成分的候选函数表现出乎意料地好*。**GELUSine**几乎就是这一观察的兑现：在标准激活函数上叠加一个**幅度很小的周期扰动**。
 
 
 ## 3.4 周期性激活函数
 
-前面所有激活函数都是**非周期**的、并且大体上是单调递增的。由它们堆叠出的网络有一个被反复观察到的固有偏好：**谱偏差(spectral bias)**，也称**频率原则(frequency principle)**：网络总是先拟合目标函数的**低频**成分，而高频细节要么学得极慢，要么根本学不出来。
+前面所有激活函数都是**非周期**的、并且大体上是单调递增的。由它们堆叠出的网络有一个被反复观察到的固有偏好：**谱偏差（spectral bias）**，也称**频率原则（frequency principle）**：网络总是先拟合目标函数的**低频**成分，而高频细节要么学得极慢，要么根本学不出来。
 
-对分类任务而言这甚至是好事（相当于一种隐式正则化），但对**隐式神经表示(implicit neural representation)**是致命的：这类任务要求一个小型**MLP**把**坐标**映射到信号值（图像的像素、音频的采样、形状的符号距离、场景的辐射亮度），而目标信号本身就充满高频结构。
+对分类任务而言这甚至是好事（相当于一种隐式正则化），但对**隐式神经表示（implicit neural representation）**是致命的：这类任务要求一个小型**MLP**把**坐标**映射到信号值（图像的像素、音频的采样、形状的符号距离、场景的辐射亮度），而目标信号本身就充满高频结构。
 
 周期性激活函数直接从根源上解决这个问题：让函数基本身就是**振荡**的。
 
 ### ⚪ SIREN：正弦激活的隐式神经表示
 
-- paper：[Implicit Neural Representations with Periodic Activation Functions](https://arxiv.org/abs/2006.09661)
+- **paper**：[**Implicit Neural Representations with Periodic Activation Functions**](https://arxiv.org/abs/2006.09661)
 
-| 表达式 | 函数图像 |
-| :---: | :---: |
-| $$\Phi_i(x) = \sin\left(\omega_0\left(W_i x + b_i\right)\right)$$ | - |
+| 表达式 |
+| :---: |
+| $$\Phi_i(x) = \sin\left(\omega_0\left(W_i x + b_i\right)\right)$$ |
 
 **SIREN(sinusoidal representation network)**就是把**MLP**每一层的激活函数换成正弦。这个改动看似简单，却带来一个其他激活函数都没有的性质：
 
@@ -799,16 +787,16 @@ $$
 
 超参数$\omega_0$（论文取$30$）控制网络能够表示的**频带**：$\omega_0$越大，可表示的细节越精细，但也越容易过拟合噪声。它是**SIREN**中最重要的单个超参数。
 
-**SIREN**能否训练起来强烈依赖于一套配套的**初始化方案**。隐藏层权重需要从下面的均匀分布中采样（$n$为该层输入维度）：
+**SIREN**使用配套初始化保持激活分布沿深度稳定。设$n$为该层输入维度，第一层取$W_1\sim U(-1/n,1/n)$；其余层取
 
-$$ w \sim U\left(-\sqrt{\frac{6}{n}}, \sqrt{\frac{6}{n}}\right) $$
+$$ W_i\sim U\left(-\frac{1}{\omega_0}\sqrt{\frac{6}{n}},\frac{1}{\omega_0}\sqrt{\frac{6}{n}}\right),\quad i>1 $$
 
-这样做的目的是使**激活前的分布在深度方向上保持不变**（否则正弦的周期性会让分布迅速退化）；第一层则额外乘以$\omega_0$。缺少这套初始化，**SIREN**可能根本训练不出来。
+前向时每层仍计算$\sin\!\left(\omega_0(W_ix+b_i)\right)$；论文通常令首层$\omega_0=30$、隐藏层$\omega_0=1$。该缩放使进入正弦函数的预激活保持稳定分布。
 
 
 ### ⚪ Snake：周期性与单调性的折中
 
-- paper：[Neural Networks Fail to Learn Periodic Functions and How to Fix It](https://arxiv.org/abs/2006.08195)
+- **paper**：[**Neural Networks Fail to Learn Periodic Functions and How to Fix It**](https://arxiv.org/abs/2006.08195)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -822,11 +810,11 @@ $$ w \sim U\left(-\sqrt{\frac{6}{n}}, \sqrt{\frac{6}{n}}\right) $$
 
 ### ⚪ GCU：余弦门控单元
 
-- paper：[Growing Cosine Unit: A Novel Oscillatory Activation Function That Can Speedup Training and Reduce Parameters in Convolutional Neural Networks](https://arxiv.org/abs/2108.12943)
+- **paper**：[**Growing Cosine Unit: A Novel Oscillatory Activation Function That Can Speedup Training and Reduce Parameters in Convolutional Neural Networks**](https://arxiv.org/abs/2108.12943)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{GCU}(x) = x\cos(x)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-066-gcu.png) |
+| $$\begin{aligned}\text{GCU}(x)&=x\cos(x)\\\text{GCU}'(x)&=\cos(x)-x\sin(x)\end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-066-gcu.png) |
 
 **GCU(growing cosine unit)**是自门控模板$x\cdot g(x)$的周期版本：把门控函数换成$\cos$。它是非单调的，并且有**无穷多个零点**。
 
@@ -834,42 +822,39 @@ $$ w \sim U\left(-\sqrt{\frac{6}{n}}, \sqrt{\frac{6}{n}}\right) $$
 
 ### ⭐ 讨论：周期性激活的适用范围
 
-周期性激活函数基本上是**领域专用工具**。它们在**隐式神经表示**、**音频合成**、**物理信息神经网络(PINN)**中占据主导地位，但在图像分类和语言模型的骨干网络中很少使用；因为那里的输入不是坐标，目标函数也不具有真正的周期结构。**GELUSine**是一个有意思的例外：它不改变主干激活函数的形状，只是叠加一点**微量**的周期性（幅度$0.1$），试图在通用任务上取得谱偏差与优化难度之间的平衡。
+周期性激活函数主要用于输入坐标与目标信号具有周期结构的任务，包括**隐式神经表示**、**音频合成**与**物理信息神经网络（PINN）**。图像分类和语言模型通常采用非周期主干；**GELUSine**则在标准激活上叠加幅度$0.1$的周期项，用于通用任务中的频率建模。
 
 ## 3.5 通用近似激活函数
 
-前面所有激活函数都是**固定形状**的（**PReLU**只有一个自由度）。一个更激进的想法是：**让每个神经元自己学出它需要的激活曲线**。这要求激活函数是一个具有足够表达能力的**参数化函数族**，且参数可以通过梯度更新。
+前面所有激活函数都是**固定形状**的（或只有一个自由度）。一个更激进的想法是：**让每个神经元自己学出它需要的激活曲线**。这要求激活函数是一个具有足够表达能力的**参数化函数族**，且参数可以通过梯度更新。
 
-这类方法有三条技术路线：**直接用通用逼近器参数化**（下面的(1)分段线性、(2)有理函数、(3)样条），**对已有的非光滑激活函数做参数化的光滑近似**（下面的(4)），以及**用一个参数族统一多个已知激活函数**（下面的(5)）。
+这类方法有三条技术路线：**直接用通用逼近器参数化**（(1)分段线性、(2)有理函数、(3)样条），**对已有的非光滑激活函数做参数化的光滑近似**（(4)），以及**用一个参数族统一多个已知激活函数**（(5)）。
 
 ### (1) 分段线性参数化
 
 #### ⚪ Maxout
 
-- paper：[Maxout Networks](https://arxiv.org/abs/1302.4389)
+- **paper**：[**Maxout Networks**](https://arxiv.org/abs/1302.4389)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
 | $$h_i(x)=\mathop{\max}_{j\in [1,k]}\left(x^\top W_{i,j}+b_{i,j}\right)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-031-maxout.jpg) |
 
-**Maxout**是最早的可学习激活函数。它把$k$个线性函数取最大值作为激活输出，因此**maxout**单元本身就是一个**分段线性凸函数**，并且可以逼近任意凸函数（只要$k$足够大）。更进一步，作者证明**两个maxout单元的差可以逼近任意连续函数**，因此**maxout**网络具有通用近似性。
+式中$x\in\mathbb{R}^{d}$是输入向量，$W_{i,j}\in\mathbb{R}^{d}$与$b_{i,j}\in\mathbb{R}$是第$i$个输出单元第$j$个分支的可学习权重与偏置，$k$是分支数。**Maxout**把$k$个仿射函数取最大值作为激活输出，因此**maxout**单元本身就是一个**分段线性凸函数**，并且可以逼近任意凸函数（只要$k$足够大）。更进一步，作者证明**两个maxout单元的差可以逼近任意连续函数**，因此**maxout**网络具有通用近似性。
 
-**ReLU**和**LeakyReLU**都是**maxout**的特例（$k=2$，其中一支为$0$或$\alpha x$），这也说明整流类激活函数本质上是分段线性的。**maxout**的代价与缺点是：
-- **参数量翻$k$倍**（每个输出需要$k$套权重）；
-- 输出**非稀疏**且**无上界**；
-- 只能表示**凸函数**（这是取$\max$带来的固有限制）。
+**ReLU**和**LeakyReLU**都是**maxout**的特例（$k=2$，其中一支为$0$或$\alpha x$），这也说明整流类激活函数本质上是分段线性的。每个输出单元使用$k$套仿射参数，因此参数量是单分支线性层的$k$倍；输出为无上界的凸分段线性函数。若要表示一般连续函数，可按论文构造两个**maxout**单元之差。
 
-注意**maxout**同时也是第一个**多输入**的激活函数（它作用在整个输入向量上，而非单个标量），因此也可归入3.6节。
+注意**maxout**同时也是一个**多输入**的激活函数（它作用在整个输入向量上），因此也可归入3.6节。
 
 #### ⚪ APL：用ReLU拼出分段线性
 
-- paper：[Learning Activation Functions to Improve Deep Neural Networks](https://arxiv.org/abs/1412.6830)
+- **paper**：[**Learning Activation Functions to Improve Deep Neural Networks**](https://arxiv.org/abs/1412.6830)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
 | $$\text{APL}(x)=\max(0,x)+\sum_{s=1}^{S}a^s\max\left(0,-x+b^s\right)$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-032-apl.jpg) |
 
-**APL(adaptive piecewise linear unit)**换了一种参数化方式：以**ReLU**为主干，叠加$S$个带有可学习斜率$a^s$和折点$b^s$的**hinge**项。它相比**maxout**有两个优势：
+**APL(adaptive piecewise linear unit)**换了一种参数化方式：以**ReLU**为主干，叠加$S$个**hinge**项；$S$是预设的折点数，$a^s$与$b^s$分别是第$s$项的可学习系数和折点。反向传播时$\partial\text{APL}/\partial a^s=\max(0,-x+b^s)$，$\partial\text{APL}/\partial b^s=a^s\mathbb{1}[x<b^s]$。它相比**maxout**有两个优势：
 - **参数量小**：每个神经元只需$2S$个额外参数，与输入维度无关；
 - **可以表示非凸函数**：因为$a^s$可以为负（而**maxout**取$\max$只能得到凸函数）。
 
@@ -877,7 +862,7 @@ $$ w \sim U\left(-\sqrt{\frac{6}{n}}, \sqrt{\frac{6}{n}}\right) $$
 
 #### ⚪ PWLU：直接参数化分段线性函数
 
-- paper：[Learning specialized activation functions with the Piecewise Linear Unit](https://arxiv.org/abs/2104.03693)
+- **paper**：[**Learning specialized activation functions with the Piecewise Linear Unit**](https://arxiv.org/abs/2104.03693)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -901,7 +886,7 @@ $$
 - 随其参数连续变化，因此可以通过梯度优化；![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-034-pwlu.jpg)
 
 
-**PWLU**的关键实践问题是**输入边界不对齐(input-boundary misalignment)**：函数的主要自由度分布在$[B_L,B_R]$内，如果输入数据的分布与该区间交集很小，则大部分参数对网络几乎没有贡献。
+为了让可学习区间$[B_L,B_R]$覆盖实际输入分布，**PWLU**使用**输入边界对齐（input-boundary alignment）**：先统计预激活的均值与标准差，再重置边界与节点值。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-035-pwlu.jpg)
 
@@ -925,17 +910,17 @@ $$ B_L=\mu-3s, \quad B_R=\mu+3s, \quad K_L=0, \quad K_R=1, \quad Y^i=\text{ReLU}
 
 #### ⚪ PAU：Padé近似
 
-- paper：[Padé Activation Units: End-to-end Learning of Flexible Activation Functions in Deep Networks](https://arxiv.org/abs/1907.06732)
+- **paper**：[**Padé Activation Units: End-to-end Learning of Flexible Activation Functions in Deep Networks**](https://arxiv.org/abs/1907.06732)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{PAU}(x) = \frac{\sum_{j=0}^{m}a_jx^j}{1+\sum_{k=1}^{n}\lvert b_k\rvert\lvert x\rvert^k}= \frac{a_0+a_1x+\cdots+a_mx^m}{1+\lvert b_1\rvert\lvert x\rvert+\cdots+\lvert b_n\rvert\lvert x\rvert^n}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-037-pau.jpg) |
+| $$\begin{aligned}\text{PAU}(x) &= \frac{\sum_{j=0}^{m}a_jx^j}{1+\sum_{k=1}^{n}\lvert b_k\rvert\lvert x\rvert^k}\\&= \frac{a_0+a_1x+\cdots+a_mx^m}{1+\lvert b_1\rvert\lvert x\rvert+\cdots+\lvert b_n\rvert\lvert x\rvert^n}\end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-037-pau.jpg) |
 
 给定任意函数$f(x)$，**Padé近似**是指使用给定阶数的有理分式$F(x)$对其进行近似。给定分子$P$和分母$Q$的阶数$m$和$n$：
 
 $$ f(x) \approx F(x) = \frac{P(x)}{Q(x)} = \frac{\sum_{j=0}^{m}a_jx^j}{1+\sum_{k=1}^{n}b_kx^k}= \frac{a_0+a_1x+\cdots+a_mx^m}{1+b_1x+\cdots+b_nx^n} $$
 
-通常**Padé近似**能够给出比**Taylor近似**更好的结果，且在**Taylor**级数不收敛的情况下仍然有效。然而有理分式的灵活性也带来风险：它可能拟合出**极点**（分母为$0$），导致训练和推理时的数值不稳定。作者因此使用一种**安全的Padé近似**，即上表中的形式：对分母的每一项取绝对值，保证分母不小于$1$。
+通常**Padé近似**能够给出比**Taylor近似**更好的结果，且在**Taylor**级数不收敛的情况下仍然有效。**PAU**采用上表中的安全形式：分母各项取绝对值并加常数$1$，从结构上保证$Q(x)\geq1$、不会出现极点。
 
 **PAU(Padé activation unit)**把这个有理分式作为激活函数，通过梯度下降从数据中学习系数。所需的梯度为：
 
@@ -955,15 +940,15 @@ $$
 \end{aligned}
 $$
 
-为了减少参数量，**每一层的所有神经元共享一套PAU参数**。初始化时用标准的**Padé近似**去拟合一个已知的激活函数，上表中的图像展示了**Padé近似**（虚线）对常用激活函数的拟合效果。
+为了减少参数量，**每一层的所有神经元共享一套PAU参数**。初始化时用标准的**Padé近似**去拟合一个已知的激活函数。
 
 #### ⚪ OPAU：正交Padé近似
 
-- paper：[Orthogonal-Padé Activation Functions: Trainable Activation functions for smooth and faster convergence in deep networks](https://arxiv.org/abs/2106.09693)
+- **paper**：[**Orthogonal-Padé Activation Functions: Trainable Activation functions for smooth and faster convergence in deep networks**](https://arxiv.org/abs/2106.09693)
 
-| 表达式 | 函数图像 |
-| :---: | :---: |
-| $$\text{OPAU}(x) = \frac{\sum_{i=0}^{k}c_if_i(x)}{1+\sum_{j=1}^{l}\lvert d_j\rvert\lvert f_j(x)\rvert}= \frac{c_0+c_1f_1(x)+\cdots+c_kf_k(x)}{1+\lvert d_1\rvert\lvert f_1(x)\rvert+\cdots+\lvert d_l\rvert\lvert f_l(x)\rvert}$$ | — |
+| 表达式 |
+| :---: |
+| $$\begin{aligned}\text{OPAU}(x) &= \frac{\sum_{i=0}^{k}c_if_i(x)}{1+\sum_{j=1}^{l}\lvert d_j\rvert\lvert f_j(x)\rvert}\\&= \frac{c_0+c_1f_1(x)+\cdots+c_kf_k(x)}{1+\lvert d_1\rvert\lvert f_1(x)\rvert+\cdots+\lvert d_l\rvert\lvert f_l(x)\rvert}\end{aligned}$$ |
 
 **OPAU(orthogonal-Padé activation unit)**在**PAU**的基础上，把分子和分母中的幂基$1,x,x^2,\cdots$替换为**正交多项式基**$f_1,f_2,\cdots,f_l$，同样对分母取绝对值以避免极点。作者考察了六种常用的正交多项式基：
 
@@ -973,23 +958,25 @@ $$
 
 ### (3) 样条参数化
 
-**样条(spline)**是与分段线性函数、有理函数并列的第三种经典通用逼近器。把样条用作激活函数，会导出一个与前面所有方法都不同量级的改动：它改变的不是激活函数，而是整个网络的组织方式。
+**样条（spline）**是与分段线性函数、有理函数并列的第三种经典通用逼近器。把样条用作激活函数，会改变整个网络的组织方式。
 
 #### ⚪ KAN：把激活函数搬到边上
 
-- paper：[KAN: Kolmogorov-Arnold Networks](https://arxiv.org/abs/2404.19756)
+- **paper**：[**KAN: Kolmogorov-Arnold Networks**](https://arxiv.org/abs/2404.19756)
 
-| 表达式 | 函数图像 |
-| :---: | :---: |
-| $$\phi(x) = w_b\cdot \text{silu}(x) + w_s\cdot \sum_i c_i B_i(x)$$ | — |
+| 表达式 |
+| :---: |
+| $$\phi(x) = w_b\cdot \text{silu}(x) + w_s\cdot \sum_i c_i B_i(x)$$ |
 
-其中$B_i$是定义在某个网格上的**B样条**基函数，系数$c_i$可学习，$w_b,w_s$是两个可学习的缩放。
+其中$B_i$是定义在网格上的[**B样条**基函数](https://0809zheng.github.io/2024/05/07/spline.html)，$c_i$是样条系数，$w_b,w_s$分别缩放基础分支与样条分支，四者均通过任务损失学习。对一层输入$x\in\mathbb{R}^{n_l}$，边$(j\to i)$各自使用函数$\phi_{ij}$，节点仅求和：
 
-**KAN**与前面所有方法的差别是**性质上的**：**MLP**把**固定的激活函数放在节点上**、把**可学习的权重放在边上**；**KAN**则反过来，把**可学习的激活函数放在边上**，节点只做求和。至此激活函数不再是网络的一个组件，激活函数本身就是网络。
+$$ x_i^{(l+1)}=\sum_{j=1}^{n_l}\phi_{ij}^{(l)}\!\left(x_j^{(l)}\right) $$
 
-式中两项的分工也值得注意：**silu**项是一条**基础通路**（类似残差连接），保证优化行为良好；样条项提供**局部表达能力**。样条基是**局部支撑**的：修改一个系数$c_i$只影响一个区间，这既是**KAN**可解释性的来源，也使得**网格扩展(grid extension)**成为可能：可以逐步加密样条网格来提升容量，而不必从头重训。
+**MLP**把**固定的激活函数放在节点上**、把**可学习的权重放在边上**；**KAN**则反过来，把**可学习的激活函数放在边上**，节点只做求和。至此激活函数不再是网络的一个组件，激活函数本身就是网络。
 
-**KAN**的理论依据是**柯尔莫哥洛夫-阿诺德表示定理**。代价也要如实说明：**KAN**的参数量远大于同规模**MLP**，且单个参数的计算效率低得多（样条求值无法像矩阵乘法那样被硬件充分优化），因此目前主要用于**科学计算**与**符号回归**这类小规模、重可解释性的问题。详见[<font color=Blue>Kolmogorov-Arnold网络</font>](https://0809zheng.github.io/2024/05/06/kan.html)。
+式中两项的分工也值得注意：**silu**项是一条**基础通路**（类似残差连接），保证优化行为良好；样条项提供**局部表达能力**。样条基是**局部支撑**的：修改一个系数$c_i$只影响一个区间，这既是**KAN**可解释性的来源，也使得**网格扩展（grid extension）**成为可能：可以逐步加密样条网格来提升容量，而不必从头重训。
+
+**KAN**的理论依据是**柯尔莫哥洛夫-阿诺德表示定理**。边函数的局部样条系数可直接可视化、剪枝并做符号拟合，因此该结构主要用于重视局部可解释性的科学计算与符号回归任务。
 
 ### (4) 非光滑激活函数的光滑化：一个统一视角
 
@@ -999,7 +986,7 @@ $$
 
 #### ⚪ ACON：最大值函数的softmax近似
 
-- paper：[Activate or Not: Learning Customized Activation](https://arxiv.org/abs/2009.04759)
+- **paper**：[**Activate or Not: Learning Customized Activation**](https://arxiv.org/abs/2009.04759)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -1074,11 +1061,9 @@ $$
 \end{aligned}
 $$
 
-作者选用**channel-wise**版本（形式上与**SE**模块一致）。注意**meta-ACON**已经跨入了3.6节“上下文相关激活函数”的范畴。
-
 #### ⚪ SMU：最大值函数的绝对值近似
 
-- paper：[SMU: smooth activation function for deep networks using smoothing maximum technique](https://arxiv.org/abs/2111.04682)
+- **paper**：[**SMU: smooth activation function for deep networks using smoothing maximum technique**](https://arxiv.org/abs/2111.04682)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -1122,7 +1107,7 @@ $$
 
 #### ⚪ SAU：使用Dirac函数构造光滑近似
 
-- paper：[SAU: Smooth activation function using convolution with approximate identities](https://arxiv.org/abs/2109.13210)
+- **paper**：[**SAU: Smooth activation function using convolution with approximate identities**](https://arxiv.org/abs/2109.13210)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
@@ -1171,7 +1156,7 @@ $$
 
 当$t=1$时，上式**恰好就是Softplus**。
 
-**② 光滑化阶跃函数（把ReLU写成$x\theta(x)$）**：若直接取$\theta(x)\approx\sigma(x)$，则$f(x)=x\sigma(x)$，**恰好就是Swish**；若用近似①作为$\theta(x)$的光滑近似，则
+**② 光滑化阶跃函数（把ReLU写成$x\theta（x）$）**：若直接取$\theta(x)\approx\sigma(x)$，则$f(x)=x\sigma(x)$，**恰好就是Swish**；若用近似①作为$\theta(x)$的光滑近似，则
 
 $$ \max(x,0) = x\theta(x) \approx x \int_{0}^{+\infty}\frac{1}{\sqrt{2\pi}s}e^{-\frac{(x-y)^2}{2s^2}}dy = \frac{x}{2}\left[1+\text{erf}\left(\frac{x}{\sqrt{2}s}\right)\right] $$
 
@@ -1210,19 +1195,19 @@ $$
 
 ### (5) 统一参数族
 
-(4)中的光滑化视角在**概念上**统一了一批激活函数；另一条路线更彻底：把多个已知激活函数**字面地**写进同一个公式里，让网络通过少数几个可学习参数在它们之间**插值**，而不是由设计者事先挑定一个。
+(4)中的光滑化视角在**概念上**统一了一批激活函数；另一条路线更彻底：把多个已知激活函数**显式地**写进同一个公式里，让网络通过少数几个可学习参数在它们之间**插值**。
 
 #### ⚪ AGLU：统一的门控激活
 
-- paper：[Adaptive Parametric Activation](https://arxiv.org/abs/2407.08567)
+- **paper**：[**Adaptive Parametric Activation**](https://arxiv.org/abs/2407.08567)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
 | $$\begin{aligned} \text{AGLU}(z) &= z\cdot \eta(z;\kappa,\lambda) \\ \eta(z;\kappa,\lambda) &= \left(\lambda e^{-\kappa z}+1\right)^{-1/\lambda} \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-067-aglu.png) |
 
-作者首先把**Sigmoid**推广为上表中的**自适应参数化Sigmoid** $\eta(z;\kappa,\lambda)$，再把它套进自门控模板，即得到**AGLU(adaptive gated linear unit)**。
+作者首先把**Sigmoid**推广为上表中的**自适应参数化Sigmoid** $\eta(z;\kappa,\lambda)$，再把它套进自门控模板，即得到**AGLU(adaptive gated linear unit)**。其中$z$是预激活，$\kappa>0$控制横向尺度，$\lambda>0$控制门形状；实现中学习$\log\kappa,\log\lambda$可保持正值，参数按通道或类别共享。
 
-这个两参数族包含了三个熟悉的特例：$\lambda=\kappa=1$时$\eta$退化为普通的**Sigmoid**；$\kappa\to\infty$时退化为**ReLU**；而在**AGLU**的形式下，$\lambda=\kappa=1$给出**SiLU/Swish**。也就是说，两个可学习标量就跨越了**Sigmoid**、**ReLU**、**SiLU**三者。
+这个两参数族包含了三个熟悉的特例：$\lambda=\kappa=1$时$\eta$退化为普通的**Sigmoid**；$\kappa\to\infty$时退化为**ReLU**；而在**AGLU**的形式下，$\lambda=\kappa=1$给出**SiLU/Swish**。
 
 两个参数的分工是清晰的：$\kappa$控制过渡区的**陡峭程度**，$\lambda$控制曲线的**非对称性**。论文的动机来自**长尾/不平衡识别**：分类器上适合头部类别的激活形状与适合尾部类别的并不相同，因此让每个类别（或每个通道）各自学一组$(\kappa,\lambda)$能带来明显收益。且开销极小（每通道两个标量），该函数已集成进**Ultralytics YOLO**。
 
@@ -1232,17 +1217,15 @@ $$
 
 本节的激活函数打破这一限制：它们是**多输入**函数，输出依赖于一组相关的输入。上下文的来源可以是**全部特征**（**Dynamic ReLU**）、**相邻通道**（**Dynamic Shift-Max**）或**空间邻域**（**FReLU**）。
 
-注意这类方法与注意力机制（尤其是**SE**模块）的边界是模糊的；它们通常都用“全局池化$+$两层全连接”来生成参数。区别在于：注意力机制生成的是**乘性权重**，而这里生成的是**激活函数的形状参数**。
-
 ### ⚪ Dynamic ReLU
 
-- paper：[Dynamic ReLU](https://arxiv.org/abs/2003.10027)
+- **paper**：[**Dynamic ReLU**](https://arxiv.org/abs/2003.10027)
 
 | 表达式 |
 | :---: |
 | $$y_c = f_{\theta(x)}(x_c) = \mathop{\max}_{1\leq k \leq K} \left\{a_c^k(x)\,x_c+b_c^k(x)\right\}$$ |
 
-**DY-ReLU**把所有输入元素$x$的**全局上下文信息**编码到一个**超函数(hyper function)** $\theta(x)$中，并用它决定激活函数$f_{\theta(x)}(x)$的形状。
+**DY-ReLU**把所有输入元素$x$的**全局上下文信息**编码到一个**超函数（hyper function）** $\theta(x)$中，并用它决定激活函数$f_{\theta(x)}(x)$的形状。
 
 **ReLU**可以推广为分段线性函数$y_c=\max_k\left(a_c^kx_c+b_c^k\right)$；**DY-ReLU**让其中的斜率和截距由输入自适应地计算，即上表中的形式。
 
@@ -1252,9 +1235,9 @@ $$ \left[a_1^1,\cdots,a_C^1,\cdots,a_1^K,\cdots,a_C^K,b_1^1,\cdots,b_C^1,\cdots,
 
 $\theta(x)$的实现参考了**SENet**的**SE**模块：先沿空间维度全局平均池化，再通过两个全连接层输出$2KC$个残差量$\Delta a,\Delta b$，最后与固定初值相加：
 
-$$ a_c^k(x)=\alpha^k+\lambda_a \Delta a_{c}^{k}(x), \quad b_c^k(x)=\beta^k+\lambda_b \Delta b_{c}^{k}(x) $$
+$$ a_c^k(x)=\alpha^k+\lambda_a \Delta a_{c}^{k}(x) \\ b_c^k(x)=\beta^k+\lambda_b \Delta b_{c}^{k}(x) $$
 
-实验中取$K=2$，$\alpha^1=1$，$\alpha^2=\beta^1=\beta^2=0$，即**初始化为ReLU**。
+式中$x\in\mathbb{R}^{C\times H\times W}$，$x_c$表示第$c$个通道，$K$是线性分支数，$a_c^k,b_c^k$分别是第$k$支的动态斜率和截距，$\lambda_a,\lambda_b$缩放动态残差。实验中取$K=2$、$\lambda_a=1$、$\lambda_b=0.5$，并令$\alpha^1=1$，$\alpha^2=\beta^1=\beta^2=0$，即**初始化为ReLU**。
 
 **DY-ReLU**是一个相当强的统一框架，许多已有的激活函数都是它的特例：
 
@@ -1270,13 +1253,13 @@ $$ a_c^k(x)=\alpha^k+\lambda_a \Delta a_{c}^{k}(x), \quad b_c^k(x)=\beta^k+\lamb
 
 ### ⚪ Dynamic Shift-Max
 
-- paper：[MicroNet: Towards Image Recognition with Extremely Low FLOPs](https://arxiv.org/abs/2011.12289)
+- **paper**：[**MicroNet: Towards Image Recognition with Extremely Low FLOPs**](https://arxiv.org/abs/2011.12289)
 
 | 表达式 |
 | :---: |
 | $$y_i= \mathop{\max}_{1\leq k\leq K} \left\{\sum_{j=0}^{J-1} a_{i,j}^k(x)\,x_{C/G}(i,j)\right\}$$ |
 
-**Dynamic Shift-Max**（由**MicroNet**提出）的动机是：当网络层数减少时性能会下降，而**改善每一层的非线性可以补偿网络深度的减少**。它引入的上下文是**相邻通道组**。
+**Dynamic Shift-Max**的动机是：当网络层数减少时性能会下降，而**改善每一层的非线性可以补偿网络深度的减少**。它引入的上下文是**相邻通道组**。
 
 设输入向量$x$具有$C$个通道，划分为$G$组，每组$C/G$个通道。定义第$i$个通道的$N$通道循环移位，以及**组循环移位**（即取每个组的对应通道位置）：
 
@@ -1287,15 +1270,15 @@ x_{C/G}(i,j) &= x_{\left(i+jC/G\right) \bmod C}, \quad j=0,1,\cdots,G-1
 \end{aligned}
 $$
 
-**Dynamic Shift-Max**对多个组移位的加权和取最大值，即上表中的形式，其中系数$a_{i,j}^k(x)$同样通过类似**SE**的方式由输入计算。下图展示了只关注该组与下一组的特殊情况：
+**Dynamic Shift-Max**对多个组移位的加权和取最大值，其中系数$a_{i,j}^k(x)$同样通过类似**SE**的方式由输入计算。下图展示了只关注该组与下一组的特殊情况：
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-048-dynamic-shift-max.jpg)
 
-**Dynamic Shift-Max**共引入$CJK$个参数（实践中取$J=K=2$）。它的一个附带好处是：由于跨组混合了通道，它**提高了不同通道组之间的连通性**，可以作为逐点卷积的补充；这在极端轻量化的网络中尤其有价值。
+式中$i$是输出通道索引，$j$枚举参与混合的$J$个组移位，$k$枚举$K$个候选分支，$a_{i,j}^k(x)$是由全局池化与两层全连接网络生成的样本相关系数。**Dynamic Shift-Max**共生成$CJK$个系数（实践中取$J=K=2$）。它的一个附带好处是：由于跨组混合了通道，它**提高了不同通道组之间的连通性**，可以作为逐点卷积的补充；这在极端轻量化的网络中尤其有价值。
 
 ### ⚪ FReLU：空间邻域上下文
 
-- paper：[Funnel Activation for Visual Recognition](https://arxiv.org/abs/2007.11824)
+- **paper**：[**Funnel Activation for Visual Recognition**](https://arxiv.org/abs/2007.11824)
 
 | 表达式 |
 | :---: |
@@ -1306,31 +1289,31 @@ $$
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-050-frelu.jpg)
 
 - **ReLU** $=\max(x,0)$：与$0$比较；
-- **PReLU** $=\max(x,px)$：引入**参数条件(parametric condition)**；
-- **FReLU** $=\max\left(x,T(x)\right)$：引入**漏斗条件(funnel condition)**，其中$T(\cdot)$是一个可学习的$3\times 3$**深度卷积**（后接**BatchNorm**）。
+- **PReLU** $=\max(x,px)$：引入**参数条件（parametric condition）**；
+- **FReLU** $=\max\left(x,T(x)\right)$：引入**漏斗条件（funnel condition）**，其中$x\in\mathbb{R}^{C\times H\times W}$，$T(x)=\text{BN}(\text{DWConv}_{3\times3}(x))$；**DWConv**按通道计算，输出形状与$x$一致，$\max$逐元素执行。卷积核与**BatchNorm**参数由任务损失学习。
 
-这个改动看起来很小，但它使激活函数具备了**空间建模能力**。通常的卷积神经网络通过加深网络线性地增加感受野，且感受野形状始终是矩形（下图a）；引入**FReLU**后，每个位置会根据$\max$的结果隐式地在$1 \times 1$与$3 \times 3$感受野之间选择，使得整个网络的有效感受野不再是规则的矩形，从而能够适配物体的不规则形状（下图b、c）：
+这个改动看起来很小，但它使激活函数具备了**空间建模能力**。通常的卷积神经网络通过加深网络线性地增加感受野，且感受野形状始终是矩形（下图a）；引入**FReLU**后，每个位置会根据$\max$的结果隐式地在$1 \times 1$与$3 \times 3$感受野之间选择，使得整个网络的有效感受野不再是规则的矩形，从而能够适配物体的不规则形状（下图b、c）。**FReLU**因此特别适合视觉任务（分类、检测、分割），额外开销仅为一个深度卷积。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-051-frelu.jpg)
 
-**FReLU**因此特别适合视觉任务（分类、检测、分割），额外开销仅为一个深度卷积。
+
 
 ## 3.7 门控激活函数
 
-门控激活函数与前面各族的思路都不同：它不是设计一个更好的一元函数，而是**改变前馈层的结构**；把一路线性变换的输出作为**门**去调制另一路线性变换的输出。
+门控激活函数**改变前馈层的结构**；把一路线性变换的输出作为**门**去调制另一路线性变换的输出。
 
 ### ⚪ GLU 及其变体
 
-- paper：[Language Modeling with Gated Convolutional Networks](https://arxiv.org/abs/1612.08083)
-- paper：[GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202)
+- **paper**：[**Language Modeling with Gated Convolutional Networks**](https://arxiv.org/abs/1612.08083)
+- **paper**：[**GLU Variants Improve Transformer**](https://arxiv.org/abs/2002.05202)
 
 | 表达式 |
 | :---: |
 | $$\text{GLU}(x) = \sigma(xW + b) \otimes (xV + c)$$ |
 
-上表即**GLU(gated linear unit)**的基本形式，其中$\otimes$表示逐元素相乘。**GLU**用一路的**Sigmoid**输出作为门控信号，控制另一路信息的通过量。相比逐元素激活函数，**GLU**引入了**乘性交互**，其表达能力更强，且梯度可以通过线性支路无衰减地传播。
+上表即**GLU(gated linear unit)**的基本形式。对$x\in\mathbb{R}^{d}$，$W,V\in\mathbb{R}^{d\times d_{ff}}$，$b,c\in\mathbb{R}^{d_{ff}}$，$\otimes$表示逐元素相乘；两个仿射分支及输出投影都由任务损失联合学习。**GLU**用一路的**Sigmoid**输出作为门控信号，控制另一路信息的通过量。相比逐元素激活函数，**GLU**引入了**乘性交互**，其表达能力更强，且梯度可以通过线性支路无衰减地传播。
 
-把$\sigma$替换为其他激活函数，可以得到一系列变体（此外还有省略激活函数的**Bilinear**形式）：
+把$\sigma$替换为其他激活函数，可以得到一系列变体：
 
 $$
 \begin{aligned}
@@ -1346,17 +1329,18 @@ $$
 $$
 \begin{aligned}
 \text{FFN}(x) &= \text{ReLU}(xW_1)W_2 \\
+\Downarrow\\
 \text{FFN}_{\text{SwiGLU}}(x) &= \left(\text{Swish}(xW) \otimes xV\right)W_2
 \end{aligned}
 $$
 
-注意这里有一个重要的工程细节：**GLU**族的**FFN**需要三个权重矩阵($W,V,W_2$)而非两个，因此为了保持参数量和计算量与原始模型一致，需要把隐藏维度$d_{ff}$**减少为原来的$2/3$**（原论文中直接减半）。
+注意这里有一个重要的工程细节：**GLU**族的**FFN**需要三个权重矩阵($W,V,W_2$)，因此为了保持参数量和计算量与原始模型一致，需要把隐藏维度$d_{ff}$**减少为原来的$2/3$**（原论文中直接减半）。
 
-在**T5**的预训练与下游微调实验中，**GEGLU**和**SwiGLU**取得了最低的困惑度和最好的下游任务表现。这一结论影响深远：**SwiGLU**已成为当前主流大语言模型（**PaLM**、**LLaMA**系列等）前馈层的标准配置。
+在**T5**的预训练与下游微调实验中，**GEGLU**和**SwiGLU**取得了最低的困惑度和最好的下游任务表现。**SwiGLU**已成为当前主流大语言模型前馈层的标准配置。
 
 ### ⚪ dReLU：为稀疏推理设计的门控
 
-- paper：[Turbo Sparse: Achieving LLM SOTA Performance with Minimal Activated Parameters](https://arxiv.org/abs/2406.05955)
+- **paper**：[**Turbo Sparse: Achieving LLM SOTA Performance with Minimal Activated Parameters**](https://arxiv.org/abs/2406.05955)
 
 | 表达式 |
 | :---: |
@@ -1364,49 +1348,28 @@ $$
 
 **SwiGLU**虽然效果最好，却对**稀疏推理**极不友好：**Swish**永远不会精确等于$0$（只是趋近于$0$），因此前馈层中几乎**每一个神经元都是“激活”的**，推理时无法跳过任何计算。
 
-**dReLU(dual ReLU)**的改动很简单：**对两路都施加ReLU**。这样一个神经元的输出只有在**两路同时为正**时才非零。稀疏度的提升是相乘的：若两路各有约一半概率为正且相关性不强，联合激活率会急剧下降，远低于只对一路施加**ReLU**的情形。论文报告在保持模型质量的前提下前馈层稀疏度可达约$90\%$，这直接转化为**CPU**和显存受限设备上的推理加速。
-
-代价是：**dReLU**必须在预训练阶段（或大规模持续预训练中）引入，不能对已有的**SwiGLU**模型直接替换。
+**dReLU(dual ReLU)**对门控与上投影两路都施加**ReLU**。式中$x\in\mathbb{R}^{d}$，$W_{\text{gate}},W_{\text{up}}\in\mathbb{R}^{d\times d_{ff}}$，$W_{\text{down}}\in\mathbb{R}^{d_{ff}\times d}$，三组权重联合训练。这样一个神经元的输出只有在**两路同时为正**时才非零。稀疏度的提升是相乘的：若两路各有约一半概率为正且相关性不强，联合激活率会急剧下降，远低于只对一路施加**ReLU**的情形。论文报告在保持模型质量的前提下前馈层稀疏度可达约$90\%$，这直接转化为**CPU**和显存受限设备上的推理加速。
 
 ### ⚪ 扩展门控范围：xATLU、xGELU、xSiLU
 
-- paper：[Expanded Gating Ranges Improve Activation Functions](https://arxiv.org/abs/2405.20768)
+- **paper**：[**Expanded Gating Ranges Improve Activation Functions**](https://arxiv.org/abs/2405.20768)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
 | $$\begin{aligned} \text{ATLU}(x) &= x\cdot \frac{\arctan(x) + \pi/2}{\pi} \\ \text{x-gated}(x) &= x\left[g(x)(1+2\alpha) - \alpha\right] \end{aligned}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-068-atlu.png) |
 
-作者首先用$\arctan$构造了一个新的门控函数**ATLU**（上表第一行）。更有价值的是文中提出的**通用扩展技巧**（上表第二行）：对任意值域为$(0,1)$的门控函数$g(x)$，用一个可学习的$\alpha$（初始化为$0$）作线性重映射，把门控的值域从$(0,1)$拉伸为$(-\alpha, 1+\alpha)$。于是门控获得了两项新能力：可以取**负值**（不只是抑制输入，还能翻转输入的符号），也可以**大于1**（放大输入）。
+作者提出**通用扩展技巧**：对任意值域为$(0,1)$的门控函数$g(x)$，用一个可学习的$\alpha$（初始化为$0$）作线性重映射，把门控的值域从$(0,1)$拉伸为$(-\alpha, 1+\alpha)$。于是门控获得了两项新能力：可以取**负值**（不只是抑制输入，还能翻转输入的符号），也可以**大于1**（放大输入）。
 
-$\alpha$初始化为$0$意味着训练从**未修改的原始激活函数**出发，因此这是一个严格安全的推广：最差情况下$\alpha$保持在$0$附近，退化为原函数。把该技巧分别作用于$\arctan$、**GELU**、**SiLU**的门控，即得到**xATLU**、**xGELU**、**xSiLU**。
+$\alpha$初始化为$0$意味着训练从**未修改的原始激活函数**出发，因此这是一个严格安全的推广：最差情况下$\alpha$保持在$0$附近，退化为原函数。作者首先用$\arctan$构造新的门控函数**ATLU**。把通用扩展技巧分别作用于$\arctan$、**GELU**、**SiLU**的门控，即得到**xATLU**、**xGELU**、**xSiLU**。
 
 ### ⚪ PowLU：一个幂型门控
 
-- paper：[PowLU: An Activation Function for Stable Pre-Training of LLMs](https://arxiv.org/abs/2605.25704)
+- **paper**：[**PowLU: An Activation Function for Stable Pre-Training of LLMs**](https://arxiv.org/abs/2605.25704)
 
 | 表达式 | 函数图像 |
 | :---: | :---: |
-| $$\text{PowLU}(x) =\begin{cases} x\cdot x^{\frac{m}{\sqrt{x}+1}}\cdot \sigma(x), & x> 0 \\ x^2\cdot \sigma(x), & x\leq 0 \end{cases}, \quad 0<m<10$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-069-powlu.png) |
+| $$\text{PowLU}(x) =\begin{cases} x\cdot x^{\frac{m}{\sqrt{x}+1}}\cdot \sigma(x), & x> 0 \\ x^2\cdot \sigma(x), & x\leq 0 \end{cases}$$ | ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/dl-activation-069-powlu.png) |
 
-**PowLU**把3.2(5)节的幂型思路与自门控结合起来。正半轴的指数$\frac{m}{\sqrt{x}+1}$随$x$增大从$m$**衰减到$0$**，因此函数在原点附近是**超线性**增长的，在远处则趋于近似线性；相当于在幂型激活与普通自门控之间做插值。
+式中$x$是标量预激活，$m\in(0,10)$控制正半轴近原点处的幂指数，论文把$m$作为模型超参数；$\sigma(x)$是门值。**PowLU**把3.2(5)节的幂型思路与自门控结合起来。正半轴的指数$\frac{m}{\sqrt{x}+1}$随$x$增大从$m$**衰减到$0$**，因此函数在原点附近是**超线性**增长的，在远处则趋于近似线性；相当于在幂型激活与普通自门控之间做插值。
 
-有一点必须明确指出（这也是它与本文其他所有激活函数的显著差异）：负半轴的$x^2\sigma(x)$是**正的**而非负的，形成一个小的正向凸包，峰值约为$0.48$、位置在$x\approx -2.4$附近。这个行为相当反常，不过函数在原点处仍然连续且$C^1$。
-
-
-# 4. 选型建议
-
-尽管激活函数的研究已经产生了数百种方案，实践中的选择其实相当收敛。以下建议按场景给出：
-- **卷积网络（默认）**：从**ReLU**开始。它计算最快、最稳定，且与**BatchNorm**配合良好（**BatchNorm**已经解决了偏置偏移问题，这削弱了**ELU**族的优势）。若追求更高精度且能接受额外开销，可尝试**Swish/SiLU**或**Mish**；它们在较深的网络上通常有稳定的小幅提升。
-- **Transformer（视觉/通用）**：**GELU**是事实标准。若在意激活函数本身的计算开销，**StarReLU**是一个直接的替换（比**GELU**便宜得多，且已标准化到零均值单位方差）；**Squared ReLU**同样可用，但输出分布未标准化。
-- **大语言模型前馈层**：默认**SwiGLU**（注意把隐藏维度调整为$2d_{ff}/3$以保持参数量）。若推理侧的**稀疏性**是首要目标，考虑**dReLU**或**ReLU**$^2$；但注意这类改动必须在**预训练阶段**引入，不能对已训练好的**SwiGLU**模型直接替换。**Squared ReLU**、**xIELU**、**PolyNorm**代表了这个方向当前的前沿。
-- **移动端与量化部署**：使用**ReLU6**、**HardSwish**、**HardSigmoid**。可以参考**MobileNet V3**的做法：浅层用**ReLU**，深层用**HardSwish**。若目标平台的指数运算很慢但平方根较快，**ISRLU/Squareplus**是值得考虑的代数替代品。
-- **循环网络**：门控单元仍使用**Sigmoid**（门）和**Tanh**（候选状态），因为有界性对循环稳定性是必要的。若需要加速，可用**ISRU**替换。
-- **不使用归一化层的深层全连接网络**：使用**SELU**并配合**LeCun**初始化（权重方差$1/K$），可获得自标准化效果。
-- **隐式神经表示（坐标到信号的映射）**：使用**SIREN**（$\omega_0=30$），并且**必须**采用配套的初始化方案，否则网络无法训练。这类任务尤其要避免**ReLU**：**ReLU**网络的二阶导数几乎处处为$0$，任何用到二阶导数的监督（**Laplacian**、**Poisson**方程等）都会失效。
-- **音频合成与周期信号**：使用**Snake**或其可学习变体**snakebeta**（**BigVGAN**的选择）。要特别注意：标准激活函数在周期信号上能很好地**插值**，但**外推**会灾难性失败，这一点在评测时容易被掩盖。
-- **长尾/不平衡识别**：**AGLU**是一个近乎免费的升级（每通道两个可学习标量），它让不同类别可以使用不同形状的激活曲线。
-- **科学计算与符号回归**：考虑**KAN**，可学习的边上激活函数带来了很强的可解释性。但要接受它的效率代价，不要指望把它用在大规模训练上。
-- **遇到dead ReLU（大量神经元输出恒为$0$）**：换用**LeakyReLU**、**PReLU**或**ELU**。若希望保留**ReLU**的稀疏性与推理成本，**SUGAR**提供了另一种选择（前向不变，只替换反向梯度）。也应同时检查学习率是否过大、初始化是否恰当。
-- **小数据集**：**RReLU**的随机性提供了额外的正则化。
-- **可以承担参数与实现成本、追求极致精度**：考虑可学习激活函数（**PWLU**、**PAU**、**ACON**、**Dynamic ReLU**）。它们通常能带来提升，但引入额外参数、超参数和实现复杂度，性价比需要具体权衡。
-- **Last but not least**：激活函数是一个极易产生虚假提升的研究方向：报告中的收益常常来自超参数调优、更长的训练或更好的初始化，而非函数本身。简单的激活函数往往优于复杂的激活函数，且保留恒等路径$x$几乎总是有益的。
+负半轴的$x^2\sigma(x)$为正，形成峰值约$0.48$、位置约$x\approx-2.4$的正向凸包；函数在原点连续且一阶导数连续。
