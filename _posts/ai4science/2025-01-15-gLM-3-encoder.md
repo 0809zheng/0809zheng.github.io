@@ -36,6 +36,7 @@ tags: AI4S
   - [ConvNova：非对称双分支门控扩张卷积的基因组编码器](#p-016)
   - [SPU-DNA：协同可塑性单元与时频双域多分辨率建模](#p-spu)
 - **3. 状态空间框架（State-Space Architectures）**
+  - [Species-aware DSS：逐碱基物种嵌入注入与对角状态空间的非编码区编码器](#p-species-dss)
   - [Caduceus：反向互补等变的双向选择性状态空间模型](#p-017)
   - [PlantCaduceus：面向被子植物基因组的跨物种等变状态空间模型](#p-018)
   - [PlantCAD2：基于结构化状态空间对偶的长上下文植物基因组编码器](#p-019)
@@ -143,11 +144,13 @@ $$
 \end{aligned}
 $$
 
-基于双向主干，模型可进一步通过掩码扩散语言建模（**MDLM**）微调为生成模型（设干净碱基独热向量为 $\mathbf{x}$、掩码噪声调度为 $\alpha_t=1-t$、去噪预测为 $\mathbf{x}_\theta(\mathbf{z}_t)$），并结合强度为 $\gamma>1$ 的无分类器引导（**CFG**）按目标活性 $y_{\mathrm{target}}$ 从头设计调控元件：
+基于双向主干，模型可进一步通过掩码扩散语言建模（**MDLM**）微调为生成模型（设干净碱基独热向量为 $\mathbf{x}$、掩码噪声调度为 $\alpha_t=1-t$、去噪预测为 $$\mathbf{x}_\theta(\mathbf{z}_t)$$），并结合强度为 $\gamma>1$ 的无分类器引导（**CFG**）按目标活性 $y_{\mathrm{target}}$ 从头设计调控元件：
 
 $$
-\mathcal{L}_{\mathrm{MDLM}}=\int_0^1\frac{-\alpha'_t}{1-\alpha_t}\,\mathbb{E}_{\mathbf{x},\mathbf{z}_t}\!\left[\sum_{\ell=1}^{L}-\log\left\langle\mathbf{x}_\theta^\ell(\mathbf{z}_t),\mathbf{x}^\ell\right\rangle\right]\mathrm{d}t,\quad
-p_\gamma(\mathbf{z}_s\mid\mathbf{z}_t)\propto p_\theta(\mathbf{z}_s\mid\mathbf{z}_t,y_{\mathrm{target}})^\gamma\,p_\theta(\mathbf{z}_s\mid\mathbf{z}_t,y_{\mathrm{bg}})^{1-\gamma}.
+\begin{aligned}
+&\mathcal{L}_{\mathrm{MDLM}}=\int_0^1\frac{-\alpha'_t}{1-\alpha_t}\,\mathbb{E}_{\mathbf{x},\mathbf{z}_t}\!\left[\sum_{\ell=1}^{L}-\log\left\langle\mathbf{x}_\theta^\ell(\mathbf{z}_t),\mathbf{x}^\ell\right\rangle\right]\mathrm{d}t,\\
+&p_\gamma(\mathbf{z}_s\mid\mathbf{z}_t)\propto p_\theta(\mathbf{z}_s\mid\mathbf{z}_t,y_{\mathrm{target}})^\gamma\,p_\theta(\mathbf{z}_s\mid\mathbf{z}_t,y_{\mathrm{bg}})^{1-\gamma}.
+\end{aligned}
 $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-047-ntv3-mddm.png)
@@ -261,7 +264,7 @@ $$
 2. **滑动多窗口注意力（SMWA）**：为不同注意力头分配差异化的局部窗口半径 $L_h\in\lbrace 128,512,2048,8192\rbrace$，使第 $h$ 个头在位置 $i$ 仅计算 $[i-L_h,i+L_h]$ 内的键值交互，以线性复杂度同步捕获近端与远端上下文。
 3. **门控反向互补（GRC）**：正链序列与其反向互补序列并行通过参数共享的编码器；随后将反向互补分支输出沿长度轴翻转以对齐正链坐标，通过可学习门控单元与正链特征逐位点融合。
 
-**原核至真核演化训练与动态掩码：** 模型采用两阶段演化训练策略（**ETS**）：先在基因高密度的细菌、古菌等原核短序列上预训练以捕获紧凑编码语法，再迁移至包含真核生物的跨物种语料并将窗口扩展至 $102.4\text{ kb}$。预训练在 $15\%$ 掩码位点上优化交叉熵损失，并以一定概率在 $[0,80\%]$ 区间内动态采样 **<mask>** 词元的实际替换比例，缓解预训练与无掩码微调之间的分布偏移。
+**原核至真核演化训练与动态掩码：** 模型采用两阶段演化训练策略（**ETS**）：先在基因高密度的细菌、古菌等原核短序列上预训练以捕获紧凑编码语法，再迁移至包含真核生物的跨物种语料并将窗口扩展至 $102.4\text{ kb}$。预训练在 $15\%$ 掩码位点上优化交叉熵损失，并以一定概率在 $[0,80\%]$ 区间内动态采样 **[mask]** 词元的实际替换比例，缓解预训练与无掩码微调之间的分布偏移。
 
 <a id="enc-conv"></a>
 # 2. 卷积网络框架（Convolutional Architectures）
@@ -324,8 +327,10 @@ $$
 **局部与时频双域特征提取（LPL & DPL）：** 给定输入 $E\in\mathbb{R}^{B\times L\times D}$，**LPL** 使用 $T=4$ 个核宽为 $\{1,3,5,7\}$ 的卷积提取多尺度特征 $F_i=\mathrm{Conv}(k_i,E)$，同时由 $1\times1$ 卷积生成位点相关的混合权重 $m_{j,i}$，逐位置动态聚合局部感受野 $F_{\mathrm{lpl},j}=\sum_{i=0}^{T-1}m_{j,i}F_{i,j}$。**DPL** 并行包含时域与频域两条路径：时域路径以 $F_{\mathrm{lpl}}$ 为条件生成带指数衰减窗的长卷积核 $p$，利用快速傅里叶变换（**FFT**）执行非因果全局卷积 $\hat F_{\mathrm{lpl}}$；频域路径对 $F_{\mathrm{lpl}}$ 逐级做小波分解 $(P_i^l,P_i^h)=\mathrm{WT}(P_{i-1}^l)$，在各子带上执行全局卷积后，以可学习尺度 $\gamma_i$ 逐级逆变换（$\mathrm{IWT}$）重构并累加回时域特征：
 
 $$
-\hat F_{\mathrm{lpl}}=\mathrm{CenterCrop}_L\!\left(\mathrm{iFFT}\big(\mathrm{FFT}(F_{\mathrm{lpl}})\odot\mathrm{FFT}(p)\big)\right),\quad
-F_{\mathrm{dpl}}=\hat F_{\mathrm{lpl}}+\mathrm{IWT}(\gamma_0\tilde P_1^l,\hat P_1^h).
+\begin{aligned}
+&\hat F_{\mathrm{lpl}}=\mathrm{CenterCrop}_L\!\left(\mathrm{iFFT}\big(\mathrm{FFT}(F_{\mathrm{lpl}})\odot\mathrm{FFT}(p)\big)\right),\\
+&F_{\mathrm{dpl}}=\hat F_{\mathrm{lpl}}+\mathrm{IWT}(\gamma_0\tilde P_1^l,\hat P_1^h).
+\end{aligned}
 $$
 
 **显著性门控调制（SPL）：** **SPL** 从通道和空间位置两个维度计算门控权重：通道分支沿位置轴均值池化后经 **MLP** 得到 $S_c$，位置分支沿通道轴拼接均值与最大值后经深度可分离卷积得到 $S_p$，逐元素调制输出 $F_{\mathrm{out}}=F_{\mathrm{dpl}}\odot S_c\odot S_p$。
@@ -342,6 +347,30 @@ $$
 其中离散化状态转移矩阵 $\bar{A}_t$、输入矩阵 $\bar{B}_t$ 与输出矩阵 $C_t$ 均为当前输入 $x_t$ 的函数。这种输入依赖的选择性机制允许模型在处理数十万碱基序列时，动态过滤非编码背景冗余并将关键调控基序压缩入隐状态，同时利用并行关联扫描（**Parallel Associative Scan**）或结构化状态空间对偶（**SSD**）实现 $\mathcal{O}(T)$ 线性时间复杂度的训练。
 
 然而，原生 **Mamba** 是单向因果算子，且不具备对 **DNA** 双螺旋物理对称性的归纳偏置。在基因组双链中，正链序列与其反向互补（**Reverse Complement, RC**）链承载着完全等价的分子结构信息。因此，基因组状态空间编码器的核心设计在于：通过正反向权重共享扫描实现双向上下文聚合（**BiMamba**），并通过通道拆分与对偶置换构造严格满足 $\mathcal{F}(\mathrm{RC}(X)) = \mathrm{RC}(\mathcal{F}(X))$ 的**反向互补等变算子**。
+
+
+<a id="p-species-dss"></a>
+### ⚪ **Species-aware DSS**：逐碱基物种嵌入注入与对角状态空间的非编码区编码器
+- **paper**：[**Species-aware DNA language modeling**](https://doi.org/10.1101/2023.01.26.525670)（*bioRxiv* 2023）
+
+**Species-aware DSS**（约 $97.6\text{k}$ 参数）将对角状态空间模型（**Diagonal State Space, DSS**）引入跨物种非编码区掩码核苷酸建模，通过在跨越 $5$ 亿年演化史的 $806$ 种真菌基因 $3'$ 侧翼区语料（约 $3.9\text{B}$ 核苷酸）中逐碱基注入物种标签嵌入，在无需序列比对且参数量仅为 **DNABERT** 百分之一的条件下，捕获了快速演化且位置游移的顺式调控基序与跨物种密码演化。
+
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-131-species-aware.png)
+
+**基因 $3'$ 区定向语料与物种感知对角状态空间主干：** 鉴于真核 $3'$ 非翻译区（**$3'$ UTR**）演化迅速且调控基序位置高度游移导致跨属比对失效，预训练语料专门截取 $1{,}500$ 个真菌基因组中所有蛋白质编码基因终止密码子下游 $300\text{ bp}$ 的非编码序列（严格留出整个酿酒酵母属 *Saccharomyces* 作为零样本测试集）。输入单碱基独热编码序列 $x_{1:L}$ 先经首层卷积与 $3$ 个双核残差卷积块映射至高维隐空间，并在每个碱基位置 $i$ 直接叠加对应物种标识符 $s$ 的可学习嵌入向量 $e_{\mathrm{sp}}(s)$；随后特征流经 $4$ 层具有 $\mathcal{O}(L)$ 线性复杂度的对角状态空间（**DSS**）层捕获长程依赖，最后由单层卷积解码器输出单核苷酸概率分布，在 $15\%$ 标准 **BERT** 掩码位置集 $\mathcal{M}$ 上优化条件交叉熵损失：
+
+$$
+\mathcal{L}_{\mathrm{MLM}} = -\sum_{i \in \mathcal{M}} \log P_\theta\big(x_i \mid \tilde{x}, s\big).
+$$
+
+**近缘代理零样本基序探测与逐位掩码表征提取：** 在未见测试物种（如酿酒酵母 *S. cerevisiae*）的推理阶段，模型以训练集中演化距离最近的近缘物种（光滑念珠菌 *C. glabrata*）作为代理物种标签 $s^*$，不仅能通过切换物种标签还原同一 **RNA** 结合蛋白（如 **Puf3**）在不同真菌谱系间的结合基序第 $5$ 位碱基偏好演化（$\mathrm{TGTAAATA} \leftrightarrow \mathrm{TGTACATA}$），还可直接利用目标区间 $\Omega$ 的平均掩码核苷酸重建概率 $S_{\mathrm{rec}}(\Omega)$ 零样本识别 **gPAR-CLIP** 实验验证的蛋白质结合位点。在有监督 **mRNA** 半衰期与报告基因表达量预测中，模型依次遮蔽序列中的每个核苷酸 $i$，提取末层 **DSS** 在该掩码位点的隐状态并沿序列求均值得到定长 **$3'$ UTR** 表征 $\bar{z}$，仅需配合岭回归线性探针即可达到或超越依赖复杂手工特征工程的专用模型：
+
+$$
+S_{\mathrm{rec}}(\Omega) = \frac{1}{\lvert\Omega\rvert}\sum_{i \in \Omega} P_\theta\big(x_i \mid x_{\setminus i}, s^*\big), \quad
+\bar{z} = \frac{1}{L}\sum_{i=1}^{L} \mathrm{DSS}_{\mathrm{last}}\big(x_{\setminus i}, s^*\big)_i.
+$$
+
+
 
 <a id="p-017"></a>
 ### ⚪ **Caduceus**：反向互补等变的双向选择性状态空间模型
@@ -402,9 +431,11 @@ $$
 **浅层门控扩张卷积–BiMamba 模块（GCMB）与门控 MLP：** 模型采用单核苷酸分词且不设输入位置编码。在前 $N=5$ 个浅层中，**BiMamba** 首先提取正反向状态空间双向上下文均值 $H$；随后并行通过两个不同扩张率的深度一维扩张卷积分支生成局部特征 $h$ 与门控权重 $g$：
 
 $$
-H = \frac{1}{2}\Big(\mathrm{Mamba}_{\mathrm{fwd}}(X) + \mathrm{Flip}\big(\mathrm{Mamba}_{\mathrm{bwd}}(\mathrm{Flip}(X))\big)\Big),\quad
-h = \mathrm{GeLU}\big(\mathrm{Conv}_A(H)\big),\quad g = \sigma\big(\mathrm{Conv}_B(H)\big),\quad
-Y = \mathrm{LayerNorm}\big(\mathrm{MLP}(H + h \odot g)\big).
+\begin{aligned}
+&H = \frac{1}{2}\Big(\mathrm{Mamba}_{\mathrm{fwd}}(X) + \mathrm{Flip}\big(\mathrm{Mamba}_{\mathrm{bwd}}(\mathrm{Flip}(X))\big)\Big),\\
+&h = \mathrm{GeLU}\big(\mathrm{Conv}_A(H)\big),\quad g = \sigma\big(\mathrm{Conv}_B(H)\big),\\
+&Y = \mathrm{LayerNorm}\big(\mathrm{MLP}(H + h \odot g)\big).
+\end{aligned}
 $$
 
 在每个 **GCMB**（或深层纯 **BiMamba**）之后，特征 $Y$ 经门控 **MLP** 对半切分为 $U, G$，通过双门控融合 $\tilde{U} = \mathrm{SiLU}(U) \odot \sigma(G)$ 完成残差更新。
@@ -412,11 +443,13 @@ $$
 **顶层傅里叶位置注意力（FoPE）：** 为捕获与核小体定位相关的频域周期性（如 $10\sim 11\text{ bp}$ 振荡）并避免 **RoPE** 在长上下文延拓时的频谱损伤，末层自注意力采用 **FoPE**，将位置 $n$ 的响应表示为含可学习谐波系数 $a_\omega$ 的多频傅里叶级数，并对低于截止频率 $\omega_l = 2\pi / N$ 的分量施加截断门控：
 
 $$
-f(\omega_m) = \begin{cases} 
+\begin{aligned}
+&f(\omega_m) = \begin{cases} 
 1, & \omega_m < \omega_l, \\
 e^{i\omega_m n} + \sum_\omega a_\omega e^{i\omega n}, & \omega_m \ge \omega_l,
-\end{cases}\quad
-\mathrm{Attn}(q, k) = \mathrm{Softmax}\!\left(\frac{\big(q f(\omega)\big)\big(k f(\omega)\big)^\top}{\sqrt{D}}\right).
+\end{cases}\\
+&\mathrm{Attn}(q, k) = \mathrm{Softmax}\!\left(\frac{\big(q f(\omega)\big)\big(k f(\omega)\big)^\top}{\sqrt{D}}\right).
+\end{aligned}
 $$
 
 <a id="p-eccdnamamba"></a>
@@ -434,7 +467,7 @@ $$
 **双向 Mamba-2 编码与连续跨度掩码：** 模型并行实例化前向与后向两个 **Mamba-2** 分支，分别扫描正向序列 $\overrightarrow{\tilde{x}}$ 与反转序列 $\overleftarrow{\tilde{x}}$：
 
 $$
-\overrightarrow{h} = \overrightarrow{\mathrm{Mamba}}(\overrightarrow{\tilde{x}}) = [\overrightarrow{h}_{\mathrm{cls}}, \overrightarrow{h}_1, \ldots, \overrightarrow{h}_L], \quad
+\overrightarrow{h} = \overrightarrow{\mathrm{Mamba}}(\overrightarrow{\tilde{x}}) = [\overrightarrow{h}_{\mathrm{cls}}, \overrightarrow{h}_1, \ldots, \overrightarrow{h}_L], \\
 \overleftarrow{h} = \overleftarrow{\mathrm{Mamba}}(\overleftarrow{\tilde{x}}) = [\overleftarrow{h}_L, \ldots, \overleftarrow{h}_1, \overleftarrow{h}_{\mathrm{cls}}].
 $$
 
@@ -493,7 +526,7 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-066-crossdna.png)
 
-**跨视角双链轮换与 Comba–SWA 记忆骨干：** 模型采用单碱基分词。输入正链与反向互补链被切分为长度为 $\ell$ 的片段，按指示变量 $\sigma_t \in \{0,1\}$ 交替送入两个结构对称的学生分支（$X_A^t = (1-\sigma_t)X_{\mathrm{fwd}}^t + \sigma_t X_{\mathrm{rc}}^t$），编码后翻转 **RC** 分支以对齐回正链坐标系。各分支主干由闭环双线性循环单元 **Comba** 与局部滑动窗口注意力交替组成；**Comba** 维护矩阵状态 $S_i$ 并引入双重负反馈项以抑制远距离噪声干扰：
+**跨视角双链轮换与 Comba–SWA 记忆骨干：** 模型采用单碱基分词。输入正链与反向互补链被切分为长度为 $\ell$ 的片段，按指示变量 $$\sigma_t \in \{0,1\}$$ 交替送入两个结构对称的学生分支（$X_A^t = (1-\sigma_t)X_{\mathrm{fwd}}^t + \sigma_t X_{\mathrm{rc}}^t$），编码后翻转 **RC** 分支以对齐回正链坐标系。各分支主干由闭环双线性循环单元 **Comba** 与局部滑动窗口注意力交替组成；**Comba** 维护矩阵状态 $S_i$ 并引入双重负反馈项以抑制远距离噪声干扰：
 
 $$
 S_i = S_{i-1}\left(\alpha_i I - \tilde{\beta}_i k_i k_i^\top\right) + \beta_i v_i k_i^\top, \quad o_i = S_i(q_i - d k_i),
@@ -515,7 +548,7 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-084-double-take.png)
 
-**多步正交化更新与因果跨位置绑定：** 每个编码块串联深度卷积、局部滑动窗口注意力与快权重记忆模块（每个记忆头参数化为三矩阵 **SwiGLU** 子网络 $f_M(x) = M_1(\mathrm{SiLU}(M_0 x) \odot M_2 x)$）。序列切分为连续块，在第 $m$ 块内以 $\mathcal{L}_{\mathrm{mem}} = -\sum_i \langle f_M(k_i), v_i \rangle$ 为内层目标执行 $S$ 步正交化梯度更新以消除键值串扰；同时在写入前对键流施加核宽为 $c$ 的因果卷积 $\tilde{k}_i = \sum_{r=0}^{c-1} \alpha_r^{(k)} k_{i-r}$，建立跨位点局部绑定关系：
+**多步正交化更新与因果跨位置绑定：** 每个编码块串联深度卷积、局部滑动窗口注意力与快权重记忆模块（每个记忆头参数化为三矩阵 **SwiGLU** 子网络 $f_M(x) = M_1(\mathrm{SiLU}(M_0 x) \odot M_2 x)$）。序列切分为连续块，在第 $m$ 块内以 $$\mathcal{L}_{\mathrm{mem}} = -\sum_i \langle f_M(k_i), v_i \rangle$$ 为内层目标执行 $S$ 步正交化梯度更新以消除键值串扰；同时在写入前对键流施加核宽为 $c$ 的因果卷积 $$\tilde{k}_i = \sum_{r=0}^{c-1} \alpha_r^{(k)} k_{i-r}$$，建立跨位点局部绑定关系：
 
 $$
 M_m^{(s+1)} = M_m^{(s)} - \eta_s\,\mathrm{NS}\!\left(\nabla_M \mathcal{L}_{\mathrm{mem}}(M_m^{(s)}; K, V)\right), \quad \sum_i v_i \tilde{k}_i^\top = \sum_i \sum_{r=0}^{c-1} \alpha_r^{(k)} v_i k_{i-r}^\top,

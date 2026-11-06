@@ -18,10 +18,9 @@ tags: AI4S
 - **IV. 解码器框架**：模型如何评估序列似然并生成新序列。
 - [V. 多模态模型](https://0809zheng.github.io/2025/01/29/gLM-5-multimodal.html)：如何联合建模基因组序列、其他生物分子与人类自然语言。
 
-**解码器框架（Decoder Architecture）**通常以自回归方式将序列联合概率分解为条件概率乘积 $p_\theta(x) = \prod_{t=1}^T p_\theta(x_t \mid x_{<t})$，或通过离散扩散过程建模数据分布的变分下界。与仅能计算局部伪似然的掩码编码器不同，解码器不仅能直接评估任意完整序列或复杂插入缺失突变（**Indel**）的对数似然差 $\log p_\theta(x^{\mathrm{alt}}) - \log p_\theta(x^{\mathrm{ref}})$，还具备从头（*de novo*）生成调控元件与人工基因组、或基于上下文提示补全序列的能力；其深层隐状态同样可通过线性探针或微调迁移至判别式任务。
+**解码器框架（Decoder Architecture）**通常以自回归方式将序列联合概率分解为条件概率乘积 $p_\theta(x) = \prod_{t=1}^T p_\theta(x_t \mid x_{<t})$。与仅能计算局部伪似然的掩码编码器不同，解码器不仅能直接评估任意完整序列或复杂插入缺失突变（**Indel**）的对数似然差 $\log p_\theta(x^{\mathrm{alt}}) - \log p_\theta(x^{\mathrm{ref}})$，还具备从头（*de novo*）生成调控元件与人工基因组、或基于上下文提示补全序列的能力；其深层隐状态同样可通过线性探针或微调迁移至判别式任务。
 
 - **1. Transformer 解码器框架（Transformer Decoders）**
-  - [GenSLMs：密码子级原核预训练与潜空间扩散层次规划](#p-006)
   - [megaDNA：三级多尺度因果 Transformer 的噬菌体语言模型](#p-001)
   - [GENERator：功能基因座长上下文预训练的真核生成式模型](#p-002)
   - [GENERator-v2：分解式单核苷酸监督与基因组压缩预训练](#p-003)
@@ -46,7 +45,7 @@ tags: AI4S
 <a id="dec-transformer"></a>
 # 1. Transformer 解码器框架（Transformer Decoders）
 
-**自回归 Transformer 解码器**通过下三角因果注意力掩码 $M \in \{0, -\infty\}^{T \times T}$（当 $j > i$ 时 $M_{ij} = -\infty$）严格阻断未来信息回流，使位置 $i$ 的隐状态仅聚合前缀上下文 $x_{\le i}$：
+**自回归 Transformer 解码器**通过下三角因果注意力掩码 $$M \in \{0, -\infty\}^{T \times T}$$（当 $j > i$ 时 $M_{ij} = -\infty$）严格阻断未来信息回流，使位置 $i$ 的隐状态仅聚合前缀上下文 $x_{\le i}$：
 
 $$
 \mathrm{CausalAttn}(Q, K, V) = \mathrm{Softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right)V.
@@ -56,22 +55,6 @@ $$
 
 针对上述问题，基因组 **Transformer** 解码器发展出多尺度层次化注意力（**MegaByte** 架构）、分组查询注意力（**GQA**）配合稀疏混合专家（**MoE**）、基因中心语料压缩拼接，以及将 $k$-**mer** 预测分布边缘化投影回单碱基空间的分解式监督机制。
 
-<a id="p-006"></a>
-### ⚪ **GenSLMs**：密码子级原核预训练与潜空间扩散层次规划
-- **paper**：[**GenSLMs: Genome-scale language models reveal SARS-CoV-2 evolutionary dynamics**](https://doi.org/10.1177/10943420231201154)（*IJHPCA* 2023）
-
-**GenSLMs** 采用密码子级分词在跨属原核生物基因上预训练 **GPT** 解码器，并结合潜空间连续扩散高层规划与奖励引导束搜索，在全基因组尺度建模并预测 **SARS-CoV-2** 变异株的演化轨迹。
-
-![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-088-genslm.png)
-
-**密码子级两阶段迁移与潜空间扩散规划：** 模型将每三个连续核苷酸编码为一个密码子词元（词表大小 $64$），先在跨属原核生物单基因序列上预训练基础自回归模型，再将窗口扩展至 $10{,}240$ 个密码子，在完整 **SARS-CoV-2** 基因组上微调以捕获跨开放阅读框（**ORF**）的共进化耦合。为防止超长序列生成丢失全局连贯性，模型将全基因组每 $512$ 个密码子切分为一个“句子”：（1）利用对比损失训练句子编码器提取句子级潜表征；（2）在潜表征序列上训练去噪扩散模型，从高斯噪声恢复全局高层规划序列 $z_0$；（3）令自回归解码器同时以前置局部密码子窗口 $r$ 与全局规划 $z_0$ 为条件建模 $p(x_t \mid r, z_0)$。
-
-**奖励引导束搜索：** 为定向生成具有特定属性（如比对得分 $R(x) = \sum_{t=1}^L r_t(x_t)$）的候选突变株，模型在束搜索中融合语言模型似然与阶段性奖励（$\alpha$ 为长度惩罚，$\mu \in [0, 1]$ 为由高斯过程贝叶斯优化调优的混合系数）：
-
-$$
-S(x) = \frac{\mu}{L^\alpha}\sum_{t=1}^L \log p_\theta(x_t \mid x_{<t}, c) + (1-\mu)R(x), \quad
-s_t(x_t) = \mu\, p_\theta(x_t \mid \mathcal{X}_{\mathrm{beams}}^i, c) + (1-\mu)\, r_t(x_t).
-$$
 
 <a id="p-001"></a>
 ### ⚪ **megaDNA**：三级多尺度因果 Transformer 的噬菌体语言模型
@@ -113,14 +96,14 @@ $$
 
 **GENERator-v2** 在保持 **Transformer** 解码器与 $6$-**mer** 分词高吞吐量的基础上，提出分解式单核苷酸监督（**FNS**）与基因组压缩预训练（**GCP**），解决了非重叠 $k$-**mer** 分类损失忽略近邻碱基相似性以及真核基因组功能元件稀疏导致跨基因互作欠拟合的问题。
 
-**分解式单核苷酸监督（FNS）与相位不变训练：** 标准 $k$-**mer** 下一词元预测将大小为 $4^k$ 的词表视为无结构原子类别。**FNS** 在不改变分词器或输出维度的前提下，将词元分布 $p(v)$ 边缘化投影为块内各相对位点 $j \in \{1, \ldots, k\}$ 的单碱基条件分布 $p^{(j)}(b)$，并计算真实目标 $y = (y^{(1)}, \ldots, y^{(k)})$ 的分解式损失：
+**分解式单核苷酸监督（FNS）与相位不变训练：** 标准 $k$-**mer** 下一词元预测将大小为 $4^k$ 的词表视为无结构原子类别。**FNS** 在不改变分词器或输出维度的前提下，将词元分布 $p(v)$ 边缘化投影为块内各相对位点 $$j \in \{1, \ldots, k\}$$ 的单碱基条件分布 $p^{(j)}(b)$，并计算真实目标 $y = (y^{(1)}, \ldots, y^{(k)})$ 的分解式损失：
 
 $$
 p^{(j)}(b) = \sum_{v \in \mathcal{V}:\, v^{(j)} = b} p(v), \quad
 \mathcal{L}_{\mathrm{FNS}} = -\sum_{j=1}^k \log p^{(j)}\!\big(y^{(j)}\big).
 $$
 
-配合遍历全部偏移量 $\delta \in \{0, \ldots, k-1\}$ 的分词移位增强，除序列两端边界位点外，聚合后的总单碱基监督信号对分词相位完全不变。
+配合遍历全部偏移量 $$\delta \in \{0, \ldots, k-1\}$$ 的分词移位增强，除序列两端边界位点外，聚合后的总单碱基监督信号对分词相位完全不变。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-031-699abe35.png)
 
@@ -138,7 +121,7 @@ $$
 ### ⚪ **OmniReg-GPT**：局部滑窗-全局混合注意力与多尺度顺式调控解码器
 - **paper**：[**Omnireg-gpt: a high-efficiency foundation model for comprehensive genomic sequence understanding**](https://doi.org/10.1038/s41467-025-65066-7)（*Nature Communications* 2025）
 
-针对标准 **Transformer** 二次方复杂度限制长基因组序列预训练窗口、难以同时覆盖单碱基基序与兆碱基级三维染色质互作的问题，**OmniReg-GPT**（$270\text{M}$ 参数）结合 **BPE** 分词与“$12$ 层局部滑窗注意力 + $2$ 层全局注意力”混合解码器架构，在单张 $32\text{ GB}$ 显存 **GPU** 上支持最长 $200\text{ kb}$ 序列预训练，统一赋能跨尺度顺式调控理解与细胞类型特异增强子从头生成。
+**OmniReg-GPT**（$270\text{M}$ 参数）结合 **BPE** 分词与“$12$ 层局部滑窗注意力 + $2$ 层全局注意力”混合解码器架构，在单张 $32\text{ GB}$ 显存 **GPU** 上支持最长 $200\text{ kb}$ 序列预训练，统一赋能跨尺度顺式调控理解与细胞类型特异增强子从头生成。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-124-omnireg-gpt.png)
 
@@ -196,8 +179,10 @@ $$
 **时序块提示与哨兵词元引导的演化预测：** 下游适配阶段引入界定功能区边界的哨兵词元（如 `<subtype>`、`<HA>`、`<NA>`、`<sep>`）。在未来优势毒株预测任务中，模型将同一地理区域内连续三个历史时间窗口的血凝素（$\mathrm{HA}$）与神经氨酸酶（$\mathrm{NA}$）序列块与待预测未来时间块拼接为单条时序提示序列：
 
 $$
-\underbrace{\mathrm{block}^{(1)}}_{\text{past}}\;\underbrace{\mathrm{block}^{(2)}}_{\text{past}}\;\underbrace{\mathrm{block}^{(3)}}_{\text{past}}\;\underbrace{\mathrm{block}^{(\star)}}_{\text{future}}, \quad
-\mathrm{block}^{(i)} = \text{<subtype><HA>}\mathrm{HA}^{(i)}\text{<NA>}\mathrm{NA}^{(i)}\text{<sep>}\quad (i=1,2,3),
+\begin{aligned}
+&\underbrace{\mathrm{block}^{(1)}}_{\text{past}}\;\underbrace{\mathrm{block}^{(2)}}_{\text{past}}\;\underbrace{\mathrm{block}^{(3)}}_{\text{past}}\;\underbrace{\mathrm{block}^{(\star)}}_{\text{future}}, \\
+&\mathrm{block}^{(i)} = \text{<subtype><HA>}\mathrm{HA}^{(i)}\text{<NA>}\mathrm{NA}^{(i)}\text{<sep>},
+\end{aligned}
 $$
 
 其中未来目标块 $\mathrm{block}^{(\star)}$ 省略前导 `<subtype>` 词元。推理时输入前三个历史块并从目标 `<HA>` 词元触发自回归解码，直至生成 `<sep>` 终止符，直接输出未来流行株的完整 $\mathrm{HA}$ 与 $\mathrm{NA}$ 序列。
@@ -218,7 +203,7 @@ $$
 ### ⚪ **Carbon**：高信噪比注释语料与 CE-FNS 阶段切换的高效长上下文解码器
 - **paper**：[**Carbon: Decoding the Language of Life**](https://doi.org/10.64898/2026.05.22.727119)（*bioRxiv* 2026）
 
-针对单核苷酸自回归模型长序列推理开销高昂、而粗粒度 $6$-**mer** 交叉熵训练后期易陷入数值脆弱与“损失阶梯（**Loss Staircase**）”的问题，**Carbon**（$3\text{B}/8\text{B}$）在标准 **Llama 3** 解码器架构上结合高信噪比注释感知语料、非重叠 $6$-**mer** 分词与“**CE** 转分解核苷酸监督（**FNS**）”两阶段目标调度，在维持最高 $786\text{ kbp}$ 有效上下文与单碱基分辨率的同时实现了数十倍的推理加速。
+**Carbon**（$3\text{B}/8\text{B}$）在标准 **Llama 3** 解码器架构上结合高信噪比注释感知语料、非重叠 $6$-**mer** 分词与“**CE** 转分解核苷酸监督（**FNS**）”两阶段目标调度，在维持最高 $786\text{ kbp}$ 有效上下文与单碱基分辨率的同时实现了数十倍的推理加速。
 
 **基因组信噪比建模与注释感知语料配比：** 针对原始基因组中大量弱约束重复背景（占比 $1-\rho$、梯度方差 $\sigma_N^2$）稀释功能区梯度信号（占比 $\rho$、期望对齐度 $\mu$）的问题，研究从全基因组有效信噪比出发指导语料清洗：
 
@@ -231,7 +216,7 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-119-carbon.png)
 
-**非重叠 $6$-mer 分词与 CE $\to$ FNS 两阶段目标切换：** 模型在 `<dna>...</dna>` 块内采用步长为 $6$ 的确定性 $6$-**mer** 分词（词表容量 $4^6=4{,}096$，相比单碱基分词将预填充注意力计算量降低 $36$ 倍，并避免了 **BPE** 子词的前缀分割歧义）。针对纯 **CE** 训练后期强制区分简并近似词元引发梯度范数攀升、损失阶梯式跳变及 **BF16/FP32** 精度差距扩大的现象，**Carbon** 先在前 $100\text{B}$ 词元使用标准 **CE** 学习 $6$-**mer** 内部联合依赖，随后降低学习率并在剩余 $900\text{B}$ 词元切换至分解核苷酸监督（**FNS**），通过对包含特定碱基的词元概率求和导出块内 $6$ 个位置的单碱基边缘分布以提供结构化部分奖励：
+**非重叠 $6$-mer 分词与 CE $\to$ FNS 两阶段目标切换：** 模型在 `<dna>...</dna>` 块内采用步长为 $6$ 的确定性 $6$-**mer** 分词。针对纯 **CE** 训练后期强制区分简并近似词元引发梯度范数攀升、损失阶梯式跳变及 **BF16/FP32** 精度差距扩大的现象，**Carbon** 先在前 $100\text{B}$ 词元使用标准 **CE** 学习 $6$-**mer** 内部联合依赖，随后降低学习率并在剩余 $900\text{B}$ 词元切换至分解核苷酸监督（**FNS**），通过对包含特定碱基的词元概率求和导出块内 $6$ 个位置的单碱基边缘分布以提供结构化部分奖励：
 
 $$
 p_t^{(j)}(b) = \sum_{v \in \mathcal{V}: v^{(j)}=b} p_t(v), \quad
@@ -337,8 +322,10 @@ $$
 **回声嵌入判别式微调与提示生成微调：** 为弥补因果解码器无法感知右侧上下文的缺陷，模型在分类任务中将输入序列重复拼接构造回声输入 $x_{\mathrm{echo}} = [x, x]$，使后半段重复序列完整关注前半段全部上下文，仅提取后半段末层隐状态均值池化得到 $h_\theta(x_{\mathrm{echo}})$ 送入分类头；在调控元件生成任务中，则在序列前端拼接活性等级提示词元 $z_{0:k-1}$ 最小化条件自回归损失：
 
 $$
-P(y \mid x) = \mathrm{Softmax}\big(h_\theta(x_{\mathrm{echo}})W + b\big), \quad
-\mathcal{L}_{\mathrm{gen}}(\theta) = -\frac{1}{T}\sum_{t=1}^T \log p_\theta(x_t \mid z_{0:k-1}, x_{<t}).
+\begin{aligned}
+&P(y \mid x) = \mathrm{Softmax}\big(h_\theta(x_{\mathrm{echo}})W + b\big), \\
+&\mathcal{L}_{\mathrm{gen}}(\theta) = -\frac{1}{T}\sum_{t=1}^T \log p_\theta(x_t \mid z_{0:k-1}, x_{<t}).
+\end{aligned}
 $$
 
 <a id="p-sparsedna"></a>
@@ -381,7 +368,7 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-conf-icml26-005-opticaldna.png)
 
-**DNA 文档渲染与视觉压缩编解码：** 模型将长序列按行连续光栅化为多页固定分辨率 **RGB** 图像文档 $D(S)=(\{\text{page}_p\}_{p=0}^{P-1},\{B^{(p)}\}_{p=0}^{P-1})$，建立从一维序列区间到二维像素边界框的双射映射，并围绕全文转录、感兴趣区域（**ROI**）框转录、涂白补全与子序列检索定位等六类光学字符识别（**OCR**）问答任务进行预训练。视觉编码器 $E_\theta$ 提取每页图像 **patch** 特征，经卷积 $16\times$ 下采样、投影器 $\Pi_\theta$ 与多页融合模块 $F_\theta$ 聚合成文档级视觉表示 $Z$；随后由混合专家（**MoE**）自回归解码器 $G_\psi$ 在指令 $q$ 条件下生成输出序列 $\hat Y$：
+**DNA 文档渲染与视觉压缩编解码：** 模型将长序列按行连续光栅化为多页固定分辨率 **RGB** 图像文档 $$D(S)=(\{\text{page}_p\}_{p=0}^{P-1},\{B^{(p)}\}_{p=0}^{P-1})$$，建立从一维序列区间到二维像素边界框的双射映射，并围绕全文转录、感兴趣区域（**ROI**）框转录、涂白补全与子序列检索定位等六类光学字符识别（**OCR**）问答任务进行预训练。视觉编码器 $E_\theta$ 提取每页图像 **patch** 特征，经卷积 $16\times$ 下采样、投影器 $\Pi_\theta$ 与多页融合模块 $F_\theta$ 聚合成文档级视觉表示 $Z$；随后由混合专家（**MoE**）自回归解码器 $G_\psi$ 在指令 $q$ 条件下生成输出序列 $\hat Y$：
 
 $$
 Z = F_\theta\big(\Pi_\theta(V(\{\text{page}_p\}))\big) \in \mathbb{R}^{L\times d}, \quad
@@ -404,7 +391,7 @@ $$
 \mathcal{L}(\theta) = -\mathbb{E}_{t, x_0, x_t}\!\left[\frac{1}{t}\sum_{i=1}^L \mathbb{I}[x_t^i = \mathrm{[M]}]\log p_\theta(x_0^i \mid x_t)\right].
 $$
 
-从头生成时，模型从全掩码序列 $x_1$ 出发离散化为 $T$ 步迭代恢复：在每步 $t$ 对当前掩码集合 $\mathcal{M}_t$ 预测带温度 $\tau$ 缩放的分布 $p_\theta^{\mathrm{temp}}(x_0^i \mid x_t) \propto p_\theta(x_0^i \mid x_t)^{1/\tau}$，并按置信度或熵调度选取子集 $\mathcal{U}_t \subset \mathcal{M}_t$ 执行并行去掩码转移：
+从头生成时，模型从全掩码序列 $x_1$ 出发离散化为 $T$ 步迭代恢复：在每步 $t$ 对当前掩码集合 $$\mathcal{M}_t$$ 预测带温度 $\tau$ 缩放的分布 $$p_\theta^{\mathrm{temp}}(x_0^i \mid x_t) \propto p_\theta(x_0^i \mid x_t)^{1/\tau}$$，并按置信度或熵调度选取子集 $$\mathcal{U}_t \subset \mathcal{M}_t$$ 执行并行去掩码转移：
 
 $$
 x_{t-1}^i = \begin{cases} \text{sample from } p_\theta^{\mathrm{temp}}(x_0^i \mid x_t), & \text{if } i \in \mathcal{U}_t, \\ \mathrm{[M]}, & \text{if } i \in \mathcal{M}_t \setminus \mathcal{U}_t, \\ x_t^i, & \text{otherwise}. \end{cases}

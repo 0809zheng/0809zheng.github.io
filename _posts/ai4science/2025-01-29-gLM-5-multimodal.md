@@ -3,7 +3,7 @@ layout: post
 title: '基因组基础模型(Genome Foundation Model) V：多模态模型'
 date: 2025-01-29
 author: 郑之杰
-cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm4-decoder-000-cover.png'
+cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm5-multimodal-000-cover.png'
 tags: AI4S
 ---
 
@@ -60,7 +60,7 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-069-dnagpt.png)
 
-**非重叠分词与结构化控制词表：** 序列采用非重叠 **$k$-mer** 分词。词表共包含六类符号：**序列词元**表示 **DNA** 片段；**数值词元**承载连续标量属性；**分类词元**标识二元真假；**指令词元**指定物种来源或输出模态（分类或数值回归）；**连接词元**中 `+` 表示多模态特征聚合，`=` 界定条件输入与目标输出的映射关系；另设特殊符号作为**预留词元**。
+**非重叠分词与结构化控制词表：** 序列采用非重叠 **$k$-mer** 分词。词表共包含六类符号：**序列词元**表示 **DNA** 片段；**数值词元**承载连续标量属性；**分类词元**标识二元真假；**指令词元**指定物种来源或输出模态（分类或数值回归）；**连接词元**中 $+$ 表示多模态特征聚合，$=$ 界定条件输入与目标输出的映射关系；另设特殊符号作为**预留词元**。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-027-680a1e1b.png)
 
@@ -70,7 +70,7 @@ $$
 ### ⚪ **LLaMA-Gene**：扩展多模态 BPE 词表与 Alpaca 指令微调的基因对话模型
 - **paper**：[**LLaMA-Gene: A General-purpose Gene Task Large Language Model Based on Instruction Fine-tuning**](https://github.com/maris205/llama-gene)（*arXiv* 2024）
 
-针对基因组基础模型需为不同下游任务单独训练专用分类头、缺乏自然语言交互能力的问题，**LLaMA-Gene** 将 **DNA** 与蛋白质的 **BPE** 子词词表直接并入预训练 **LLaMA** 大语言模型，通过混合生物学文献的参数高效持续预训练与统一的 **Alpaca** 格式指令微调，无需引入特殊模态边界标记即可将多种生物序列分析任务统一为生成式对话问答。
+**LLaMA-Gene** 将 **DNA** 与蛋白质的 **BPE** 子词词表直接并入预训练 **LLaMA** 大语言模型，通过混合生物学文献的参数高效持续预训练与统一的 **Alpaca** 格式指令微调，无需引入特殊模态边界标记即可将多种生物序列分析任务统一为生成式对话问答。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-113-llamagen.png)
 
@@ -92,7 +92,7 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-093-omnidna.png)
 
-**跨模态词表扩展与分布偏移：** 预训练阶段采用 **BPE** 分词完成下一词元预测训练。在有监督微调阶段，模型将不同模态任务整合为统一的指令—响应格式 $\tilde{x} = (x, \mathrm{Prompt}_k)$，并将原基因组词表 $V_o$ 扩展为并入任务新词元 $V_z$（如自然语言词汇、类别标签或量化视觉词元）的联合词表。给定前缀隐状态 $h_{t-1}$ 与词元嵌入 $e$，目标词元条件概率为：
+**跨模态词表扩展与分布偏移：** 预训练阶段采用 **BPE** 分词完成下一词元预测训练。在有监督微调阶段，模型将不同模态任务整合为统一的指令—响应格式 $$\tilde{x} = (x, \mathrm{Prompt}_k)$$，并将原基因组词表 $V_o$ 扩展为并入任务新词元 $V_z$（如自然语言词汇、类别标签或量化视觉词元）的联合词表。给定前缀隐状态 $h_{t-1}$ 与词元嵌入 $e$，目标词元条件概率为：
 
 $$
 p_\theta(y_t \mid y_{<t}, x) = \frac{\exp(h_{t-1}^\top e_{y_t})}{\sum_{m \in V_o} \exp(h_{t-1}^\top e_m) + \sum_{n \in V_z} \exp(h_{t-1}^\top e_n)}.
@@ -113,7 +113,7 @@ $$
 **无注释推理的 QA 微调与饱和突变分析：** 下游适配阶段将各项任务统一重构为“固定指令 + 核酸序列 + 任务问题 + 期望回答”的四元组格式，微调时仅对“期望回答”词元计算自回归损失；部署推理时完全脱离先验文本注释，仅输入纯核酸序列与问题即可生成预测回答。在饱和突变分析中，模型通过计算野生型序列 $s_{\mathrm{WT}}$ 与突变型序列 $s_{\mathrm{mut}}$ 在对应微调任务正类目标上的对数似然相对变化量，量化单碱基突变的破坏性：
 
 $$
-\mathrm{Effect}(s_{\mathrm{WT}}, s_{\mathrm{mut}}) = \left\lvert \frac{\mathrm{LL}(s_{\mathrm{WT}}) - \mathrm{LL}(s_{\mathrm{mut}})}{\mathrm{LL}(s_{\mathrm{WT}})} \right\rvert, \qquad
+\mathrm{Effect}(s_{\mathrm{WT}}, s_{\mathrm{mut}}) = \left\lvert \frac{\mathrm{LL}(s_{\mathrm{WT}}) - \mathrm{LL}(s_{\mathrm{mut}})}{\mathrm{LL}(s_{\mathrm{WT}})} \right\rvert, \quad
 \mathrm{LL}(s) = \sum_{j} \log \Pr(x_j = s_j \mid s).
 $$
 
@@ -121,16 +121,16 @@ $$
 ### ⚪ **OmniGene-4**：生物-语言-视觉混合专家模型与路由器级可解释性分解
 - **paper**：[**OmniGene-4: A Unified Bio-Language MoE Model with Router-Level Interpretability and Modality-Invariant Transfer**](https://doi.org/10.64898/2026.05.12.724542)（*bioRxiv* 2026）
 
-针对稠密多模态生物大语言模型内部跨模态计算分配难以解耦的问题，**OmniGene-4** 基于稀疏混合专家（**MoE**）架构扩展生物序列与结构字母表词表，通过包含路由器投影层的 **QLoRA** 持续预训练（**CPT**）与双头指令微调（**SFT**），首次在离散路由器层面量化了表征分化与输出对齐的阶段贡献，并进一步扩展至融合分子与医学图像的八模态通用模型（**OmniGene-4-MM**）。
+**OmniGene-4** 基于稀疏混合专家（**MoE**）架构扩展生物序列与结构字母表词表，通过包含路由器投影层的 **QLoRA** 持续预训练（**CPT**）与双头指令微调（**SFT**），首次在离散路由器层面量化了表征分化与输出对齐的阶段贡献，并进一步扩展至融合分子与医学图像的八模态通用模型（**OmniGene-4-MM**）。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-114-omnigene4.png)
 
-**带前缀多模态词表扩展与双头联合训练：** 模型以 **Gemma-4-26B-A4B**（每层 $128$ 个专家、**Top**-$8$ 路由）为骨干，注入带显式模态前缀的 $28{,}028$ 个生物词元（涵盖 **DNA/Protein BPE**、$20$ 类 **Foldseek 3Di** 三维结构字母与 $8$ 类 **DSSP** 二级结构标签，新词元嵌入由子词片段均值初始化）。训练分两阶段推进：（1）**CPT 阶段**在按 $3:1$ 混合生物序列（文本+氨基酸+**DSSP**+**3Di**）与通用文本（**OpenWebText**）的语料上，对注意力、前馈层及路由器投影层施加 **4-bit QLoRA** 更新；（2）**SFT 阶段**采用对提示词屏蔽损失的 **Alpaca** 模板微调，并在末层隐状态上并行挂载 **3Di** 与 **DSSP** 逐残基分类头，按 $0.5\mathcal{L}_{\mathrm{gen}} + 0.5\mathcal{L}_{\mathrm{cls}}$ 联合优化对话生成与结构预测。
+**带前缀多模态词表扩展与双头联合训练：** 模型以 **Gemma-4-26B-A4B**（每层 $128$ 个专家、**Top**-$8$ 路由）为骨干，注入带显式模态前缀的 $28{,}028$ 个生物词元（涵盖 **DNA/Protein BPE**、$20$ 类 **Foldseek 3Di** 三维结构字母与 $8$ 类 **DSSP** 二级结构标签，新词元嵌入由子词片段均值初始化）。训练分两阶段推进：（1）**CPT 阶段**在按 $3:1$ 混合生物序列（文本+氨基酸+**DSSP**+**3Di**）与通用文本（**OpenWebText**）的语料上，对注意力、前馈层及路由器投影层施加 **4-bit QLoRA** 更新；（2）**SFT 阶段**采用对提示词屏蔽损失的 **Alpaca** 模板微调，并在末层隐状态上并行挂载 **3Di** 与 **DSSP** 逐残基分类头，按 $$0.5\mathcal{L}_{\mathrm{gen}} + 0.5\mathcal{L}_{\mathrm{cls}}$$ 联合优化对话生成与结构预测。
 
 **路由器级阶段分解：** 为剖析多模态路由机制，研究在全部 $30$ 层路由器上挂载前向钩子，统计任务 $t$ 在第 $\ell$ 层激活专家 $e$ 的路由分布 $p_{t,\ell} \in \Delta^{128}$，定义专家特化度 $s_{t,e}^{(\ell)}$ 与跨任务平均 **Jensen–Shannon** 散度 $J_\ell$：
 
 $$
-s_{t,e}^{(\ell)} = \log\!\left(\frac{p_{t,e}^{(\ell)}}{\bar{p}_e^{(\ell)}}\right), \qquad
+s_{t,e}^{(\ell)} = \log\!\left(\frac{p_{t,e}^{(\ell)}}{\bar{p}_e^{(\ell)}}\right), \quad
 J_\ell = \binom{8}{2}^{-1} \sum_{t \neq t'} \mathrm{JS}\!\left(p_{t,\ell} \,\|\, p_{t',\ell}\right).
 $$
 
@@ -144,21 +144,29 @@ $$
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-129-genna.png)
 
-**跨模态 BPE 分词、动态提示掩码与困惑度扰动评估：** 预训练语料聚焦 **NCBI RefSeq** 注释基因区（随机向两侧延伸 $0\text{--}100\text{ bp}$），将每条样本按统一前缀模板 `[Molecule Type], [Species Name], [Gene Symbol], [Functional Annotation]<seq>` 衔接含 `<gene>`、`<cds>`、`<tRNA>` 等 **XML** 边界标签的核苷酸序列，并打包至 $4{,}096$ 词元（约 $20\text{ kb}$）；专用跨模态 **BPE** 分词器（容量 $6{,}000$）将高频英文功能短语、结构标签与局部序列基序映射至共享离散词元空间，并在训练后期以 $0.5$ 概率随机掩码物种或基因标识符，迫使模型依赖功能语义与统计上下文而非机械记忆标签。在零样本评估中，模型直接利用全序列条件困惑度差值 $\Delta\mathrm{PPL}$ 量化突变破坏性（同义 $<$ 错义 $<$ 无义 $<$ 移码）、序列—功能语义失配及跨物种标签替换矩阵 $S_i \mid C_j$ 的系统发育距离；在条件生成阶段，则结合温度缩放 $\tau$、核采样（**Top**-$p$）与 $n$-**gram** 重复惩罚，从物种特异背景、结构化非编码 **RNA**（如自发符合摆动配对规则的 **tRNA** 与 **rRNA**）或组蛋白家族提示词出发可控生成目标序列：
+**跨模态 BPE 分词与动态提示掩码预训练：** 预训练语料聚焦 **NCBI RefSeq** 注释基因区（随机向两侧延伸 $0\text{--}100\text{ bp}$），将每条样本按统一前缀模板 `[Molecule Type], [Species Name], [Gene Symbol], [Functional Annotation]<seq>` 衔接含 `<gene>`、`<cds>`、`<tRNA>` 等 **XML** 边界标签的核苷酸序列，并打包至 $4{,}096$ 词元（约 $20\text{ kb}$）。专用跨模态 **BPE** 分词器（容量 $6{,}000$）将高频英文功能短语、结构标签与局部序列基序映射至共享离散词元空间，并在训练后期以 $0.5$ 概率随机移除物种或基因标识符，迫使模型依赖功能语义与统计上下文优化因果语言建模损失与条件困惑度：
+
+$$
+\mathcal{L}_{\mathrm{CLM}} = -\frac{1}{T}\sum_{t=1}^{T} \log P_\theta(y_t \mid C, y_{<t}), \quad
+\mathrm{PPL}(S \mid C) = \exp\!\big(\mathcal{L}_{\mathrm{CLM}}(S \mid C)\big).
+$$
+
+**零样本困惑度扰动评估与可控序列生成：** 在零样本评估中，模型直接利用全序列条件困惑度差值 $\Delta\mathrm{PPL}$ 量化突变破坏性（同义 $<$ 错义 $<$ 无义 $<$ 移码）、序列—功能语义失配及跨物种标签替换矩阵 $S_i \mid C_j$ 的系统发育距离：
 
 $$
 \begin{aligned}
-&\mathrm{PPL}(S \mid C) = \exp\!\left(-\frac{1}{T}\sum_{t=1}^{T} \log P_\theta(y_t \mid C, y_{<t})\right), \\
 &\Delta\mathrm{PPL}_{\mathrm{mut}} = \mathrm{PPL}(S_{\mathrm{mut}} \mid C) - \mathrm{PPL}(S_{\mathrm{wt}} \mid C), \\
 &\Delta\mathrm{PPL}_{i,j} = \mathrm{PPL}(S_i \mid C_j) - \mathrm{PPL}(S_i \mid C_i).
 \end{aligned}
 $$
 
+在条件生成阶段，模型结合温度缩放 $\tau$、核采样（**Top**-$p$）与 $n$-gram 重复惩罚，支持从物种特异背景、结构化非编码 **RNA**（如自发符合摆动配对规则的 **tRNA** 与 **rRNA**）或组蛋白家族提示词出发可控生成目标序列。
+
 <a id="p-carbonx"></a>
 ### ⚪ **Carbon-X**：混合 $6$-mer 词表中期训练与可验证奖励强化学习的 DNA-语言模型
 - **paper**：[**Carbon-X: When Natural Language Meets DNA**](https://huggingface.co/spaces/HuggingFaceBio/Carbon-X-Release)（*preprint* 2026）
 
-针对通用大语言模型缺乏直接解析原始核酸序列的能力、而桥接式双模型架构难以在单一词元流中交错生成 **DNA** 与文本的问题，**Carbon-X** 在 **Qwen3-14B** 自回归解码器中扩展定长 $6$-**mer** 基因组词表，通过 $300\text{B}$ 词元的跨模态中期训练、确定性验证器校验的有监督微调以及可验证奖励强化学习（**RLVR**），在单一模型内统一了长窗口变异致病性解释、序列问答与 **DNA** 生成。
+**Carbon-X** 在 **Qwen3-14B** 自回归解码器中扩展定长 $6$-**mer** 基因组词表，通过 $300\text{B}$ 词元的跨模态中期训练、确定性验证器校验的有监督微调以及可验证奖励强化学习（**RLVR**），在单一模型内统一了长窗口变异致病性解释、序列问答与 **DNA** 生成。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-118-carbonx.png)
 
@@ -184,7 +192,7 @@ $$
 ### ⚪ **GeneChat**：基于线性适配器桥接基因组编码器与大语言模型的问答框架
 - **paper**：[**GeneChat: A Multi-Modal Large Language Model for Gene Function Prediction**](https://github.com/Shashi-Sekar/GeneChat)（*ICML 2025 Workshop FM4LS*）
 
-针对传统基因功能预测局限于预定义基因本体（**GO**）离散类别、缺乏自由文本表达能力的问题，**GeneChat** 采用多模态桥接架构，通过非重叠窗口池化与线性适配器将基因组编码器（**DNABERT-2**）与指令微调大语言模型（**Vicuna-13B**）对接，直接从最长 $160\text{ kb}$ 的原始基因核苷酸序列生成自由文本形式的功能描述。
+**GeneChat** 采用多模态桥接架构，通过非重叠窗口池化与线性适配器将基因组编码器（**DNABERT-2**）与指令微调大语言模型（**Vicuna-13B**）对接，直接从最长 $160\text{ kb}$ 的原始基因核苷酸序列生成自由文本形式的功能描述。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-117-genechat.png)
 
@@ -205,7 +213,7 @@ $$
 ### ⚪ **ChatNT**：英语问题感知感知器重采样与多任务基因组对话代理
 - **paper**：[**A multimodal conversational agent for DNA, RNA and protein tasks**](https://doi.org/10.1038/s42256-025-01047-1)（*Nature Machine Intelligence* 2025）
 
-针对生物序列基础模型需为每个下游任务单独挂载预测头微调、缺乏跨任务知识迁移与自然语言交互能力的问题，**ChatNT** 将预训练 **Nucleotide Transformer（NT-v2, 500M）** 编码器与冻结的 **Vicuna-7B** 英文解码器桥接，通过问题条件化的感知器重采样器，将横跨 **DNA**、**RNA** 与蛋白质（输入对应编码序列 **CDS**）的分类与定量回归任务统一为自然语言生成。
+**ChatNT** 将预训练 **Nucleotide Transformer（NT-v2, 500M）** 编码器与冻结的 **Vicuna-7B** 英文解码器桥接，通过问题条件化的感知器重采样器，将横跨 **DNA**、**RNA** 与蛋白质（输入对应编码序列 **CDS**）的分类与定量回归任务统一为自然语言生成。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-116-chatnt.png)
 
@@ -233,15 +241,17 @@ $$
 ### ⚪ **BioReason**：融合基因组编码器与大语言模型的强化学习多步生物推理
 - **paper**：[**BIOREASON: Incentivizing Multimodal Biological Reasoning within a DNA-LLM Model**](https://arxiv.org/abs/2505.23579)（*NeurIPS* 2025）
 
-针对基因组基础模型缺乏机制可解释性、而纯大语言模型难以直接捕获原始核酸序列细微模式的问题，**BioReason** 将冻结的 **DNA** 基础模型与自回归 **LLM** 在嵌入层直接桥接，通过有监督微调与群组相对策略优化（**GRPO**）强化学习，激励模型从成对基因组变异序列出发生成分步分子机制推理链并预测下游表型效应。
+**BioReason** 将冻结的 **DNA** 基础模型与自回归 **LLM** 在嵌入层直接桥接，通过有监督微调与群组相对策略优化（**GRPO**）强化学习，激励模型从成对基因组变异序列出发生成分步分子机制推理链并预测下游表型效应。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-115-bioreason.png)
 
-**冻结 DNA 编码器与跨模态序列拼接：** 框架接收一条或多条 **DNA** 序列（如配对的参考与突变序列 $S_{\mathrm{DNA},k}$）及包含通路或基因上下文的文本查询 $Q_{\mathrm{TEXT}}$。冻结权重的 **DNA** 基础模型（如 **Evo 2**、**Nucleotide Transformer** 或有监督模型 **Enformer**）首先提取逐词元上下文表征 $E_{\mathrm{DNA},k} \in \mathbb{R}^{L'_k \times d_{\mathrm{dna}}}$，经可学习线性层 $\mathrm{Proj}: \mathbb{R}^{d_{\mathrm{dna}}} \to \mathbb{R}^{d_{\mathrm{llm}}}$ 投影并沿序列维堆叠为特征块 $E'_{\mathrm{DNA}}$；随后与边界控制符嵌入及 **LLM** 文本嵌入 $E_{Q_{\mathrm{text}}}$ 拼接为统一多模态输入，统一施加 **RoPE** 位置编码后送入 **Qwen3** 主干：
+**冻结 DNA 编码器与跨模态序列拼接：** 框架接收一条或多条 **DNA** 序列（如配对的参考与突变序列 $S_{\mathrm{DNA},k}$）及包含通路或基因上下文的文本查询 $Q_{\mathrm{TEXT}}$。冻结权重的 **DNA** 基础模型（如 **Evo 2**、**Nucleotide Transformer** 或有监督模型 **Enformer**）首先提取逐词元上下文表征 $$E_{\mathrm{DNA},k} \in \mathbb{R}^{L'_k \times d_{\mathrm{dna}}}$$，经可学习线性层 $$\mathrm{Proj}: \mathbb{R}^{d_{\mathrm{dna}}} \to \mathbb{R}^{d_{\mathrm{llm}}}$$ 投影并沿序列维堆叠为特征块 $E'_{\mathrm{DNA}}$；随后与边界控制符嵌入及 **LLM** 文本嵌入 $E_{Q_{\mathrm{text}}}$ 拼接为统一多模态输入，统一施加 **RoPE** 位置编码后送入 **Qwen3** 主干：
 
 $$
-X_{\mathrm{LLM}} = \big(e_{\text{<dna\_start>}},\, E'_{\mathrm{DNA}},\, e_{\text{<dna\_end>}},\, E_{Q_{\mathrm{text}}}\big), \quad
-\mathcal{L}_{\mathrm{SFT}} = -\sum_{i} \log P(y_i \mid y_{<i}, X_{\mathrm{LLM}}; \theta_{\mathrm{LLM}}),
+\begin{aligned}
+&X_{\mathrm{LLM}} = \big(e_{\text{<dna_start>}},\, E'_{\mathrm{DNA}},\, e_{\text{<dna_end>}},\, E_{Q_{\mathrm{text}}}\big), \\
+&\mathcal{L}_{\mathrm{SFT}} = -\sum_{i} \log P(y_i \mid y_{<i}, X_{\mathrm{LLM}}; \theta_{\mathrm{LLM}}),
+\end{aligned}
 $$
 
 其中 **SFT** 阶段采用 **LoRA** 微调 **LLM**，并通过掩码仅对 `<think>...</think>` 推理过程及最终回答词元计算自回归损失。
@@ -263,14 +273,14 @@ $$
 ### ⚪ **CD-GPT**：共享多分子 BPE 词表与中心法则配对的跨模态自回归预训练
 - **paper**：[**CD-GPT As a Biological Foundation Model Bridging the Gap between Molecular Sequences Through Central Dogma**](https://doi.org/10.1101/2024.06.24.600337)（*bioRxiv* 2025）
 
-针对单分子基础模型导致 **DNA**、**RNA** 与蛋白质在隐空间中表征割裂的问题，**CD-GPT** 构建统一的跨分子子词词表，并在旋转位置编码自回归 **Transformer** 解码器上通过三阶段课程预训练显式对齐中心法则的转录与翻译映射，统一支持基因组元件判别、跨分子互作预测与逆向翻译生成。
+**CD-GPT** 构建统一的跨分子子词词表，并在旋转位置编码自回归 **Transformer** 解码器上通过三阶段课程预训练显式对齐中心法则的转录与翻译映射，统一支持基因组元件判别、跨分子互作预测与逆向翻译生成。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-112-cdgpt.png)
 
 **跨分子混合 BPE 词表与三阶段中心法则预训练：** 模型按 **DNA**、**RNA** 与蛋白质长度比例以 $5:3:1$ 混合多物种序列，通过 **SentencePiece BPE** 构建容量为 $64{,}000$（词元长 $1\sim 16$）的共享多分子词表。预训练分为三个递进阶段：
-1. **单分子预训练（Stage 1）**：在独立的 **DNA**、**RNA** 与蛋白质单序列上优化下一词元预测损失 $\mathcal{L}_{\mathrm{ntp}} = -\sum \log p_\theta(u_i \mid u_{<i})$，并以 $5\%$ 的概率随机回退至单核苷酸或单氨基酸字符级分词以保留残基级细粒度特征；
+1. **单分子预训练（Stage 1）**：在独立的 **DNA**、**RNA** 与蛋白质单序列上优化下一词元预测损失 $$\mathcal{L}_{\mathrm{ntp}} = -\sum \log p_\theta(u_i \mid u_{<i})$$，并以 $5\%$ 的概率随机回退至单核苷酸或单氨基酸字符级分词以保留残基级细粒度特征；
 2. **中心法则配对预训练（Stage 2）**：基于 **GenBank** 注释提取具有真实转录与翻译关系的配对序列，通过模态与过程控制符拼接为单条因果指令流（如 `<DNA>...<splicing><mRNA><translate><:><mRNA>...<protein>...`），在自回归建模中拉近同源三元组在共享隐空间中的余弦距离；
-3. **蛋白质结构多任务预训练（Stage 3）**：在 **PDB** 结构数据上联合优化下一词元预测、二级结构预测与残基接触图预测损失 $\mathcal{L}_{\mathrm{total}} = \alpha \mathcal{L}_{\mathrm{ntp}} + \beta \mathcal{L}_{\mathrm{ss}} + \gamma \mathcal{L}_{\mathrm{contact}}$。
+3. **蛋白质结构多任务预训练（Stage 3）**：在 **PDB** 结构数据上联合优化下一词元预测、二级结构预测与残基接触图预测损失 $$\mathcal{L}_{\mathrm{total}} = \alpha \mathcal{L}_{\mathrm{ntp}} + \beta \mathcal{L}_{\mathrm{ss}} + \gamma \mathcal{L}_{\mathrm{contact}}$$。
 
 **多范式输出头适配与跨分子生成：** 下游迁移根据任务类型挂载四类输出头：（1）**序列级分类**（如启动子、剪接位点及直接拼接双分子序列的 **RNA**—蛋白质互作预测）提取末位词元隐状态接入线性分类层；（2）**词元级预测**在因果主干顶部附加单层双向自注意力以融合右侧上下文；（3）**残基对预测**对注意力矩阵施加对称化与平均乘积校正（**APC**）后输入双层 **MLP**；（4）**条件生成任务**通过提示标签触发自回归解码，支持指定蛋白家族的从头蛋白质设计，以及给定 `<protein>...<reverse translate><:>` 提示直接生成符合天然密码子偏好与高翻译起始率的编码 **mRNA** 序列。
 
@@ -278,11 +288,11 @@ $$
 ### ⚪ **ProDMM**：非编码调控区-编码序列-蛋白质协同演化的统一编码-解码模型
 - **paper**：[**Harnessing A Unified Multi-modal Sequence Modeling to unveil Protein-DNA Interdependency**](https://doi.org/10.1101/2025.02.26.640480)（*bioRxiv* 2025）
 
-针对单模态序列模型孤立处理启动子、编码序列（**CDS**）与蛋白质而忽略其演化同步性的问题，**ProDMM** 在 $1.29\times 10^8$ 组原核四元组（`<pre-NCDS, CDS, Protein, post-NCDS>`）上构建统一词表，结合双向掩码编码器（**ProDMM-Encoder**）与条件自回归解码器（**ProDMM-Seq2Seq**），联合捕获密码子偏好、顺式调控语法与蛋白质稳定性之间的跨模态依赖。
+**ProDMM** 在 $1.29\times 10^8$ 组原核四元组（`<pre-NCDS, CDS, Protein, post-NCDS>`）上构建统一词表，结合双向掩码编码器（**ProDMM-Encoder**）与条件自回归解码器（**ProDMM-Seq2Seq**），联合捕获密码子偏好、顺式调控语法与蛋白质稳定性之间的跨模态依赖。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-120-prodmm.png)
 
-**三模态粒度感知词表与四格式 MLM 编码器预训练：** 通用分词器构建包含 $97$ 个词元（$20$ 种大写单字母氨基酸、$64$ 种三联体密码子、$4$ 种小写单碱基 **a/t/c/g** 及 $9$ 个特殊控制符）的共享词表，对蛋白质与非编码序列（**NCDS**）按单字符分词，对 **CDS** 按三联体密码子分词。**ProDMM-Encoder** 采用配备 **RoPE**、**Post-LayerNorm** 与嵌入缩放的 $48$ 层双向 **Transformer**，将每条四元组等概率随机转化为四类序列格式之一（纯 **Protein**、纯 **CDS**、`{<cls>, pre-NCDS, <sep>, CDS, <sep>, post-NCDS, <sep>}` 或 `{<cls>, pre-NCDS, <sep>, Protein, <sep>, post-NCDS, <sep>}`），以 $15\%$ 掩码率（$80\%\ \text{<mask>} / 10\%\ \text{随机} / 10\%\ \text{不变}$）优化掩码语言建模损失。
+**三模态粒度感知词表与四格式 MLM 编码器预训练：** 通用分词器构建包含 $97$ 个词元（$20$ 种大写单字母氨基酸、$64$ 种三联体密码子、$4$ 种小写单碱基 **a/t/c/g** 及 $9$ 个特殊控制符）的共享词表，对蛋白质与非编码序列（**NCDS**）按单字符分词，对 **CDS** 按三联体密码子分词。**ProDMM-Encoder** 采用配备 **RoPE**、**Post-LayerNorm** 与嵌入缩放的 $48$ 层双向 **Transformer**，将每条四元组等概率随机转化为四类序列格式之一（纯 **Protein**、纯 **CDS**、`{<cls>, pre-NCDS, <sep>, CDS, <sep>, post-NCDS, <sep>}` 或 `{<cls>, pre-NCDS, <sep>, Protein, <sep>, post-NCDS, <sep>}`），以 $15\%$ 掩码率优化掩码语言建模损失。
 
 **伪困惑度零样本表型排序与跨模态条件生成：** 下游评估与设计分两路展开：（1）**零样本功能与通路产量预测**利用冻结编码器计算单序列或复合序列（如启动子—蛋白拼接序列 $S = \{q_{1:L_1}, c_{1:L_2}\}$ 或多基因代谢通路 `<NCDS-Protein>×4`）的伪困惑度与突变对数几率比（**Log-Odds Ratio**）：
 
@@ -301,9 +311,9 @@ $$
 ### ⚪ **NatureLM**：多科学域实体词表扩展与中心法则交错序列联合预训练
 - **paper**：[**Nature Language Model: Deciphering the Language of Nature for Scientific Discovery**](https://arxiv.org/abs/2502.07527)（*arXiv* 2025）
 
-针对单科学域基础模型（如孤立的基因组、蛋白质或化学模型）无法执行跨模态理性设计的局限，**NatureLM**（涵盖 $1\text{B}$、**Llama-3-8B** 稠密架构及 **Mixtral-8x7B** 稀疏混合专家架构）将 **DNA**、**RNA**、蛋白质、小分子与晶体材料全部序列化为“自然语言”，在 $143.8\text{B}$ 词元（其中 $90\%$ 为科学序列与跨域配对数据）上通过两阶段持续预训练与指令微调，统一支持基因组元件判别、向导 **RNA（gRNA）** 设计及靶点引导的跨分子生成。
+**NatureLM**（涵盖 $1\text{B}$、**Llama-3-8B** 稠密架构及 **Mixtral-8x7B** 稀疏混合专家架构）将 **DNA**、**RNA**、蛋白质、小分子与晶体材料全部序列化为“自然语言”，在 $143.8\text{B}$ 词元（其中 $90\%$ 为科学序列与跨域配对数据）上通过两阶段持续预训练与指令微调，统一支持基因组元件判别、向导 **RNA（gRNA）** 设计及靶点引导的跨分子生成。
 
-![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-122-naturelm.png)
+![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-122-naturellm.png)
 
 **多域边界标签词表与三类跨域交错语料：** 模型在原大语言模型词表基础上扩充专用科学词元（**DNA/RNA** 采用单核苷酸分词，词表各 $16$ 个；蛋白质采用单氨基酸分词，词表 $26$ 个；小分子采用正则化 **SMILES** 分词，词表 $1{,}401$ 个；晶体材料展平为元素重复加空间群 `<sgN>`，词表 $396$ 个），并以 `<dna>...</dna>`、`<rna>...</rna>`、`<protein>...</protein>` 与 `<mol>...</mol>` 显式界定模态边界。为打通模态壁垒，预训练构建了 $12.7\text{B}$ 词元的三类跨域序列：（1）**文献交错序列**：利用生物医学命名实体识别（**BERN2**）定位科学文献中的分子与蛋白质提及，直接在正文中内嵌其 **SMILES** 或 **FASTA** 序列；（2）**平行文本—实体对**：对齐 **NCBI**、**UniProt** 与 **PubChem** 中的序列与自然语言功能描述；（3）**中心法则替换序列**：从 **RefSeq** 提取基因组序列，将其中的编码外显子区间直接替换为对应的翻译蛋白质异构体序列，使翻译后的氨基酸序列与上下游侧翼 **DNA** 序列直接共现。
 
@@ -356,11 +366,11 @@ $$
 ### ⚪ **C3P**：启动子与冻结蛋白质表征的跨模态对比对齐
 - **paper**：[**C3P: Contrastive promoter-protein pretraining yields representations capturing bacterial gene regulation**](https://arxiv.org/abs/2605.25242)（*arXiv* 2026）
 
-针对调控序列在演化中快速分化、逐词元重建目标（**MLM/NTP**）易受表面噪声干扰的问题，**C3P** 借鉴 **CLIP/LiT** 跨模态对比范式，以冻结的预训练蛋白质语言模型（**ESM-2**）为监督信号，在共享隐空间对齐细菌启动子与其下游编码蛋白，学习捕获共调控规律的启动子表征。
+**C3P** 借鉴 **CLIP/LiT** 跨模态对比范式，以冻结的预训练蛋白质语言模型（**ESM-2**）为监督信号，在共享隐空间对齐细菌启动子与其下游编码蛋白，学习捕获共调控规律的启动子表征。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-110-c3p.png)
 
-**操纵子感知配对与冻结蛋白质双塔：** 模型从跨物种细菌基因组中提取启动子—蛋白质正样本对：截取编码序列（**CDS**）起始密码子前至少 $100\text{ bp}$ 的非编码区作为启动子；若同链相邻基因间距不超过 $20\text{ bp}$，则视为同一操纵子（**Operon**）并将内部所有蛋白质与首个基因的启动子配对。架构包含非对称双塔：**启动子编码器**对序列执行重叠 $3$-**mer** 分词，经带 **RoPE** 的双向 **Transformer** 提取 **<CLS>** 表征；**蛋白质编码器**直接复用完全冻结的 **ESM-2** 末层均值池化表征，在降低开销的同时防止表征坍缩。
+**操纵子感知配对与冻结蛋白质双塔：** 模型从跨物种细菌基因组中提取启动子—蛋白质正样本对：截取编码序列（**CDS**）起始密码子前至少 $100\text{ bp}$ 的非编码区作为启动子；若同链相邻基因间距不超过 $20\text{ bp}$，则视为同一操纵子（**Operon**）并将内部所有蛋白质与首个基因的启动子配对。架构包含非对称双塔：**启动子编码器**对序列执行重叠 $3$-**mer** 分词，经带 **RoPE** 的双向 **Transformer** 提取 **CLS** 表征；**蛋白质编码器**直接复用完全冻结的 **ESM-2** 末层均值池化表征，在降低开销的同时防止表征坍缩。
 
 **对称 InfoNCE 对齐与零样本共调控检索：** 两路输出经线性投影与 $L_2$ 归一化得到 $z_i^{\mathrm{prom}}$ 与 $z_i^{\mathrm{prot}}$，通过对称 **InfoNCE** 损失拉近配对样本并推远批次内错配负样本（$\tau$ 为可学习温度）：
 
@@ -374,7 +384,7 @@ $$
 ### ⚪ **MIMIC**：分轨求和编码器-解码器与多模态中心法则联合生成模型
 - **paper**：[**MIMIC: A Generative Multimodal Foundation Model for Biomolecules**](https://arxiv.org/abs/2604.24506)（*arXiv* 2026）
 
-针对单模态生物模型难以建模序列、结构、表观调控与细胞环境间耦合约束及逆向设计问题，**MIMIC**（$1\text{B}$ 参数）在跨物种多模态对齐数据集 **LORE**（涵盖 $1.3\times 10^7$ 条转录本、$1.55\times 10^7$ 条蛋白质及 $4\text{B}$ 生物医学与实验上下文文本词元）上提出分轨（**Split-Track**）编码器—解码器架构，支持以任意观测模态子集为条件重建或生成基因组、转录组与蛋白质组的缺失分子状态。
+**MIMIC**（$1\text{B}$ 参数）在跨物种多模态对齐数据集 **LORE**（涵盖 $1.3\times 10^7$ 条转录本、$1.55\times 10^7$ 条蛋白质及 $4\text{B}$ 生物医学与实验上下文文本词元）上提出分轨（**Split-Track**）编码器—解码器架构，支持以任意观测模态子集为条件重建或生成基因组、转录组与蛋白质组的缺失分子状态。
 
 ![](https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/ai4s-glm-123-mimic.png)
 
