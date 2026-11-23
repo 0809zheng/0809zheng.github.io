@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '渐近理论I：大数定律与中心极限定理'
+title: '渐近理论(Asymptotic Theory) I：大数定律与中心极限定理'
 date: 2026-10-17
 author: 郑之杰
 cover: 'https://pub-c304ca0128b34bff97119b39961bc4f0.r2.dev/math-asymptotic1-cover.png'
@@ -10,7 +10,7 @@ pinned: false
 
 > Asymptotic Theory I: Law of Large Numbers and Central Limit Theorem.
 
-在经典数理统计的有限样本理论（**Finite-Sample Theory**）中，统计推断依赖于总体分布的精确先验假设。例如，当总体服从正态分布 $X_i \sim N(\mu, \sigma^2)$ 时，无论样本容量 $n$ 取何值，样本均值 $\bar{X}_n$ 的精确分布均为正态分布，样本方差的精确分布可由卡方分布刻画，进而可导出精确服从 $t(n-1)$ 分布的检验统计量。
+在经典数理统计的有限样本理论（**Finite-Sample Theory**）中，统计推断依赖于总体分布的精确先验假设。例如，当总体服从正态分布 $X_i \sim N(\mu, \sigma^2)$ 时，无论样本容量 $n$ 取何值，样本均值 $\bar{X}_n$ 的精确分布均为正态分布，样本方差的精确分布可由$\chi^2$分布刻画，进而可导出精确服从 $t(n-1)$ 分布的检验统计量。
 
 然而，在实际的科学计算与工程建模中，精确有限样本理论面临两个根本性困难：
 1. **总体分布的未知性与复杂性**：真实世界的数据分布往往呈现偏态、多峰或重尾特征，无法用单一的参数化分布族精确描述。
@@ -30,10 +30,8 @@ pinned: false
    - [2.1 依分布收敛的定义](#conv-in-distribution)
    - [2.2 中心极限定理](#clt)
    - [2.3 两种收敛模式的关系证明](#convergence-relations)
-   - [例题 MC dropout 预测均值的蒙特卡洛误差](#exercise-mc-dropout)
-3. [连续映射定理与随机渐近阶符号](#cmt-stochastic-order)
-   - [3.1 连续映射定理](#continuous-mapping)
-   - [3.2 随机渐近阶符号](#stochastic-order)
+   - [例题：MC dropout 预测均值的蒙特卡洛误差](#exercise-mc-dropout)
+
 
 <a id="probability-convergence-lln"></a>
 
@@ -56,16 +54,20 @@ pinned: false
 
 ## 1.2 概率论中的尾概率不等式
 
-为了严格证明依概率收敛，需要将形如 $P(\vert X_n - X\vert > \varepsilon)$ 的尾概率与随机变量的矩（数学期望、方差）建立联系。以下两个基础不等式是证明大数定律的核心工具。
+为了严格证明依概率收敛，需要将形如 $P(\vert X_n - X\vert > \varepsilon)$ 的尾概率与随机变量的矩（数学期望、方差）建立联系。以下两个基础不等式是证明各类大数定律的核心工具。
 
 > **引理 1.1（Markov 不等式）**
 > 设非负随机变量 $Y \ge 0$ 满足 $\mathbb{E}[Y]<\infty$，则对任意 $\varepsilon > 0$，有
 > $$ P(Y \ge \varepsilon) \le \frac{\mathbb{E}[Y]}{\varepsilon} $$
 
 **证明**：根据事件 $\{Y\ge\varepsilon\}$ 是否发生，分解数学期望：
+
 $$ \mathbb{E}[Y]=\mathbb{E}\left[Y\mathbf{1}_{\{Y<\varepsilon\}}\right]+\mathbb{E}\left[Y\mathbf{1}_{\{Y\ge\varepsilon\}}\right] $$
+
 第一项非负；第二项中 $Y\ge\varepsilon$，因此
+
 $$ \mathbb{E}[Y]\ge\mathbb{E}\left[Y\mathbf{1}_{\{Y\ge\varepsilon\}}\right]\ge\varepsilon\mathbb{E}\left[\mathbf{1}_{\{Y\ge\varepsilon\}}\right]=\varepsilon P(Y\ge\varepsilon) $$
+
 两边同除以 $\varepsilon>0$ 即得结论。该证明不要求 $Y$ 存在概率密度，因此同时适用于离散、连续与其他分布。$\blacksquare$
 
 > **引理 1.2（Chebyshev 不等式）**
@@ -80,31 +82,67 @@ $$ P\left(\vert X - \mu\vert \ge \varepsilon\right) = P\left((X - \mu)^2 \ge \va
 
 ## 1.3 弱大数定律（Weak Law of Large Numbers）
 
-**大数定律**揭示了算术平均值的稳定性：当试验次数无限增加时，样本均值依概率收敛于总体期望。下面依次讨论 **Bernoulli**、**Chebyshev 与 Markov**、**Khinchin** 三组经典结果，它们分别对应事件频率、二阶矩条件以及仅一阶矩存在的情形。
+**大数定律**揭示了算术平均值的稳定性：*当试验次数无限增加时，样本均值依概率收敛于数学期望（总体均值）*。本节利用 1.2 节的尾概率不等式，先证明独立同分布序列在仅一阶矩有限时的 **Khinchin 弱大数定律**，再直接推出作为其分布特例的 **Bernoulli 弱大数定律**，最后讨论放宽独立同分布限制、但要求二阶矩有限的 **Chebyshev 与 Markov 弱大数定律**。
 
-### 1.3.1 Bernoulli 弱大数定律（频率收敛于概率）
+### 1.3.1 Khinchin 弱大数定律（独立同分布且一阶矩有限）
 
-> **定理 1.1（Bernoulli 弱大数定律）**
-> 在 $n$ 重独立重复试验中，设事件 $A$ 在每次试验中发生的概率为 $p \in (0, 1)$。定义第 $i$ 次试验的指示随机变量 $$X_i = \mathbb{I}_A(\omega_i) \stackrel{\text{i.i.d.}}{\sim} \text{Bernoulli}(p)$$（事件发生取 $1$，不发生取 $0$），记 $S_n = \sum_{i=1}^n X_i$ 为事件 $A$ 发生的频数。则事件发生的频率依概率收敛于概率 $p$：
+**Khinchin（辛钦）弱大数定律**证明了：对于独立同分布序列，只要一阶矩（数学期望）有限，弱大数定律成立。
+
+> **定理 1.1（Khinchin 弱大数定律）**
+> 设 $X_1, X_2, \dots$ 独立同分布，且 $\mathbb{E}[\vert X_1\vert ] < \infty$，记 $\mathbb{E}[X_1] = \mu$，则有
+> $$ \bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i \xrightarrow{P} \mu \quad (n \to \infty) $$
+
+**证明**：
+通过设定截断阈值 $M > 0$，将每个 $X_i$ 拆解为**有界主部 $U_i$** 与**极端尾部 $V_i$** 之和：
+
+$$ X_i = U_i + V_i, \quad \ U_i = X_i \mathbf{1}_{\{\vert X_i\vert \le M\}},\ \ V_i = X_i \mathbf{1}_{\{\vert X_i\vert > M\}} $$
+
+相应地，样本均值与总体均值也分解为 $\bar{X}_n = \bar{U}_n + \bar{V}_n$ 以及 $\mu = \mu_U + \mu_V$（其中 $\mu_U = \mathbb{E}[U_1]$，$\mu_V = \mathbb{E}[V_1]$）。由三角不等式有：
+
+$$ \vert \bar{X}_n - \mu\vert = \vert (\bar{U}_n - \mu_U) + \bar{V}_n - \mu_V\vert \le \vert \bar{U}_n - \mu_U\vert + \vert \bar{V}_n\vert + \vert \mu_V\vert $$
+
+1. **利用一阶矩有限性控制尾部期望**：
+   由于 $\mathbb{E}[\vert X_1\vert ] < \infty$，当截断阈值 $M \to \infty$ 时，尾部积分（或级数余项）必趋于零：$\lim_{M\to\infty} \mathbb{E}[\vert V_1\vert ] = \lim_{M\to\infty} \mathbb{E}\big[\vert X_1\vert \mathbf{1}_{\{\vert X_1\vert > M\}}\big] = 0$。
+   因此，对任意给定的 $\varepsilon > 0$ 与 $\delta > 0$，可先取定一个充分大的常数 $M > 0$，使得尾部绝对期望满足：
+
+   $$ \vert \mu_V\vert \le \mathbb{E}\big[\vert V_1\vert \big] < \frac{\varepsilon}{3}\min(1, \delta) \le \frac{\varepsilon}{3} $$
+
+   此时，若事件 $\{\vert \bar{X}_n - \mu\vert > \varepsilon\}$ 发生，由 $\vert \bar{U}_n - \mu_U\vert + \vert \bar{V}_n\vert > \frac{2}{3}\varepsilon$ 知，必然有事件 $\{\vert \bar{U}_n - \mu_U\vert > \frac{\varepsilon}{3}\}$ 或 $\{\vert \bar{V}_n\vert > \frac{\varepsilon}{3}\}$ 至少发生其一。由概率次可加性得：
+
+   $$ P\left(\vert \bar{X}_n - \mu\vert > \varepsilon\right) \le P\left(\vert \bar{U}_n - \mu_U\vert > \frac{\varepsilon}{3}\right) + P\left(\vert \bar{V}_n\vert > \frac{\varepsilon}{3}\right) $$
+
+2. **对有界主部 $\bar{U}_n$ 应用 Chebyshev 不等式**：
+   由于 $\vert U_i\vert \le M$ 有界，其方差必然有限：$\text{Var}(U_1) \le \mathbb{E}[U_1^2] \le M^2 < \infty$。又因 $U_1, \dots, U_n$ 独立同分布，样本均值方差为 $\text{Var}(\bar{U}_n) = \frac{1}{n}\text{Var}(U_1) \le \frac{M^2}{n}$。由引理 1.2（**Chebyshev 不等式**）得：
+
+   $$ P\left(\vert \bar{U}_n - \mu_U\vert > \frac{\varepsilon}{3}\right) \le \frac{\text{Var}(\bar{U}_n)}{(\varepsilon / 3)^2} \le \frac{9M^2}{n\varepsilon^2} $$
+
+3. **对极端尾部 $\bar{V}_n$ 应用 Markov 不等式**：
+   对非负随机变量 $\vert \bar{V}_n\vert \le \frac{1}{n}\sum_{i=1}^n \vert V_i\vert $ 应用引理 1.1（**Markov 不等式**），结合 $\mathbb{E}[\vert V_1\vert ] < \frac{\varepsilon}{3}\delta$，得：
+
+   $$ P\left(\vert \bar{V}_n\vert > \frac{\varepsilon}{3}\right) \le \frac{\mathbb{E}\big[\vert \bar{V}_n\vert \big]}{\varepsilon / 3} \le \frac{3}{\varepsilon}\,\mathbb{E}\big[\vert V_1\vert \big] < \delta $$
+
+4. **取极限完成证明**：综合上述两项，对任意 $n \ge 1$ 有 $P(\vert \bar{X}_n - \mu\vert > \varepsilon) \le \frac{9M^2}{n\varepsilon^2} + \delta$。固定 $M$ 令 $n \to \infty$，第一项趋于 $0$，故 $\limsup_{n\to\infty} P(\vert \bar{X}_n - \mu\vert > \varepsilon) \le \delta$。再由 $\delta > 0$ 的任意性，即得 $\lim_{n\to\infty} P(\vert \bar{X}_n - \mu\vert > \varepsilon) = 0$。$\blacksquare$
+
+### 1.3.2 Bernoulli 弱大数定律（频率收敛于概率）
+
+雅各布·伯努利（**Jacob Bernoulli**）于 1713 年发表的 **Bernoulli 大数定律**是概率论历史上的第一个大数定律。尽管它在历史上最先被发现，但在数学逻辑上，它恰好是定理 1.1（**Khinchin 弱大数定律**）在 **0-1 分布（伯努利分布）**下的直接特例：当每次试验的随机变量 $X_i \in \{0, 1\}$ 仅用于指示某事件 $A$ 是否发生时，样本均值 $\bar{X}_n$ 即为事件发生的频率 $\frac{S_n}{n}$，总体均值 $\mu$ 即为事件发生的概率 $p$。
+
+> **推论 1.1（Bernoulli 弱大数定律）**
+> 在 $n$ 重独立重复试验中，设事件 $A$ 在每次试验中发生的概率为 $p \in (0, 1)$。定义第 $i$ 次试验的指示随机变量 $X_i = \mathbf{1}_A(\omega_i) \stackrel{\text{i.i.d.}}{\sim} \text{Bernoulli}(p)$（事件发生取 $1$，不发生取 $0$），记 $S_n = \sum_{i=1}^n X_i$ 为事件 $A$ 发生的频数。则事件发生的频率依概率收敛于概率 $p$：
 > $$ \bar{X}_n = \frac{S_n}{n} \xrightarrow{P} p = \mu \quad (n \to \infty) $$
 
 **证明**：
-由于 $X_i \stackrel{\text{i.i.d.}}{\sim} \text{Bernoulli}(p)$，其总体均值为 $\mu = \mathbb{E}[X_i] = 1 \cdot p + 0 \cdot (1 - p) = p$，方差为 $\text{Var}(X_i) = p(1 - p)$。
-从而样本均值（频率）$$\bar{X}_n = \frac{S_n}{n} = \frac{1}{n}\sum_{i=1}^n X_i$$ 的期望与方差分别为：
+由于指示变量序列 $X_1, X_2, \dots$ 独立同分布于 $\text{Bernoulli}(p)$，且其一阶绝对矩有限：
 
-$$ \mathbb{E}[\bar{X}_n] = \mathbb{E}\left[\frac{S_n}{n}\right] = p, \quad \text{Var}(\bar{X}_n) = \text{Var}\left(\frac{S_n}{n}\right) = \frac{p(1 - p)}{n} $$
+$$ \mathbb{E}\big[\vert X_1\vert \big] = \mathbb{E}[X_1] = 1 \cdot p + 0 \cdot (1 - p) = p < \infty $$
 
-对任意给定的 $\varepsilon > 0$，将引理 **1.2（Chebyshev 不等式）**直接应用于随机变量 $\bar{X}_n = \frac{S_n}{n}$（并注意均值不等式 $p(1-p) \le \frac{1}{4}$），可得：
+直接应用定理 1.1（**Khinchin 弱大数定律**），立得样本均值 $\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i = \frac{S_n}{n} \xrightarrow{P} \mathbb{E}[X_1] = p$。$\blacksquare$
 
-$$ 0 \le P\left(\left\vert \frac{S_n}{n} - p\right\vert \ge \varepsilon\right) \le \frac{\text{Var}(S_n / n)}{\varepsilon^2} = \frac{p(1 - p)}{n\varepsilon^2} \le \frac{1}{4n\varepsilon^2} $$
+### 1.3.3 Chebyshev 与 Markov 弱大数定律（二阶矩条件下的非同分布推广）
 
-由夹逼准则（$n\to\infty$时$1/n \to 0$），立得 $\bar{X}_n = \frac{S_n}{n} \xrightarrow{P} p$。$\blacksquare$
+定理 1.1（**Khinchin**）仅要求一阶矩有限，但要求序列必须“独立且同分布”。如果随机变量序列**不同分布**，甚至变量之间**存在相关性**，我们只需将矩条件加强至**二阶矩（方差）有限**，直接对样本均值应用引理 1.2（**Chebyshev 不等式**），即可得到如下两个推广版本。
 
-作为大数定律家族的历史起点，**Bernoulli** 大数定律其实就是一般大数定律 $\bar{X}_n \xrightarrow{P} \mu$ 在 **0-1 分布（伯努利分布）**下的特例：当每次试验的随机变量 $X_i \in \{0, 1\}$ 仅用于指示某事件 $A$ 是否发生时，样本均值 $\bar{X}_n$ 就退化为事件发生的频率 $\frac{S_n}{n}$，总体均值 $\mu$ 就退化为事件发生的概率 $p$。
-
-### 1.3.2 Chebyshev 与 Markov 弱大数定律（二阶矩存在情形）
-
-> **定理 1.2（Chebyshev 与 Markov 弱大数定律）**
+> **定理 1.2（Markov 与 Chebyshev 弱大数定律）**
 > 设随机变量序列 $X_1, X_2, \dots$ 具有有限二阶矩，记 $\mu_i = \mathbb{E}[X_i]$。
 > 1. **Markov 条件（部分和方差条件）**：若部分和的方差满足
 > $$ \lim_{n\to\infty} \frac{1}{n^2}\text{Var}\left(\sum_{i=1}^n X_i\right) = 0 $$
@@ -123,43 +161,7 @@ $$ 0 \le P\left(\left\vert \bar{X}_n - \bar{\mu}_n\right\vert \ge \varepsilon\ri
 
 $$ \frac{1}{n^2}\text{Var}\left(\sum_{i=1}^n X_i\right) = \frac{1}{n^2}\sum_{i=1}^n \text{Var}(X_i) \le \frac{nC}{n^2} = \frac{C}{n} \xrightarrow{n\to\infty} 0 $$
 
-从而 **Markov** 条件自然满足，且 $\bar{\mu}_n = \mu$，故 $\bar{X}_n \xrightarrow{P} \mu$。$\blacksquare$
-
-### 1.3.3 Khinchin 弱大数定律（仅一阶矩存在情形）
-
-在实际应用中，某些重尾分布（如自由度为 2 的 $t$ 分布，或尾指数 $\alpha\in(1,2]$ 的 **Pareto** 分布）的方差不存在（即 $\text{Var}(X_i) = \infty$），此时 **Chebyshev** 不等式失效。**Khinchin（辛钦）弱大数定律**证明了：对于独立同分布序列，无需假设方差存在，只要一阶矩（数学期望）有限，弱大数定律依然成立。
-
-为了给出完整证明，引入概率论中的**特征函数（Characteristic Function）**工具。
-
-设随机变量 $X$ 的特征函数定义为 $\varphi_X(t) = \mathbb{E}[e^{\mathrm{i}tX}] = \mathbb{E}[\cos(tX)] + \mathrm{i}\mathbb{E}[\sin(tX)]$，其中 $\mathrm{i} = \sqrt{-1}$，$t \in \mathbb{R}$。特征函数具有以下基本性质：
-1. **线性变换性质**：$\varphi_{aX+b}(t) = e^{\mathrm{i}tb}\varphi_X(at)$。
-2. **独立和性质**：若 $X_1, \dots, X_n$ 相互独立，则 $\varphi_{\sum_{i=1}^n X_i}(t) = \prod_{i=1}^n \varphi_{X_i}(t)$。
-3. **可微性与泰勒展开**：若 $\mathbb{E}[\vert X\vert ^k] < \infty$，则 $\varphi_X(t)$ 在 $t=0$ 处 $k$ 阶连续可导，且 $\varphi_X^{(k)}(0) = \mathrm{i}^k \mathbb{E}[X^k]$。由带 **Peano** 余项的泰勒公式，当 $t \to 0$ 时：
-   * 若 $\mathbb{E}[\vert X\vert ] < \infty$ 且 $\mathbb{E}[X] = \mu$，则 $\varphi_X(t) = 1 + \mathrm{i}\mu t + o(t)$；
-   * 若 $\mathbb{E}[X^2] < \infty$ 且 $\mathbb{E}[X] = 0,\ \text{Var}(X) = \sigma^2$，则 $\varphi_X(t) = 1 - \frac{1}{2}\sigma^2 t^2 + o(t^2)$。
-
-> **定理 1.3（Khinchin 弱大数定律）**
-> 设 $X_1, X_2, \dots$ 独立同分布，且 $\mathbb{E}[\vert X_1\vert ] < \infty$，记 $\mathbb{E}[X_1] = \mu$，则有
-> $$ \boxed{\bar{X}_n \xrightarrow{P} \mu \quad (n \to \infty)} $$
-
-**证明**：
-设 $X_i$ 的共同特征函数为 $\varphi(t) = \mathbb{E}[e^{\mathrm{i}tX_1}]$。由一阶矩存在性及带 **Peano** 余项的一阶泰勒展开，当 $t \to 0$ 时有：
-
-$$ \varphi(t) = 1 + \mathrm{i}\mu t + o(t) $$
-
-考察样本均值 $$\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i$$ 的特征函数 $$\varphi_{\bar{X}_n}(t)$$。由独立同分布性质与特征函数的缩放性质，对任意固定的 $t \in \mathbb{R}$，当 $n \to \infty$ 时 $\frac{t}{n} \to 0$，故有：
-
-$$
-\begin{aligned}
-\varphi_{\bar{X}_n}(t) &= \mathbb{E}\left[\exp\left(\mathrm{i}t \cdot \frac{1}{n}\sum_{i=1}^n X_i\right)\right] \\&= \left[\varphi\left(\frac{t}{n}\right)\right]^n = \left[1 + \frac{\mathrm{i}\mu t}{n} + o\left(\frac{1}{n}\right)\right]^n
-\end{aligned}
-$$
-
-由基本极限公式 $\lim_{n\to\infty}\left(1 + \frac{z}{n} + o\left(\frac{1}{n}\right)\right)^n = e^z$，立即得到：
-
-$$ \lim_{n\to\infty} \varphi_{\bar{X}_n}(t) = e^{\mathrm{i}\mu t}, \quad \forall t \in \mathbb{R} $$
-
-注意到 $e^{\mathrm{i}\mu t}$ 恰好是退化于常数 $\mu$ 的随机变量的特征函数。由下文的 **Lévy 连续性定理**（见定理 2.2）可知，样本均值序列依分布收敛于常数 $\mu$，即 $\bar{X}_n \xrightarrow{d} \mu$。再由“依分布收敛于常数等价于依概率收敛于该常数”（将在第 2.3 节证明），立得 $\bar{X}_n \xrightarrow{P} \mu$。$\blacksquare$
+从而 **Markov** 条件自然满足，且 $\bar{\mu}_n = \mu$，故 $\bar{X}_n \xrightarrow{P} \mu$。（特别地，对于推论 1.1 的 **Bernoulli** 分布，因 $\text{Var}(X_i) = p(1-p) \le \frac{1}{4}$，上式直接给出有限样本尾概率界 $P(\vert \frac{S_n}{n} - p\vert \ge \varepsilon) \le \frac{1}{4n\varepsilon^2}$）。$\blacksquare$
 
 <a id="strong-lln"></a>
 
@@ -172,9 +174,9 @@ $$ \lim_{n\to\infty} \varphi_{\bar{X}_n}(t) = e^{\mathrm{i}\mu t}, \quad \forall
 > $$ P\left(\left\{\omega \in \Omega:\ \lim_{n\to\infty} X_n(\omega) = X(\omega)\right\}\right) = 1 $$
 > 则称序列 $\{X_n\}$ **几乎处处收敛（Almost Sure Convergence）**于 $X$，记作 $X_n \xrightarrow{a.s.} X$。
 
-强大数定律指出样本均值不仅会接近总体均值，而且几乎必然会在那附近稳定下来。
+强大数定律指出样本均值不仅在单时刻接近总体均值，而且整条样本均值轨迹几乎必然收敛并稳定于总体均值。
 
-> **定理 1.4（Kolmogorov 强大数定律）**
+> **定理 1.3（Kolmogorov 强大数定律）**
 > 设 $X_1, X_2, \dots$ 为独立同分布的随机变量序列，$\mu$ 为有限常数。样本均值满足 $$\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i \xrightarrow{a.s.} \mu$$ 的充要条件是 $\mathbb{E}[\vert X_1\vert ] < \infty$ 且 $\mathbb{E}[X_1] = \mu$。
 
 
@@ -207,17 +209,14 @@ $$ \lim_{n\to\infty} \varphi_{\bar{X}_n}(t) = e^{\mathrm{i}\mu t}, \quad \forall
 > 
 > 由此可见，阶梯函数在水平平移逼近极限位置时，在跳跃边界点处可能出现极限值与函数值不相等的现象。由于单调有界函数的不连续点至多只有可数个，剔除不连续点既消除了这种边界伪反例，又唯一确定了极限分布函数。
 
-在高等概率论中，判断依分布收敛的等价工具有以下两个基本定理：
+在现代概率论中，判断依分布收敛最核心的等价桥梁是 **Portmanteau 定理**（它将分布函数收敛转化为光滑有界测试函数的数学期望收敛）：
 
 > **定理 2.1（Portmanteau 定理）**
 > 对于随机变量序列 $\{X_n\}$ 与 $X$，下列命题完全等价：
 > 1. $X_n \xrightarrow{d} X$；
-> 2. 对任意有界连续函数 $h: \mathbb{R} \to \mathbb{R}$，有 $\lim_{n\to\infty} \mathbb{E}[h(X_n)] = \mathbb{E}[h(X)]$；
+> 2. 对任意有界连续函数（或具有有界三阶连续导数的光滑函数）$h: \mathbb{R} \to \mathbb{R}$，均有 $\lim_{n\to\infty} \mathbb{E}[h(X_n)] = \mathbb{E}[h(X)]$；
 > 3. 对任意闭集 $C \subset \mathbb{R}$，有 $\limsup_{n\to\infty} P(X_n \in C) \le P(X \in C)$；
 > 4. 对任意开集 $G \subset \mathbb{R}$，有 $\liminf_{n\to\infty} P(X_n \in G) \ge P(X \in G)$。
-
-> **定理 2.2（Lévy 连续性定理）**
-> 设 $X_n$ 的特征函数为 $\varphi_{X_n}(t)$，$X$ 的特征函数为 $\varphi_X(t)$。则 $X_n \xrightarrow{d} X$ 的充要条件是：对任意 $t \in \mathbb{R}$，均有 $\lim_{n\to\infty} \varphi_{X_n}(t) = \varphi_X(t)$。
 
 <a id="clt"></a>
 
@@ -231,51 +230,83 @@ $$ \lim_{n\to\infty} \varphi_{\bar{X}_n}(t) = e^{\mathrm{i}\mu t}, \quad \forall
 
 ### 2.2.1 独立同分布的中心极限定理（Lindeberg-Lévy）
 
-> **定理 2.3（Lindeberg-Lévy 中心极限定理）**
+> **定理 2.2（Lindeberg-Lévy 中心极限定理）**
 > 设 $X_1, X_2, \dots$ 独立同分布，具有均值 $\mathbb{E}[X_i] = \mu$ 与有限的正方差 $\text{Var}(X_i) = \sigma^2 \in (0, \infty)$。则当 $n \to \infty$ 时，
 > $$ Z_n = \frac{\sqrt{n}\left(\bar{X}_n - \mu\right)}{\sigma} \xrightarrow{d} Z \sim N(0, 1) $$
 > 等价地，$\sqrt{n}(\bar{X}_n - \mu) \xrightarrow{d} N(0, \sigma^2)$。
 
-**证明（利用特征函数与二阶泰勒展开）**：
+**证明（利用 Lindeberg 逐个替换法与泰勒展开）**：
 
-**(1) 标准化随机变量**：令 $Y_i = \frac{X_i - \mu}{\sigma}$。由独立同分布假设知，$Y_1, \dots, Y_n$ 亦独立同分布，且满足：
+**(1) 标准化与构造正态替身序列**：
+令 $Y_i = \frac{X_i - \mu}{\sigma}$，则 $Y_1, \dots, Y_n$ 独立同分布，满足 $\mathbb{E}[Y_i] = 0,\ \mathbb{E}[Y_i^2] = 1$，且目标统计量为 $Z_n = \frac{1}{\sqrt{n}}\sum_{i=1}^n Y_i$。
+另取一组与 $\{Y_i\}$ 完全独立的标准正态随机变量序列 $G_1, G_2, \dots, G_n \stackrel{\text{i.i.d.}}{\sim} N(0, 1)$。由正态分布的可加性，其标准化和 $W_n := \frac{1}{\sqrt{n}}\sum_{i=1}^n G_i \sim N(0, 1)$ 精确服从标准正态分布。
+根据定理 2.1（**Portmanteau 定理**），要证 $Z_n \xrightarrow{d} N(0, 1)$，只需证明对任意具有有界二阶与三阶连续导数的光滑测试函数 $h: \mathbb{R} \to \mathbb{R}$（记 $M_2 = \sup_x \vert h''(x)\vert < \infty,\ M_3 = \sup_x \vert h'''(x)\vert < \infty$），均有：
 
-$$ \mathbb{E}[Y_i] = 0, \quad \text{Var}(Y_i) = \mathbb{E}[Y_i^2] = 1 $$
+$$ \lim_{n\to\infty} \Big\vert \mathbb{E}\big[h(Z_n)\big] - \mathbb{E}\big[h(W_n)\big]\Big\vert = 0 $$
 
-此时，目标统计量 $Z_n$ 可表示为标准化变量的算术和：
+**(2) 构造混合部分和并作裂项拆解**：
+对 $i = 0, 1, \dots, n$，定义包含“前 $i$ 个原变量 $Y$、后 $n-i$ 个正态替身 $G$”的混合部分和 $S_i$，以及剔除第 $i$ 个位置后的公共背景和 $U_i$：
 
-$$ Z_n = \frac{\sqrt{n}(\bar{X}_n - \mu)}{\sigma} = \frac{1}{\sqrt{n}}\sum_{i=1}^n \left(\frac{X_i - \mu}{\sigma}\right) = \frac{1}{\sqrt{n}}\sum_{i=1}^n Y_i $$
+$$ S_i := \frac{Y_1 + \cdots + Y_i + G_{i+1} + \cdots + G_n}{\sqrt{n}}, \qquad U_i := \frac{Y_1 + \cdots + Y_{i-1} + G_{i+1} + \cdots + G_n}{\sqrt{n}} $$
 
-**(2) 对特征函数作二阶泰勒展开**：设 $Y_i$ 的共同特征函数为 $\varphi_Y(t) = \mathbb{E}[e^{\mathrm{i}tY_1}]$。由于二阶矩 $\mathbb{E}[Y_1^2] = 1 < \infty$，特征函数 $\varphi_Y(t)$ 在 $t=0$ 处二阶连续可导，且有：
+显然有边界关系 $S_n = Z_n$，$S_0 = W_n$，且相邻两步仅在第 $i$ 个分量上将 $G_i$ 替换为了 $Y_i$：
 
-$$ \varphi_Y(0) = 1, \quad \varphi_Y'(0) = \mathrm{i}\mathbb{E}[Y_1] = 0, \quad \varphi_Y''(0) = \mathrm{i}^2 \mathbb{E}[Y_1^2] = -1 $$
+$$ S_i = U_i + \frac{Y_i}{\sqrt{n}}, \qquad S_{i-1} = U_i + \frac{G_i}{\sqrt{n}} $$
 
-由带 **Peano** 余项的二阶泰勒公式，当 $s \to 0$ 时：
+由裂项相消恒等式 $h(Z_n) - h(W_n) = \sum_{i=1}^n \big[h(S_i) - h(S_{i-1})\big]$ 与三角不等式，总期望差受控于 $n$ 次单步替换误差之和：
 
-$$ \varphi_Y(s) = \varphi_Y(0) + \varphi_Y'(0)s + \frac{\varphi_Y''(0)}{2}s^2 + o(s^2) = 1 - \frac{1}{2}s^2 + o(s^2) $$
+$$ \Big\vert \mathbb{E}\big[h(Z_n)\big] - \mathbb{E}\big[h(W_n)\big]\Big\vert \le \sum_{i=1}^n \left\vert \mathbb{E}\left[h\left(U_i + \frac{Y_i}{\sqrt{n}}\right) - h\left(U_i + \frac{G_i}{\sqrt{n}}\right)\right]\right\vert $$
 
-**(3) 计算 $Z_n$ 的特征函数并求极限**：利用独立和的特征函数性质，将 $s = \frac{t}{\sqrt{n}}$ 代入上式。对任意固定的 $t \in \mathbb{R}$，当 $n \to \infty$ 时 $\frac{t}{\sqrt{n}} \to 0$，从而有：
+**(3) 在公共背景 $U_i$ 处作泰勒展开并消去前两阶矩**：
+对任意增量 $\Delta$，将 $h(U_i + \Delta)$ 在点 $U_i$ 处作二阶泰勒展开：$h(U_i + \Delta) = h(U_i) + h'(U_i)\Delta + \frac{1}{2}h''(U_i)\Delta^2 + R(U_i, \Delta)$。
+由带 **Lagrange** 余项的二阶与三阶泰勒公式，余项 $R(U_i, \Delta) = \frac{1}{2}\big[h''(\xi) - h''(U_i)\big]\Delta^2$ 同时满足两个上界：$\vert R\vert \le M_2 \Delta^2$ 且 $\vert R\vert \le \frac{1}{6}M_3 \vert \Delta\vert ^3$，故恒有组合上界 $\vert R(U_i, \Delta)\vert \le \min\big(M_2 \Delta^2,\ \frac{1}{6}M_3 \vert \Delta\vert ^3\big)$。
+分别令 $\Delta = \frac{Y_i}{\sqrt{n}}$ 与 $\Delta = \frac{G_i}{\sqrt{n}}$ 并相减取期望。注意**公共背景 $U_i$ 与 $Y_i, G_i$ 完全独立**，且 $Y_i$ 与正态变量 $G_i$ 的**前两阶矩完全相同**（$\mathbb{E}[Y_i] = \mathbb{E}[G_i] = 0$，$\mathbb{E}[Y_i^2] = \mathbb{E}[G_i^2] = 1$），故零阶、一阶、二阶项在取期望后**全部精确抵消为零**：
 
-$$
-\begin{aligned}
-\varphi_{Z_n}(t) &= \mathbb{E}\left[\exp\left(\mathrm{i}t \cdot \frac{1}{\sqrt{n}}\sum_{i=1}^n Y_i\right)\right] \\&= \left[\varphi_Y\left(\frac{t}{\sqrt{n}}\right)\right]^n = \left[1 - \frac{t^2}{2n} + o\left(\frac{t^2}{n}\right)\right]^n
-\end{aligned}
-$$
+$$ \begin{aligned} &\mathbb{E}\left[h\left(U_i + \frac{Y_i}{\sqrt{n}}\right) - h\left(U_i + \frac{G_i}{\sqrt{n}}\right)\right] \\ &= \frac{1}{\sqrt{n}}\mathbb{E}[h'(U_i)]\underbrace{\mathbb{E}[Y_i - G_i]}_{= 0} + \frac{1}{2n}\mathbb{E}[h''(U_i)]\underbrace{\mathbb{E}[Y_i^2 - G_i^2]}_{= 1 - 1 = 0} + \mathbb{E}\left[R\left(U_i, \frac{Y_i}{\sqrt{n}}\right) - R\left(U_i, \frac{G_i}{\sqrt{n}}\right)\right] \end{aligned} $$
 
-对任意固定的 $t$，余项满足 $o\left(\frac{t^2}{n}\right) = o\left(\frac{1}{n}\right)$。由重要极限公式，当 $n \to \infty$ 时：
-   $$ \lim_{n\to\infty} \varphi_{Z_n}(t) = \lim_{n\to\infty} \left[1 + \frac{-t^2/2}{n} + o\left(\frac{1}{n}\right)\right]^n = e^{-t^2/2}, \quad \forall t \in \mathbb{R} $$
+**(4) 累加余项并取极限**：
+若三阶绝对矩有限 $\gamma_3 = \mathbb{E}[\vert Y_1\vert ^3] < \infty$，直接取三阶余界 $\vert R\vert \le \frac{M_3}{6 n^{3/2}}(\vert Y_i\vert ^3 + \vert G_i\vert ^3)$，对 $n$ 项求和立得：
 
-**(4) 应用 Lévy 连续性定理**：注意到 $e^{-t^2/2}$ 恰好是标准正态分布 $Z \sim N(0,1)$ 的特征函数。由定理 2.2（**Lévy 连续性定理**），得出 $Z_n \xrightarrow{d} Z \sim N(0,1)$。$\blacksquare$
+$$ \Big\vert \mathbb{E}\big[h(Z_n)\big] - \mathbb{E}\big[h(W_n)\big]\Big\vert \le \sum_{i=1}^n \frac{M_3\big(\gamma_3 + \mathbb{E}[\vert G_1\vert ^3]\big)}{6 n^{3/2}} = \frac{M_3\big(\gamma_3 + \mathbb{E}[\vert G_1\vert ^3]\big)}{6\sqrt{n}} \xrightarrow{n\to\infty} 0 $$
+
+（若仅二阶矩 $\mathbb{E}[Y_1^2] = 1$ 有限，只需对任意 $\varepsilon > 0$ 按 $\{\vert Y_1\vert \le \varepsilon\sqrt{n}\}$ 选取 $\frac{M_3}{6}\vert \Delta\vert ^3$ 界，按 $\{\vert Y_1\vert > \varepsilon\sqrt{n}\}$ 选取 $M_2 \Delta^2$ 界，单步余项受控于 $\frac{1}{n}\big(\frac{\varepsilon M_3}{6}\mathbb{E}[Y_1^2] + M_2 \mathbb{E}[Y_1^2 \mathbf{1}_{\{\vert Y_1\vert > \varepsilon\sqrt{n}\}}]\big)$，$n$ 项求和后令 $n \to \infty$ 再令 $\varepsilon \to 0$ 同样趋于 $0$）。故 $Z_n \xrightarrow{d} N(0, 1)$。$\blacksquare$
 
 ### 2.2.2 二项分布的中心极限定理（De Moivre-Laplace）
 
-作为定理 **2.3（Lindeberg-Lévy CLT）**在离散 **Bernoulli** 试验下的特例，**De Moivre-Laplace 定理** 是历史上第一个中心极限定理。
+与 **Bernoulli** 弱大数定律是 **Khinchin** 弱大数定律的特例完全平行，历史上第一个中心极限定理——**De Moivre-Laplace 定理**，恰好是定理 **2.2（Lindeberg-Lévy CLT）**在 **0-1 分布（伯努利试验）**下的直接特例。
 
 > **推论 2.1（De Moivre-Laplace 中心极限定理）**
 > 设 $S_n \sim \text{Binomial}(n, p)$ 表示 $n$ 重独立 **Bernoulli** 试验中成功的次数，其中 $p\in(0,1)$ 固定。则当 $n \to \infty$ 时，
 > $$ \frac{S_n - np}{\sqrt{np(1 - p)}} \xrightarrow{d} N(0, 1) \quad (n \to \infty) $$
 
-**证明**：将 $S_n$ 表示为独立同分布变量之和 $S_n = \sum_{i=1}^n X_i$，其中 $X_i \stackrel{\text{i.i.d.}}{\sim} \text{Bernoulli}(p)$，均值为 $\mu = p$，方差为 $\sigma^2 = p(1 - p) > 0$。直接套用定理 2.3，即得 $\frac{\sqrt{n}(\bar{X}_n - p)}{\sqrt{p(1-p)}} = \frac{S_n - np}{\sqrt{np(1-p)}} \xrightarrow{d} N(0, 1)$。$\blacksquare$
+**证明**：将 $S_n$ 表示为独立同分布变量之和 $S_n = \sum_{i=1}^n X_i$，其中 $X_i \stackrel{\text{i.i.d.}}{\sim} \text{Bernoulli}(p)$，均值为 $\mu = p$，方差为 $\sigma^2 = p(1 - p) > 0$。直接套用定理 2.2，即得 $\frac{\sqrt{n}(\bar{X}_n - p)}{\sqrt{p(1-p)}} = \frac{S_n - np}{\sqrt{np(1-p)}} \xrightarrow{d} N(0, 1)$。$\blacksquare$
+
+### 2.2.3 独立不同分布与多维中心极限定理
+
+在定理 2.2 的 Lindeberg 逐个替换法证明中，我们实际上并未强制要求 $Y_1, \dots, Y_n$ 同分布——只要把第 $i$ 个非正态变量 $X_i - \mu_i$ 替换为具有**相同方差 $\sigma_i^2$** 的独立正态替身 $G_i \sim N(0, \sigma_i^2)$，前两阶泰勒展开项依然精确抵消！唯一的要求是 $n$ 个三阶（或截断二阶）泰勒余项之和趋于零。这直接导出了**独立不同分布**下的两个著名中心极限定理：
+
+> **定理 2.3（Lindeberg-Feller 与 Lyapunov 中心极限定理 —— 独立不同分布情形）**
+> 设 $X_1, X_2, \dots$ 相互独立，均值分别为 $\mu_i = \mathbb{E}[X_i]$，方差分别为 $\sigma_i^2 = \text{Var}(X_i) > 0$，记部分和的总标准差为 $B_n = \sqrt{\sum_{i=1}^n \sigma_i^2}$。
+> 1. **Lindeberg 条件（二阶矩下的充要条件）**：若对任意 $\varepsilon > 0$，超出 $\varepsilon B_n$ 阈值的截断尾方差占比趋于零：
+>    $$ \lim_{n\to\infty} \frac{1}{B_n^2}\sum_{i=1}^n \mathbb{E}\Big[(X_i - \mu_i)^2 \mathbf{1}_{\{\vert X_i - \mu_i\vert > \varepsilon B_n\}}\Big] = 0 $$
+>    （该条件成立且 $\max_{1\le i\le n} \sigma_i^2 / B_n^2 \to 0$ 是下述正态收敛的充要条件）；
+> 2. **Lyapunov 条件（基于 $2+\delta$ 阶矩的充分条件）**：特别地，若存在常数 $\delta > 0$，使得
+>    $$ \lim_{n\to\infty} \frac{1}{B_n^{2+\delta}}\sum_{i=1}^n \mathbb{E}\left[\vert X_i - \mu_i\vert ^{2+\delta}\right] = 0 $$
+> 
+> 则在 **Lindeberg** 条件（或 **Lyapunov** 条件）下，当 $n \to \infty$ 时均有：
+> $$ Z_n = \frac{\sum_{i=1}^n (X_i - \mu_i)}{B_n} \xrightarrow{d} N(0, 1) $$
+
+**证明**：先证 **Lyapunov** 条件蕴含 **Lindeberg** 条件：在事件 $\{\vert X_i - \mu_i\vert > \varepsilon B_n\}$ 上恒有 $\left(\frac{\vert X_i - \mu_i\vert }{\varepsilon B_n}\right)^\delta \ge 1$，故
+$$ \frac{1}{B_n^2}\sum_{i=1}^n \mathbb{E}\Big[(X_i - \mu_i)^2 \mathbf{1}_{\{\vert X_i - \mu_i\vert > \varepsilon B_n\}}\Big] \le \frac{1}{\varepsilon^\delta B_n^{2+\delta}}\sum_{i=1}^n \mathbb{E}\left[\vert X_i - \mu_i\vert ^{2+\delta}\right] \xrightarrow{n\to\infty} 0 $$
+在 **Lindeberg** 条件下，完全照搬定理 2.2 的逐个替换法，令 $\Delta_i = \frac{X_i - \mu_i}{B_n}$，$n$ 个单步替换的泰勒余项之和受控于 $\frac{\varepsilon M_3}{6}\sum_{i=1}^n \frac{\sigma_i^2}{B_n^2} + \frac{M_2}{B_n^2}\sum_{i=1}^n \mathbb{E}\big[(X_i - \mu_i)^2 \mathbf{1}_{\{\vert X_i - \mu_i\vert > \varepsilon B_n\}}\big]$。先令 $n \to \infty$，第二项由 **Lindeberg** 条件趋于 $0$；再由 $\varepsilon > 0$ 的任意性知总余项趋于 $0$，故 $Z_n \xrightarrow{d} N(0, 1)$。$\blacksquare$
+
+当研究对象为 $d$ 维随机向量时，借助高维依分布收敛的线性投影判据（**Cramér-Wold 定理**：随机向量序列 $\mathbf{Y}_n \xrightarrow{d} \mathbf{Y}$ 当且仅当对一切固定常数向量 $\mathbf{a} \in \mathbb{R}^d$ 均有一维内积 $\mathbf{a}^\top \mathbf{Y}_n \xrightarrow{d} \mathbf{a}^\top \mathbf{Y}$），可将一维中心极限定理直接提升至多维空间：
+
+> **定理 2.4（多维 Lindeberg-Lévy 中心极限定理）**
+> 设 $\mathbf{X}_1, \mathbf{X}_2, \dots \in \mathbb{R}^d$ 为独立同分布的 $d$ 维随机向量序列，均值向量为 $\boldsymbol{\mu} = \mathbb{E}[\mathbf{X}_1]$，协方差矩阵为 $\boldsymbol{\Sigma} = \text{Cov}(\mathbf{X}_1) = \mathbb{E}[(\mathbf{X}_1 - \boldsymbol{\mu})(\mathbf{X}_1 - \boldsymbol{\mu})^\top]$（元素有限）。记样本均值向量为 $\bar{\mathbf{X}}_n = \frac{1}{n}\sum_{i=1}^n \mathbf{X}_i$，则当 $n \to \infty$ 时，
+> $$ \sqrt{n}\left(\bar{\mathbf{X}}_n - \boldsymbol{\mu}\right) \xrightarrow{d} N_d\left(\mathbf{0},\ \boldsymbol{\Sigma}\right) $$
+
+**证明**：对任意固定的常数向量 $\mathbf{a} \in \mathbb{R}^d$，构造一维标量序列 $U_i = \mathbf{a}^\top (\mathbf{X}_i - \boldsymbol{\mu})$。由于 $U_1, \dots, U_n$ 独立同分布，均值为 $\mathbb{E}[U_i] = 0$，方差为 $\text{Var}(U_i) = \mathbf{a}^\top \boldsymbol{\Sigma}\mathbf{a} < \infty$，由一维定理 2.2 知 $\mathbf{a}^\top \big[\sqrt{n}(\bar{\mathbf{X}}_n - \boldsymbol{\mu})\big] = \frac{1}{\sqrt{n}}\sum_{i=1}^n U_i \xrightarrow{d} N(0, \mathbf{a}^\top \boldsymbol{\Sigma}\mathbf{a})$。而多维正态分布 $\mathbf{Z} \sim N_d(\mathbf{0}, \boldsymbol{\Sigma})$ 的一维投影恰好服从 $N(0, \mathbf{a}^\top \boldsymbol{\Sigma}\mathbf{a})$，由 **Cramér-Wold** 定理立得 $\sqrt{n}(\bar{\mathbf{X}}_n - \boldsymbol{\mu}) \xrightarrow{d} N_d(\mathbf{0}, \boldsymbol{\Sigma})$。$\blacksquare$
 
 
 <a id="convergence-relations"></a>
@@ -284,7 +315,7 @@ $$
 
 在渐近理论中，依概率收敛与依分布收敛存在紧密的逻辑关联。
 
-> **定理 2.4（依概率收敛蕴含依分布收敛）**
+> **定理 2.5（依概率收敛蕴含依分布收敛）**
 > 设 $\{X_n\}$ 与 $X$ 为同一概率空间上的随机变量。若 $X_n \xrightarrow{P} X$，则必有 $X_n \xrightarrow{d} X$。
 
 **证明**：
@@ -335,10 +366,10 @@ $$ F_X(x - \varepsilon) - \delta_n(\varepsilon) \le F_{X_n}(x) \le F_X(x + \vare
 
 然而，当极限目标退化为确定性常数时，上述逆命题成立：
 
-> **定理 2.5（退化极限下的等价性）**
+> **定理 2.6（退化极限下的等价性）**
 > 设 $c$ 为常数，则 $X_n \xrightarrow{d} c \iff X_n \xrightarrow{P} c$。
 
-**证明**：其中一个方向（$\Leftarrow$）已由定理 2.4 给出，仅需证明另一方向（$\Rightarrow$）。
+**证明**：其中一个方向（$\Leftarrow$）已由定理 2.5 给出，仅需证明另一方向（$\Rightarrow$）。
 设 $X_n \xrightarrow{d} c$，常数 $c$ 对应的退化分布函数为：
 
 $$ F_c(x) = \begin{cases} 0, & x < c \\ 1, & x \ge c \end{cases} $$
@@ -356,25 +387,25 @@ $$ \begin{aligned} 0 \le P\left(\vert X_n - c\vert > \varepsilon\right) &\le P\l
 
 <a id="exercise-mc-dropout"></a>
 
-## 📖 例题（MC dropout 预测均值的蒙特卡洛误差）
+## 📖 例题：MC dropout 预测均值的蒙特卡洛误差
 
-> **论文背景**：[**Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning**](https://arxiv.org/abs/1506.02142) (*ICML* 2016)。
+> **论文背景**：[**Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning**](https://arxiv.org/abs/1506.02142) (*ICML* 2016)
 >
-> Gal 与 Ghahramani 提出在测试阶段保留 dropout 随机掩码，对同一输入重复 $T$ 次前向传播，用这 $T$ 个输出的样本均值近似预测均值，用样本二阶矩减去均值平方（再加上观测噪声项 $\tau^{-1}$）近似预测方差，论文把这一做法称为 **MC dropout**。给定输入与训练完成的权重后，这 $T$ 个输出由独立重采样的掩码生成，因而独立同分布：样本均值的收敛性由大数定律给出，其误差量级与置信区间由中心极限定理给出。
+> **Gal** 与 **Ghahramani** 提出在测试阶段保留 **dropout** 随机掩码，对同一输入重复 $T$ 次前向传播，用这 $T$ 个输出的样本均值近似预测均值，用样本二阶矩减去均值平方（再加上观测噪声项 $\tau^{-1}$）近似预测方差，论文把这一做法称为 **MC dropout**。给定输入与训练完成的权重后，这 $T$ 个输出由独立重采样的掩码生成，因而独立同分布：样本均值的收敛性由大数定律给出，其误差量级与置信区间由中心极限定理给出。
 >
 > **题目描述**：固定输入 $x$ 与训练完成的权重，设 $T$ 次前向传播的标量输出 $Y_1, \dots, Y_T$ 独立同分布，记
 > $$ \mu(x) = \mathbb{E}[Y_1], \qquad s^2(x) = \text{Var}(Y_1) \in (0, \infty) $$
-> MC dropout 以 $\hat{\mu}_T = \frac{1}{T}\sum_{t=1}^T Y_t$ 作为预测均值的估计。
+> **MC dropout** 以 $$\hat{\mu}_T = \frac{1}{T}\sum_{t=1}^T Y_t$$ 作为预测均值的估计。
 > 1. 求 $\mu(x)$ 的渐近 $1 - \alpha$ 置信区间。
 > 2. 设 $s(x) = 0.2$，要使该置信区间（取 $\alpha = 0.05$）的半宽不超过 $0.01$，前向传播次数 $T$ 至少取多少？
 
 **解答**：
 
-**(1)** 由 $Y_t$ 独立同分布且 $0 < s^2(x) < \infty$，定理 2.3（**Lindeberg-Lévy** 中心极限定理）给出
+**(1)** 由 $Y_t$ 独立同分布且 $0 < s^2(x) < \infty$，定理 2.2（**Lindeberg-Lévy** 中心极限定理）给出
 
 $$ \sqrt{T}\left(\hat{\mu}_T - \mu(x)\right) \xrightarrow{d} N\left(0,\ s^2(x)\right) $$
 
-记 $z_{\alpha/2}$ 为标准正态分布的上 $\alpha/2$ 分位数，则 $P\big(\vert \hat{\mu}_T - \mu(x)\vert \le z_{\alpha/2}s(x)/\sqrt{T}\big) \to 1 - \alpha$，故 $\mu(x)$ 的渐近 $1-\alpha$ 置信区间为
+记 $z_{\alpha/2}$ 为标准正态分布的上 $\alpha/2$ 分位数，则 $$P\big(\vert \hat{\mu}_T - \mu(x)\vert \le z_{\alpha/2}s(x)/\sqrt{T}\big) \to 1 - \alpha$$，故 $\mu(x)$ 的渐近 $1-\alpha$ 置信区间为
 
 $$ \hat{\mu}_T \pm z_{\alpha/2}\frac{s(x)}{\sqrt{T}} $$
 
@@ -387,64 +418,3 @@ $$ z_{\alpha/2}\frac{s(x)}{\sqrt{T}} \le \delta \iff T \ge \left(\frac{z_{\alpha
 $$ T \ge \left(\frac{1.96 \times 0.2}{0.01}\right)^2 \approx 1536.6 \quad \Longrightarrow \quad T \ge 1537 $$
 
 由于半宽按 $T^{-1/2}$ 下降，精度每提高一个数量级，所需前向传播次数就要增加约 $100$ 倍，这是蒙特卡洛估计的固有代价。
-
-<a id="cmt-stochastic-order"></a>
-
-# 3. 连续映射定理与随机渐近阶符号
-
-<a id="continuous-mapping"></a>
-
-## 3.1 连续映射定理（CMT）
-
-在确定性微积分中，若数列 $a_n \to a$ 且函数 $g(x)$ 在点 $a$ 处连续，则有 $g(a_n) \to g(a)$。连续映射定理将这一性质完整推广至随机变量的收敛序列。
-
-> **定理 3.1（连续映射定理，Continuous Mapping Theorem）**
-> 设 $g: \mathbb{R}^d \to \mathbb{R}^k$ 为 Borel 可测映射，其不连续点集合记为 $D_g$。若 $P(\mathbf{X}\in D_g)=0$，即 $g$ 相对于 $\mathbf{X}$ 的分布几乎处处连续，则：
-> 1. 若 $\mathbf{X}_n \xrightarrow{P} \mathbf{X}$，则 $g(\mathbf{X}_n) \xrightarrow{P} g(\mathbf{X})$；
-> 2. 若 $\mathbf{X}_n \xrightarrow{d} \mathbf{X}$，则 $g(\mathbf{X}_n) \xrightarrow{d} g(\mathbf{X})$。
-
-**证明（常数概率极限与处处连续映射两种情形）**：
-设函数 $g$ 在常数点 $\mathbf{c}$ 处连续。由多元函数在一点连续的 $\varepsilon$-$\delta$ 定义：对任意给定的 $\varepsilon > 0$，存在 $\delta > 0$，使得对任意满足 $\Vert \mathbf{x} - \mathbf{c}\Vert \le \delta$ 的点 $\mathbf{x}$，均有 $\Vert g(\mathbf{x}) - g(\mathbf{c})\Vert \le \varepsilon$。
-取其逆否命题：若随机事件 $\{\Vert g(\mathbf{X}_n) - g(\mathbf{c})\Vert > \varepsilon\}$ 发生，则必然有事件 $\{\Vert \mathbf{X}_n - \mathbf{c}\Vert > \delta\}$ 发生。由事件包含关系的概率单调性，得：
-
-$$ 0 \le P\left(\Vert g(\mathbf{X}_n) - g(\mathbf{c})\Vert > \varepsilon\right) \le P\left(\Vert \mathbf{X}_n - \mathbf{c}\Vert > \delta\right) $$
-
-令 $n \to \infty$，由 $\mathbf{X}_n \xrightarrow{P} \mathbf{c}$ 知右端概率趋于 $0$，故 $g(\mathbf{X}_n) \xrightarrow{P} g(\mathbf{c})$。
-对于依分布收敛情形，当 $g$ 处处连续时，任取有界连续函数 $h$，则复合函数 $h \circ g$ 仍为有界连续函数。由定理 2.1（**Portmanteau 定理**）的条件 2，直接有 $\mathbb{E}[h(g(\mathbf{X}_n))] = \mathbb{E}[(h\circ g)(\mathbf{X}_n)] \to \mathbb{E}[(h\circ g)(\mathbf{X})] = \mathbb{E}[h(g(\mathbf{X}))]$，故 $g(\mathbf{X}_n) \xrightarrow{d} g(\mathbf{X})$。$\blacksquare$
-
-<a id="stochastic-order"></a>
-
-## 3.2 随机渐近阶符号：$o_p(\cdot)$ 与 $O_p(\cdot)$
-
-在经典数学分析中，**Landau** 符号 $o(\cdot)$ 与 $O(\cdot)$ 被广泛用于表示无穷小量与有界量的渐近阶。在数理统计中，为了简化复杂随机展开式的书写，引入了对应的**随机渐近阶符号（Stochastic Order Symbols）**。
-
-> **定义 3.1（依概率无穷小量 $o_p$）**
-> 设 $\{X_n\}$ 为随机变量序列，$\{a_n\}$ 为正实数序列。
-> 1. 若 $X_n \xrightarrow{P} 0$，则记作 $X_n = o_p(1)$；
-> 2. 若 $X_n/a_n \xrightarrow{P} 0$，则记作 $X_n = o_p(a_n)$。
-
-> **定义 3.2（依概率有界量 $O_p$）**
-> 设 $\{X_n\}$ 为随机变量序列，$\{a_n\}$ 为正实数序列。
-> 1. 若对任意 $\eta>0$，存在有限常数 $M_\eta>0$ 和正整数 $N_\eta$，使得当 $n>N_\eta$ 时恒有
-> $$ P\left(\vert X_n\vert > M_\eta\right) < \eta $$
-> 则称序列 $\{X_n\}$ **依概率有界（Bounded in Probability）**，记作 $X_n=O_p(1)$；
-> 2. 若 $X_n/a_n=O_p(1)$，则记作 $X_n=O_p(a_n)$。
-
-> **定理 3.2（依分布收敛必依概率有界）**
-> 若随机变量序列满足 $X_n \xrightarrow{d} X$，则必有 $X_n = O_p(1)$。
-
-**证明**：任取 $\eta > 0$。由于极限随机变量 $X$ 的分布函数满足 $\lim_{x\to -\infty} F_X(x) = 0$ 及 $\lim_{x\to +\infty} F_X(x) = 1$，故存在充分大的正数 $M > 0$，使得 $-M$ 与 $M$ 均为 $F_X$ 的连续点，且满足：
-
-$$ P(\vert X\vert > M) \le F_X(-M) + \left[1 - F_X(M)\right] < \frac{\eta}{2} $$
-
-由 $X_n \xrightarrow{d} X$，在连续点 $\pm M$ 处有 $\lim_{n\to\infty} \left(F_{X_n}(-M) + 1 - F_{X_n}(M)\right) = F_X(-M) + 1 - F_X(M) < \frac{\eta}{2}$。由极限的保号性，存在正整数 $N$，当 $n > N$ 时恒有：
-
-$$ P(\vert X_n\vert > M) \le F_{X_n}(-M) + 1 - F_{X_n}(M) < \eta $$
-
-此即表明 $X_n = O_p(1)$。$\blacksquare$
-
-> **应用示例（中心极限定理的渐近阶表示）**：
-> 由中心极限定理知 $\sqrt{n}(\bar{X}_n - \mu) \xrightarrow{d} N(0, \sigma^2)$。根据定理 3.2，该收敛序列必依概率有界，即：
-> $$ \sqrt{n}(\bar{X}_n - \mu) = O_p(1) \iff \bar{X}_n - \mu = O_p\left(n^{-1/2}\right) $$
-> 这表明样本均值逼近总体均值的收敛速率为 $n^{-1/2}$ 量级。由于 $n^{-1/2} \to 0$，故亦有 $\bar{X}_n - \mu = o_p(1)$（即弱大数定律）。
-
