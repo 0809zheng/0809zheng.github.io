@@ -90,7 +90,7 @@ $$ P(\vert X_n\vert > M) \le F_{X_n}(-M) + 1 - F_{X_n}(M) < \eta $$
 
 此即表明 $X_n = O_p(1)$。$\blacksquare$
 
-若 $X_n=O_p(1)$ 且确定性序列 $a_n\to0$，则 $a_nX_n=o_p(1)$。证明如下：给定 $\varepsilon,\eta>0$，先取 $M$ 使大样本时 $P(|X_n|>M)<\eta$，再取 $n$ 充分大使 $|a_n|M\le\varepsilon$，便有 $P(|a_nX_n|>\varepsilon)\le P(|X_n|>M)<\eta$。因此中心极限定理给出的 $\sqrt n$ 尺度波动也蕴含未缩放估计量的相合性。
+若 $X_n=O_p(1)$ 且确定性序列 $a_n\to0$，则 $a_nX_n=o_p(1)$。证明如下：给定 $\varepsilon,\eta>0$，先取 $M$ 使大样本时 $P(\|X_n\|>M)<\eta$，再取 $n$ 充分大使 $\|a_n\|M\le\varepsilon$，便有 $P(\|a_nX_n\|>\varepsilon)\le P(\|X_n\|>M)<\eta$。因此中心极限定理给出的 $\sqrt n$ 尺度波动也蕴含未缩放估计量的相合性。
 
 > **应用示例（中心极限定理的渐近阶表示）**：
 > 由中心极限定理知 $\sqrt{n}(\bar{X}_n - \mu) \xrightarrow{d} N(0, \sigma^2)$。根据定理 1.2，该收敛序列必依概率有界，即：
@@ -166,7 +166,7 @@ $$ X_n Y_n = cX_n + X_n(Y_n - c) $$
 
 ## 2.3 未知参数代入原理（Plug-in Principle）
 
-设 $X_i$ 独立同分布，$\mathbb{E}[X_i]=\mu$、$0<\text{Var}(X_i)=\sigma^2<\infty$，且 $n\ge2$。在数理统计中，中心极限定理给出 $\frac{\sqrt{n}(\bar{X}_n - \mu)}{\sigma} \xrightarrow{d} N(0, 1)$。但在构造总体均值 $\mu$ 的置信区间或进行假设检验时，总体标准差 $\sigma$ 往往是未知参数。统计学家通常使用样本标准差 $S_n = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X}_n)^2}$ 替换未知的 $\sigma$，构造出学生 $t$ 统计量：
+设 $X_i$ 独立同分布，$\mathbb{E}[X_i]=\mu$、$0<\text{Var}(X_i)=\sigma^2<\infty$，且 $n\ge2$。在数理统计中，中心极限定理给出 $$\frac{\sqrt{n}(\bar{X}_n - \mu)}{\sigma} \xrightarrow{d} N(0, 1)$$。但在构造总体均值 $\mu$ 的置信区间或进行假设检验时，总体标准差 $\sigma$ 往往是未知参数。统计学家通常使用样本标准差 $$S_n = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X}_n)^2}$$ 替换未知的 $\sigma$，构造出学生 $t$ 统计量：
 
 $$ t_n = \frac{\sqrt{n}\left(\bar{X}_n - \mu\right)}{S_n} $$
 
@@ -184,8 +184,10 @@ $$ t_n = \frac{\sqrt{n}\left(\bar{X}_n - \mu\right)}{S_n} $$
 $$ t_n = \underbrace{\frac{\sqrt{n}\left(\bar{X}_n - \mu\right)}{\sigma}}_{\xrightarrow{d} N(0,1)} \cdot \underbrace{\frac{\sigma}{S_n}}_{\xrightarrow{P} 1} \xrightarrow{d} N(0, 1) \cdot 1 = N(0, 1) $$
 
 > **注（一般化参数代入法则 General Plug-in Rule）**：
-> 设参数 $\theta$ 的估计量满足渐近正态性 $\sqrt{n}(\hat{\theta}_n - \theta) \xrightarrow{d} N(0, \tau^2)$，其中渐近方差 $\tau^2 > 0$ 未知。只要能够构造出 $\tau^2$ 的任意弱相合估计量 $\hat{\tau}_n^2 \xrightarrow{P} \tau^2$，由连续映射定理与 **Slutsky** 除法法则，必有：
+> 设参数 $\theta$ 的估计量满足渐近正态性 $$\sqrt{n}(\hat{\theta}_n - \theta) \xrightarrow{d} N(0, \tau^2)$$，其中渐近方差 $\tau^2 > 0$ 未知。只要能够构造出 $\tau^2$ 的任意弱相合估计量 $$\hat{\tau}_n^2 \xrightarrow{P} \tau^2$$，由连续映射定理与 **Slutsky** 除法法则，必有：
+> 
 > $$ \frac{\sqrt{n}\left(\hat{\theta}_n - \theta\right)}{\hat{\tau}_n} \xrightarrow{d} N(0, 1) $$
+> 
 > 这里取非负方差估计的平方根 $\hat{\tau}_n=\sqrt{\hat{\tau}_n^2}$。据此可构造参数 $\theta$ 的渐近 $1-\alpha$ 置信区间：$\hat{\theta}_n \pm z_{\alpha/2}\frac{\hat{\tau}_n}{\sqrt{n}}$，其中 $z_{\alpha/2}$ 为标准正态分布的上 $\alpha/2$ 分位数。
 
 <a id="iwae-gradient"></a>
@@ -197,7 +199,9 @@ $$ t_n = \underbrace{\frac{\sqrt{n}\left(\bar{X}_n - \mu\right)}{\sigma}}_{\xrig
 > **Burda**、**Grosse** 与 **Salakhutdinov** 提出的 **IWAE** 从编码器分布中采样 $K$ 个潜变量，用重要性权重的平均值估计观测 $x$ 的边缘似然 $p_\theta(x)$，并以该平均值的对数期望构造似然下界。对单次采样的平均权重取对数并求导，得到生成网络的一次梯度估计。该梯度是各潜变量样本对应梯度的加权平均，权重除以同组权重之和，称为**自归一化（Self-normalization）**。下面分析增加采样次数后，这一随机梯度如何逼近真实梯度。
 >
 > **题目描述**：固定观测 $x$ 和编码器分布 $q_\phi(z\mid x)$，只考虑生成网络的一个标量参数 $\theta$，在当前参数值处计算梯度。独立采样 $z_1,\dots,z_K\sim q_\phi(z\mid x)$。对第 $k$ 个样本，定义重要性权重 $w_k$ 和样本梯度 $s_k$：
+> 
 > $$ w_k=\frac{p_\theta(x,z_k)}{q_\phi(z_k\mid x)},\quad s_k=\partial_\theta\ln p_\theta(x,z_k) $$
+> 
 > 假设$w_k>0$，$0<p_\theta(x)<\infty$、$\mathbb E_q[|w_1s_1|]<\infty$，且微分与积分可以交换；$\mathbb E_q$ 表示对编码器分布取期望。记真实梯度为 $g=\partial_\theta\ln p_\theta(x)$。
 > 1. 推导 $\hat g_K=\partial_\theta\ln(\frac1K\sum_kw_k)$ 的表达式，并证明 $\hat g_K\xrightarrow{P}g$。
 > 2. 若 $0<\mathbb E_q[w_1^2(s_1-g)^2]<\infty$，求 $\sqrt K(\hat g_K-g)$ 的极限分布。
@@ -266,6 +270,7 @@ $$ \sqrt K(\hat g_K-g)\xrightarrow{d}N\left(0,\frac{\mathbb E_q[w_1^2(s_1-g)^2]}
 
 > **定理 3.1（一元一阶 Delta 方法）**
 > 设随机变量序列 $\{\hat{\theta}_n\}$ 满足渐近正态性 $\sqrt{n}(\hat{\theta}_n - \theta) \xrightarrow{d} N(0, \tau^2)$。若函数 $g: \mathbb{R} \to \mathbb{R}$ 在点 $\theta$ 处可导，则有：
+> 
 > $$ \sqrt{n}\left(g(\hat{\theta}_n) - g(\theta)\right) \xrightarrow{d} N\left(0,\ \tau^2\left[g'(\theta)\right]^2\right) $$
 
 当 $g'(\theta)=0$ 时，结论仍成立，但极限退化于零；若要得到非退化正态极限，则还需 $\tau^2>0$ 且 $g'(\theta)\neq0$。
@@ -303,8 +308,11 @@ $$ \sqrt{n}\left(g(\hat{\theta}_n) - g(\theta)\right) = \underbrace{\left[g'(\th
 
 > **定理 3.2（多元一阶 Delta 方法）**
 > 设 $m$ 维随机向量序列 $\{\hat{\boldsymbol{\theta}}_n\}$ 满足渐近多元正态性 $\sqrt{n}\left(\hat{\boldsymbol{\theta}}_n - \boldsymbol{\theta}\right) \xrightarrow{d} N_m\left(\mathbf{0},\ \boldsymbol{\Sigma}\right)$，其中 $\boldsymbol{\Sigma} \in \mathbb{R}^{m\times m}$ 为对称半正定协方差矩阵。设向量值映射 $g(\boldsymbol{\theta}) = \big(g_1(\boldsymbol{\theta}), \dots, g_s(\boldsymbol{\theta})\big)^\top: \mathbb{R}^m \to \mathbb{R}^s$ 在点 $\boldsymbol{\theta}$ 处可微，记其在点 $\boldsymbol{\theta}$ 处的 **Jacobi** 矩阵为：
+> 
 > $$ \mathbf{G} = \left.\frac{\partial g(\mathbf{x})}{\partial \mathbf{x}^\top}\right\vert _{\mathbf{x}=\boldsymbol{\theta}} = \begin{pmatrix} \dfrac{\partial g_1}{\partial \theta_1} & \cdots & \dfrac{\partial g_1}{\partial \theta_m} \\ \vdots & \ddots & \vdots \\ \dfrac{\partial g_s}{\partial \theta_1} & \cdots & \dfrac{\partial g_s}{\partial \theta_m} \end{pmatrix}_{s\times m} $$
+> 
 > 则变换后的随机向量序列满足：
+> 
 > $$ \sqrt{n}\left(g(\hat{\boldsymbol{\theta}}_n) - g(\boldsymbol{\theta})\right) \xrightarrow{d} N_s\left(\mathbf{0},\ \mathbf{G}\boldsymbol{\Sigma}\mathbf{G}^\top\right) $$
 
 **证明**：
@@ -343,7 +351,9 @@ $$ \mathbf{a}^\top \sqrt{n}\left(g(\hat{\boldsymbol{\theta}}_n) - g(\boldsymbol{
 
 > **定理 3.3（二阶 Delta 方法）**
 > 设随机变量序列 $\{\hat{\theta}_n\}$ 满足 $\sqrt{n}(\hat{\theta}_n - \theta) \xrightarrow{d} N(0, \tau^2)$。若函数 $g: \mathbb{R} \to \mathbb{R}$ 在点 $\theta$ 处二阶可导，且满足 $g'(\theta) = 0$ 及 $g''(\theta) \neq 0$，则有：
+> 
 > $$ n\left(g(\hat{\theta}_n) - g(\theta)\right) \xrightarrow{d} \frac{g''(\theta)}{2}\cdot\tau^2 \chi_1^2 $$
+> 
 > 其中 $\chi_1^2$ 表示自由度为 $1$ 的标准卡方分布。
 
 **证明**：
