@@ -15,6 +15,29 @@ tags: 数学
 
 本文先给出这类计算的一般原理（以及 **logits** 方差不可忽略时的修正），再逐一推导分类、回归、分割、对比学习与生成模型中常用损失的理论初始值，最后介绍按标签先验初始化输出偏置的做法。
 
+1. [一般原理：均匀预测与凸性下界](#uniform-prediction-and-convexity)
+   - [1.1 均匀预测下的损失](#loss-under-uniform-prediction)
+   - [1.2 Jensen 下界](#jensen-lower-bound)
+   - [1.3 logits 方差不可忽略时的修正](#logit-variance-correction)
+2. [二分类问题 (Binary Classification)](#binary-classification)
+   - [2.1 二进制交叉熵](#binary-cross-entropy)
+   - [2.2 多标签分类](#multi-label-classification)
+   - [2.3 Focal Loss](#focal-loss)
+3. [多分类问题 (Multi-Class Classification)](#multi-class-classification)
+   - [3.1 交叉熵](#cross-entropy)
+   - [3.2 标签平滑](#label-smoothing)
+   - [3.3 知识蒸馏中的 KL 散度](#distillation-kl-divergence)
+4. [回归问题 (Regression)](#regression)
+   - [4.1 均方误差](#mean-squared-error)
+   - [4.2 平均绝对误差](#mean-absolute-error)
+5. [图像分割 (Image Segmentation)](#image-segmentation)
+6. [对比学习与度量学习 (Contrastive and Metric Learning)](#contrastive-and-metric-learning)
+   - [6.1 InfoNCE](#infonce)
+   - [6.2 常见对比学习框架中的负样本数](#negative-samples)
+   - [6.3 Triplet Loss](#triplet-loss)
+7. [生成模型：变分自编码器 (VAE)](#variational-autoencoder)
+8. [按标签先验初始化输出偏置](#label-prior-bias-initialization)
+
 #### TL;DR:
 
 | 任务类型 | 损失函数 | 输出层 | 理论初始损失 | 备注 |
@@ -29,11 +52,17 @@ tags: 数学
 | **对比学习** | **InfoNCE** | **L2** 归一化 | $\log(N+1)+\frac{1}{2d\tau^2}$ | $N$ = 负样本数，$d$ = 特征维度，$\tau$ = 温度 |
 | **生成模型** | **VAE (ELBO)** | — | $D\log 2$（**Bernoulli** 重建）$+\,0$（**KL**） | $D$ = 像素数 |
 
+<a id="uniform-prediction-and-convexity"></a>
+
 # 1. 一般原理：均匀预测与凸性下界
+
+<a id="loss-under-uniform-prediction"></a>
 
 ## 1.1 均匀预测下的损失
 
 几乎所有分类类损失都可以写成 **logits** 向量 $z$ 的函数 $\mathcal{L}(z)$。当输出层初始化尺度很小时 $z\approx \mathbf{0}$，此时 **Softmax** 给出均匀分布、**Sigmoid** 给出 $0.5$，损失值 $\mathcal{L}(\mathbf{0})$ 只与类别数、负样本数等结构参数有关，与数据无关。
+
+<a id="jensen-lower-bound"></a>
 
 ## 1.2 Jensen 下界
 
@@ -50,6 +79,8 @@ $$
 $$
 
 因此均匀预测给出的理论值是零均值随机初始化下初始损失期望的**下界**：**logits** 的方差越大，实际初始损失越高。
+
+<a id="logit-variance-correction"></a>
 
 ## 1.3 logits 方差不可忽略时的修正
 
@@ -86,7 +117,11 @@ $$
 
 可以看到 $C$ 越大近似越准；当 $s=1$ 时初始损失比 $\log C$ 高出约 0.5。若希望初始损失贴近 $\log C$，可以把输出层权重的初始化尺度取小。
 
+<a id="binary-classification"></a>
+
 # 2. 二分类问题 (Binary Classification)
+
+<a id="binary-cross-entropy"></a>
 
 ## 2.1 二进制交叉熵
 
@@ -108,9 +143,13 @@ $$
 \boxed{\mathcal{L}_{\text{init}} = \log 2 \approx 0.693}
 $$
 
+<a id="multi-label-classification"></a>
+
 ## 2.2 多标签分类
 
 多标签分类对 $K$ 个标签各使用一个独立的 **Sigmoid** 输出和 **BCE** 损失。每个标签的初始损失都是 $\log 2$，因此按标签取平均（**reduction='mean'**）时初始损失为 $\log 2$，按标签求和时为 $K\log 2$。
+
+<a id="focal-loss"></a>
 
 ## 2.3 Focal Loss
 
@@ -128,7 +167,11 @@ $$
 
 取常用的 $\gamma=2$、$\alpha=0.25$，正样本的初始损失为 $0.25\times\frac{1}{4}\times 0.693\approx 0.043$，负样本为 $0.75\times\frac{1}{4}\times 0.693\approx 0.130$。
 
+<a id="multi-class-classification"></a>
+
 # 3. 多分类问题 (Multi-Class Classification)
+
+<a id="cross-entropy"></a>
 
 ## 3.1 交叉熵
 
@@ -152,6 +195,8 @@ $$
 
 例如图像分类中 **CIFAR-10**（10 类）的初始损失应在 $\log 10 \approx 2.303$ 附近，**ImageNet**（1000 类）应在 $\log 1000 \approx 6.908$ 附近（忽略**logits** 方差的影响）。同样的结论适用于逐元素计算交叉熵的任务：语义分割的逐像素交叉熵初始值为 $\log C$；语言模型的下一个 **token** 预测是在整个词表上做分类，词表大小为 $V$ 时初始损失为 $\log V$，例如 **GPT-2** 的词表 $V=50257$ 对应 $\log 50257 \approx 10.82$。
 
+<a id="label-smoothing"></a>
+
 ## 3.2 标签平滑
 
 **标签平滑（Label Smoothing）**把 **one-hot** 目标替换为 $q_i = (1-\varepsilon)\,\mathbb{1}[i=y] + \frac{\varepsilon}{C}$。由于 $\sum_i q_i = 1$，在均匀预测下
@@ -161,6 +206,8 @@ $$
 $$
 
 即标签平滑不改变初始损失的理论值。
+
+<a id="distillation-kl-divergence"></a>
 
 ## 3.3 知识蒸馏中的 KL 散度
 
@@ -172,7 +219,11 @@ $$
 
 其中 $H(p_{\text{t}})=-\sum_i p_{\text{t},i}\log p_{\text{t},i}$ 是教师分布的熵。教师输出越“软”（如使用较高的蒸馏温度），熵越大，**KL** 的初始值越接近 0；教师输出接近 **one-hot** 时，初始值接近 $\log C$。
 
+<a id="regression"></a>
+
 # 4. 回归问题 (Regression)
+
+<a id="mean-squared-error"></a>
 
 ## 4.1 均方误差
 
@@ -192,6 +243,8 @@ $$
 
 需要注意，当目标值未标准化且均值远离 0 时，偏差项 $(\mathbb{E}[y])^2$ 会主导初始损失。例如目标均值为 3、标准差为 2，而初始输出近似为 0 时，初始 **MSE** 约为 $4+9=13$，其中 9 来自均值偏差。
 
+<a id="mean-absolute-error"></a>
+
 ## 4.2 平均绝对误差
 
 平均绝对误差 (**Mean Absolute Error, MAE / L1 Loss**) 定义为 $\mathcal{L}=\vert\hat{y}-y\vert$。当 $\hat{y}\approx 0$ 时初始损失约为 $\mathbb{E}\vert y\vert$。若目标服从标准正态分布 $N(0,1)$：
@@ -199,6 +252,8 @@ $$
 $$
 \mathbb{E}\vert y\vert = 2\int_0^{\infty} y\,\frac{1}{\sqrt{2\pi}}e^{-y^2/2}\,dy = \frac{2}{\sqrt{2\pi}}\left[-e^{-y^2/2}\right]_0^{\infty} = \sqrt{\frac{2}{\pi}} \approx 0.798
 $$
+
+<a id="image-segmentation"></a>
 
 # 5. 图像分割 (Image Segmentation)
 
@@ -216,7 +271,11 @@ $$
 
 **Dice Loss** 的初始值依赖于前景比例：$f=0.5$ 时为 $0.5$，$f=0.1$ 时为 $0.833$，$f=0.01$ 时为 $0.980$。实现中常在分子分母加入平滑项以避免除零，当平滑项远小于像素数时对上述结果影响很小。
 
+<a id="contrastive-and-metric-learning"></a>
+
 # 6. 对比学习与度量学习 (Contrastive and Metric Learning)
+
+<a id="infonce"></a>
 
 ## 6.1 InfoNCE
 
@@ -254,6 +313,8 @@ $$
 
 上述推导假设正样本与负样本在初始特征空间中不可区分。实际上同一图像的两个增强视图经过随机网络后通常仍比不同图像更相似，这会使初始损失低于公式值；随机初始化的网络也可能把所有输入映射到相近的特征上，使各相似度接近一个共同的值，此时损失更接近 $\log(N+1)$。
 
+<a id="negative-samples"></a>
+
 ## 6.2 常见对比学习框架中的负样本数
 
 不同框架中“负样本数” $N$ 的含义不同，代入 6.1 节时需要区分：
@@ -261,9 +322,13 @@ $$
 *   **MoCo**：负样本来自长度为 $K$ 的队列，均匀预测值为 $\log(K+1)$。
 *   **CLIP**：批大小为 $B$ 时，每张图像在 $B$ 段文本中识别配对文本（反之亦然），图像到文本与文本到图像两个方向的交叉熵取平均，均匀预测值为 $\log B$。
 
+<a id="triplet-loss"></a>
+
 ## 6.3 Triplet Loss
 
 度量学习中的三元组损失（**Triplet Loss**）为 $\mathcal{L}=\max\left(0,\ d(a,p)-d(a,n)+m\right)$，其中 $a,p,n$ 分别是锚点、正样本和负样本，$m$ 是间隔。初始时正负样本到锚点的距离分布相同，$\mathbb{E}[d(a,p)-d(a,n)]=0$；由于 $\max(0,\cdot+m)$ 是凸函数，由 **Jensen** 不等式初始损失的期望不小于 $m$，距离差的波动越小越接近 $m$。
+
+<a id="variational-autoencoder"></a>
 
 # 7. 生成模型：变分自编码器 (VAE)
 
@@ -286,6 +351,8 @@ $$
 $$
 
 例如 **MNIST**（$D=784$）约为 $543.4$。若使用固定方差的高斯似然，重建项退化为（按比例缩放的）**MSE**，按 4.1 节计算。
+
+<a id="label-prior-bias-initialization"></a>
 
 # 8. 按标签先验初始化输出偏置
 
